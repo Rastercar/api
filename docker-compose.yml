@@ -1,0 +1,42 @@
+version: '3.7'
+
+volumes:
+  postgres:
+
+services:
+  # api:
+  #   image: node:12-alpine
+  #   container_name: raster-api
+  #   env_file:
+  #     - ./env/.development.env
+  #   working_dir: /raster/api
+  #   command: > #see:https://github.com/nodejs/docker-node/issues/282
+  #     sh -c "apk add --no-cache --virtual .gyp python make g++ && 
+  #     yarn cache clean &&
+  #     yarn install &&
+  #     apk del .gyp &&
+  #     yarn run start:dev"
+  #   ports:
+  #     - '3000:3000'
+  #   volumes:
+  #     - ./:/raster/api
+  #     - /raster/api/node_modules/
+  #   depends_on:
+  #     - db
+
+  db:
+    image: postgis/postgis
+    container_name: raster-db
+    env_file:
+      - ./env/.development.env
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  # redis:
+  #   container_name: "raster-redis"
+  #   image: redis
+  #   command: redis-server
+  #   ports:
+  #     - "6379:6379"
