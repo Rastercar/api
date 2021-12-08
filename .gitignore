@@ -50,4 +50,3 @@ creds.txt
 # Env
 env/*
 !env/.example.env
-
