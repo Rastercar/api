@@ -10,11 +10,15 @@
  |
  */
 
+import { Logger, NotFoundException } from '@nestjs/common'
 import getDatabaseConfig from '../config/database.config'
 import { Options } from '@mikro-orm/core'
-import { Logger } from '@nestjs/common'
 import { entities } from './entities'
 
 const logger = new Logger('MikroORM')
 
-export default { ...getDatabaseConfig(), entities, logger: logger.log.bind(logger) } as Options
+const findOneOrFailHandler = (entityName: string) => {
+  throw new NotFoundException(`${entityName} not found.`)
+}
+
+export default { ...getDatabaseConfig(), entities, logger: logger.log.bind(logger), findOneOrFailHandler } as Options
