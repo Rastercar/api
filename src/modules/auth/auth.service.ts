@@ -30,9 +30,7 @@ export class AuthService {
    * Fetches user data and generates a JWT for a given user
    */
   async login(user: User): Promise<{ user: User; token: Jwt }> {
-    return {
-      user,
-      token: { type: 'bearer', value: this.jwtService.sign({ sub: user.id }) }
-    }
+    const token = { type: 'bearer', value: this.jwtService.sign({ sub: user.id }) }
+    return { user, token }
   }
 }

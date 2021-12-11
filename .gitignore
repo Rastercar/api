@@ -46,6 +46,7 @@ tmp
 
 # Auth
 creds.txt
+secrets/
 
 # Env
 env/*
