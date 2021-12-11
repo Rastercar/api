@@ -1,0 +1,13 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Query {
+  user(id: Float!): UserModel!
+}
+
+"""user"""
+type UserModel {
+  id: ID!
+  username: String!
+}
