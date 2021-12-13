@@ -28,7 +28,7 @@ describe('[GUARD] ValidLoginRequest', () => {
   })
 
   it('should allow valid login requests', () => {
-    const body: LoginDTO = { username: 'valid_username', password: 'valid_password' }
+    const body: LoginDTO = { email: 'valid.email@gmail.com', password: 'valid_password' }
     req.body = body
 
     expect(guard.canActivate(new ExecutionContextHost([req]))).toBe(true)

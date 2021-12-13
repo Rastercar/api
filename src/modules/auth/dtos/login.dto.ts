@@ -1,9 +1,8 @@
-import { IsString, Length } from 'class-validator'
+import { IsEmail, IsString, Length } from 'class-validator'
 
 export class LoginDTO {
-  @IsString()
-  @Length(5, 50)
-  username!: string
+  @IsEmail()
+  email!: string
 
   @IsString()
   @Length(5, 50)

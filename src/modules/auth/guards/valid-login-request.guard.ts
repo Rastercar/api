@@ -17,7 +17,7 @@ export class ValidLoginRequestGuard implements CanActivate {
 
     const dto = new LoginDTO()
 
-    dto.username = body.username
+    dto.email = body.email
     dto.password = body.password
 
     const errors = validateDTO(dto)

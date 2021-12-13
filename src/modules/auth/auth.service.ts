@@ -13,10 +13,10 @@ export class AuthService {
    * @throws {NotFoundException} If there is no user with the informed username
    * @throws {UnauthorizedException} If the password is invalid
    */
-  async validateUserByCredentials(credentials: { username: string; password: string }): Promise<User> {
-    const { username, password } = credentials
+  async validateUserByCredentials(credentials: { email: string; password: string }): Promise<User> {
+    const { email, password } = credentials
 
-    const user = await this.userService.userRepository.findOneOrFail({ username })
+    const user = await this.userService.userRepository.findOneOrFail({ email })
 
     const passwordIsValid = await bcrypt.compare(password, user.password as string)
     if (!passwordIsValid) throw new UnauthorizedException('Invalid password')
