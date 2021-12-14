@@ -7,4 +7,13 @@ export class UserModel {
 
   @Field()
   username!: string
+
+  @Field()
+  email!: string
+
+  @Field()
+  emailVerified!: boolean
+
+  @Field({ nullable: true })
+  googleProfileId?: string
 }

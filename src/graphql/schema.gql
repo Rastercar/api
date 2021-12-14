@@ -2,13 +2,36 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+"""JSON Web Token"""
+type JwtModel {
+  type: String!
+  value: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type LoginResponse {
+  token: JwtModel!
+  user: UserModel!
+}
+
+type Mutation {
+  login(input: LoginInput!): LoginResponse!
+}
+
 type Query {
   me: UserModel!
-  user(id: Float!): UserModel!
+  user(id: Int!): UserModel!
 }
 
 """user"""
 type UserModel {
+  email: String!
+  emailVerified: Boolean!
+  googleProfileId: String
   id: ID!
   username: String!
 }
