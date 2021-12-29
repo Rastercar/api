@@ -4,6 +4,7 @@ import { AuthController } from './auth.controller'
 import { UserService } from '../user/user.service'
 import { AuthService } from './auth.service'
 import { JwtModule } from '@nestjs/jwt'
+import { ConfigService } from '@nestjs/config'
 
 describe('AuthController', () => {
   let controller: AuthController
@@ -12,7 +13,7 @@ describe('AuthController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [JwtModule.register({ secret: 'testing_token_secret', signOptions: { expiresIn: '60s' } })],
-      providers: [{ provide: AuthService, useFactory: () => ({ login: jest.fn() }) }, ...createEmptyMocksFor([UserService])],
+      providers: [{ provide: AuthService, useFactory: () => ({ login: jest.fn() }) }, ...createEmptyMocksFor([UserService, ConfigService])],
       controllers: [AuthController]
     }).compile()
 

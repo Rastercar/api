@@ -21,4 +21,12 @@ const findOneOrFailHandler = (entityName: string) => {
   throw new NotFoundException(`${entityName} not found.`)
 }
 
-export default { ...getDatabaseConfig(), entities, logger: logger.log.bind(logger), findOneOrFailHandler } as Options
+export default {
+  ...getDatabaseConfig(),
+
+  entities,
+
+  logger: logger.log.bind(logger),
+
+  findOneOrFailHandler
+} as Options

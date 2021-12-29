@@ -23,5 +23,8 @@ export const validationSchema = Joi.object({
   JWT_SECRET: Joi.string().min(10).required(),
 
   GOOGLE_OAUTH_CLIENT_ID: Joi.string().min(10).required(),
-  GOOGLE_OAUTH_CLIENT_SECRET: Joi.string().min(10).required()
+  GOOGLE_OAUTH_CLIENT_SECRET: Joi.string().min(10).required(),
+
+  API_BASE_URL: Joi.string().required().uri(),
+  PWA_BASE_URL: Joi.string().required().uri()
 })

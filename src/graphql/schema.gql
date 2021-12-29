@@ -32,6 +32,6 @@ type UserModel {
   email: String!
   emailVerified: Boolean!
   googleProfileId: String
-  id: ID!
+  id: Int!
   username: String!
 }

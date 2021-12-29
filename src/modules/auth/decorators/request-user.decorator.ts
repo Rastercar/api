@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext, InternalServerErrorException } from '@nestjs/common'
-import { User } from '../../user/user.entity'
+import { User } from '../../user/entities/user.entity'
 
 export function requestUserFactory(propName: keyof User | undefined, ctx: ExecutionContext) {
   const { user } = ctx.switchToHttp().getRequest()
