@@ -23,8 +23,18 @@ type Mutation {
 }
 
 type Query {
+  isEmailInUse(email: String!): Boolean!
   me: UserModel!
+  unregisteredUser(uuid: String!): UnregisteredUserModel!
   user(id: Int!): UserModel!
+}
+
+"""unregistered user"""
+type UnregisteredUserModel {
+  email: String!
+  emailVerified: Boolean!
+  username: String
+  uuid: String!
 }
 
 """user"""

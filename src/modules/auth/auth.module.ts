@@ -1,3 +1,4 @@
+import { OrganizationModule } from '../organization/organization.module'
 import { GoogleStrategy } from './strategies/google.strategy'
 import { LocalStrategy } from './strategies/local.strategy'
 import { JwtStrategy } from './strategies/jwt.strategy'
@@ -11,7 +12,7 @@ import { JwtModule } from '@nestjs/jwt'
 import { Module } from '@nestjs/common'
 
 @Module({
-  imports: [JwtModule.registerAsync(jwtConfig), PassportModule.register({ defaultStrategy: 'jwt' }), UserModule],
+  imports: [JwtModule.registerAsync(jwtConfig), PassportModule.register({ defaultStrategy: 'jwt' }), UserModule, OrganizationModule],
 
   providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy, AuthResolver],
 

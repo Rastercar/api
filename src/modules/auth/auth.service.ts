@@ -1,3 +1,4 @@
+import { OrganizationService } from '../organization/organization.service'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { User } from '../user/entities/user.entity'
 import { UserService } from '../user/user.service'
@@ -7,7 +8,11 @@ import * as bcrypt from 'bcrypt'
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly jwtService: JwtService, private readonly userService: UserService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly userService: UserService,
+    private readonly organizationService: OrganizationService
+  ) {}
 
   /**
    * @throws {NotFoundException} If there is no user with the informed username
@@ -39,5 +44,15 @@ export class AuthService {
 
   async getUserForGoogleProfile(googleProfileId: string): Promise<User | null> {
     return this.userService.userRepository.findOne({ oauthProfileId: googleProfileId, oauthProvider: 'google' })
+  }
+
+  /**
+   * Verifies if the provided email address is in use by a user, organization or some other entity
+   */
+  async checkEmailAddressInUse(email: string): Promise<boolean> {
+    const user = await this.userService.userRepository.findOne({ email }, { fields: ['id'] })
+    const org = await this.organizationService.organizationRepository.findOne({ billingEmail: email }, { fields: ['id'] })
+
+    return !!(user || org)
   }
 }

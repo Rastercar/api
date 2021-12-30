@@ -3,6 +3,8 @@ import { UserService } from '../user/user.service'
 import { ConfigService } from '@nestjs/config'
 import { AuthService } from './auth.service'
 import { JwtService } from '@nestjs/jwt'
+import { createEmptyMocksFor } from '../../../test/utils/mocking'
+import { OrganizationService } from '../organization/organization.service'
 
 describe('AuthService', () => {
   let service: AuthService
@@ -15,7 +17,7 @@ describe('AuthService', () => {
         AuthService,
         ConfigService,
         { provide: JwtService, useFactory: () => ({ sign: jest.fn() }) },
-        { provide: UserService, useFactory: () => ({}) }
+        ...createEmptyMocksFor([UserService, OrganizationService])
       ]
     }).compile()
 

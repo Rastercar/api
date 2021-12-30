@@ -5,8 +5,9 @@ import { AuthModule } from '../auth/auth.module'
 import { UserService } from './user.service'
 import { User } from './entities/user.entity'
 import { JwtModule } from '@nestjs/jwt'
-import { UserResolver } from './user.resolver'
+import { UserResolver } from './resolvers/user.resolver'
 import { UnregisteredUser } from './entities/unregistered-user.entity'
+import { UnregisteredUserResolver } from './resolvers/unregistered-user.resolver'
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { UnregisteredUser } from './entities/unregistered-user.entity'
     JwtModule.registerAsync(jwtConfig),
     MikroOrmModule.forFeature({ entities: [User, UnregisteredUser] })
   ],
-  providers: [UserService, UserResolver],
-  exports: [UserService, UserResolver]
+  providers: [UserService, UserResolver, UnregisteredUserResolver],
+  exports: [UserService, UserResolver, UnregisteredUserResolver]
 })
 export class UserModule {}

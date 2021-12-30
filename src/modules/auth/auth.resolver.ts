@@ -16,6 +16,11 @@ export class AuthResolver {
     return user
   }
 
+  @Query(returns => Boolean)
+  isEmailInUse(@Args('email', { type: () => String }) email: string) {
+    return this.authService.checkEmailAddressInUse(email)
+  }
+
   @Mutation(returns => LoginResponse)
   async login(@Args('input') credentials: LoginInput) {
     const user = await this.authService.validateUserByCredentials(credentials)
