@@ -6,7 +6,7 @@ import { UserModel } from '../models/user.model'
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
-  @Query(returns => UserModel)
+  @Query(returns => UserModel, { nullable: true })
   async user(@Args({ name: 'id', type: () => Int }) id: number): Promise<UserModel> {
     return this.userService.userRepository.findOneOrFail({ id })
   }

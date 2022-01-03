@@ -1,8 +1,19 @@
 import { Entity, EntityRepositoryType, OneToMany, Property, Unique } from '@mikro-orm/core'
+import { Organization } from '../../organization/entities/organization.entity'
 import { oauthProvider } from '../../auth/constants/oauth-providers'
 import { UserRepository } from '../repositories/user.repository'
 import { BaseEntity } from '../../../database/base/base-entity'
-import { Organization } from '../../organization/entities/organization.entity'
+
+interface UserArgs {
+  username: string
+  password: string
+
+  email: string
+  emailVerified: boolean
+
+  oauthProvider: oauthProvider | null
+  oauthProfileId: string | null
+}
 
 @Entity()
 export class User extends BaseEntity {
@@ -61,4 +72,21 @@ export class User extends BaseEntity {
    */
   @OneToMany({ mappedBy: (org: Organization) => org.owner, entity: () => Organization })
   ownedOrganizations!: Organization
+
+  constructor(data: UserArgs) {
+    super()
+
+    this.username = data.username
+    this.password = data.password
+
+    this.email = data.email
+    this.emailVerified = data.emailVerified
+
+    if ((data.oauthProfileId && !data.oauthProvider) || (!data.oauthProfileId && data.oauthProvider)) {
+      throw new Error('Cannot create user, either inform oauth_profile_id AND oauth_provider or none')
+    }
+
+    this.oauthProvider = data.oauthProvider
+    this.oauthProfileId = data.oauthProfileId
+  }
 }

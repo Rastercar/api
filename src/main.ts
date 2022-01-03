@@ -9,12 +9,11 @@ async function bootstrap() {
 
   app.enableCors({ credentials: true })
 
-  app.useGlobalPipes(new ValidationPipe())
-
   app.useGlobalFilters(new HttpExceptionFilter())
 
-  const configService = app.get(ConfigService)
+  app.useGlobalPipes(new ValidationPipe({ forbidUnknownValues: true }))
 
+  const configService = app.get(ConfigService)
   const port = configService.get('PORT', 3000)
 
   await app.listen(port)

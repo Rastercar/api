@@ -1,16 +1,17 @@
 import { ValidLoginRequestGuard } from './guards/valid-login-request.guard'
-import { Controller, Get, Post, Res, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common'
 import { RequestUser } from './decorators/request-user.decorator'
 import { GoogleAuthGuard } from './guards/google-auth.guard'
+import { RegisterUserDTO } from './dtos/register-user.dto'
 import { LocalAuthGuard } from './guards/local-auth.guard'
+import { User } from '../user/entities/user.entity'
+import { UserService } from '../user/user.service'
 import { Profile } from 'passport-google-oauth20'
 import { Jwt } from './strategies/jwt.strategy'
 import { ConfigService } from '@nestjs/config'
 import { AuthService } from './auth.service'
-import { User } from '../user/entities/user.entity'
-import { Response } from 'express'
-import { UserService } from '../user/user.service'
 import { URLSearchParams } from 'url'
+import { Response } from 'express'
 
 @Controller('auth')
 export class AuthController {
@@ -19,6 +20,12 @@ export class AuthController {
     private readonly userService: UserService,
     private readonly configService: ConfigService
   ) {}
+
+  // TODO: remove me
+  @Post('xd')
+  xd(@Body() xdd: RegisterUserDTO) {
+    return 'pass'
+  }
 
   @Post('login')
   @UseGuards(ValidLoginRequestGuard, LocalAuthGuard)

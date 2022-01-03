@@ -45,12 +45,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 
   catch(exception: HttpException, host: ArgumentsHost): Response<NormalizedErrorResponse> | HttpException {
+    const exceptionResponse = exception.getResponse()
+
     if (host.getType() !== 'http') return exception
 
     const response = host.switchToHttp().getResponse<Response>()
     const status = exception.getStatus()
-
-    const exceptionResponse = exception.getResponse()
 
     const responseObj = {
       statusCode: status,

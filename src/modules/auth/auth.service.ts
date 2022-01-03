@@ -6,6 +6,13 @@ import { Jwt } from './strategies/jwt.strategy'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 
+interface LoginOptions {
+  /**
+   * If the lastLogin property for the user should be updated with the current timestamp
+   */
+  setLastLogin: boolean
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -30,10 +37,12 @@ export class AuthService {
   }
 
   /**
-   * Fetches user data and generates a JWT for a given user
+   * Returns the given user and his new bearer JWT
    */
-  async login(user: User): Promise<{ user: User; token: Jwt }> {
-    await this.userService.userRepository.persistAndFlush({ ...user, lastLogin: new Date() })
+  async login(user: User, options?: LoginOptions): Promise<{ user: User; token: Jwt }> {
+    if (options?.setLastLogin) {
+      await this.userService.userRepository.persistAndFlush({ ...user, lastLogin: new Date() })
+    }
 
     const token = { type: 'bearer', value: this.jwtService.sign({ sub: user.id }) }
 

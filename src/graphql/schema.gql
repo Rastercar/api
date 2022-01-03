@@ -19,14 +19,26 @@ type LoginResponse {
 }
 
 type Mutation {
-  login(input: LoginInput!): LoginResponse!
+  login(credentials: LoginInput!): LoginResponse!
+  register(user: RegisterUserDTO!): LoginResponse!
 }
 
 type Query {
   isEmailInUse(email: String!): Boolean!
   me: UserModel!
   unregisteredUser(uuid: String!): UnregisteredUserModel!
-  user(id: Int!): UserModel!
+  user(id: Int!): UserModel
+}
+
+input RegisterUserDTO {
+  email: String!
+  password: String!
+
+  """
+  UUID of the unregistered user this registration refers to, once finished the referred unregistered user will be deleted, this is also used to determine wheter the user being registered uses oauth for authentication
+  """
+  refersToUnregisteredUser: String
+  username: String!
 }
 
 """unregistered user"""
