@@ -1,8 +1,7 @@
 import { ValidLoginRequestGuard } from './guards/valid-login-request.guard'
-import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Res, UseGuards } from '@nestjs/common'
 import { RequestUser } from './decorators/request-user.decorator'
 import { GoogleAuthGuard } from './guards/google-auth.guard'
-import { RegisterUserDTO } from './dtos/register-user.dto'
 import { LocalAuthGuard } from './guards/local-auth.guard'
 import { User } from '../user/entities/user.entity'
 import { UserService } from '../user/user.service'
@@ -20,12 +19,6 @@ export class AuthController {
     private readonly userService: UserService,
     private readonly configService: ConfigService
   ) {}
-
-  // TODO: remove me
-  @Post('xd')
-  xd(@Body() xdd: RegisterUserDTO) {
-    return 'pass'
-  }
 
   @Post('login')
   @UseGuards(ValidLoginRequestGuard, LocalAuthGuard)
@@ -63,6 +56,6 @@ export class AuthController {
     const { token } = await this.authService.login(userOrNull)
 
     const query = new URLSearchParams({ token: token.value })
-    return res.redirect(`${baseUrl}login-auto?${query.toString()}`)
+    return res.redirect(`${baseUrl}auto-login?${query.toString()}`)
   }
 }

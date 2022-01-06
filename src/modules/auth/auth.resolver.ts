@@ -31,6 +31,11 @@ export class AuthResolver {
   }
 
   @Mutation(returns => LoginResponse)
+  loginWithToken(@Args('token', { type: () => String }) token: string): Promise<LoginResponse> {
+    return this.authService.loginWithToken(token)
+  }
+
+  @Mutation(returns => LoginResponse)
   async register(@Args('user') user: RegisterUserDTO): Promise<LoginResponse> {
     const inUse = await this.authService.checkEmailAddressInUse(user.email)
     if (inUse) throw new BadRequestException(ERROR_CODES.EMAIL_IN_USE)

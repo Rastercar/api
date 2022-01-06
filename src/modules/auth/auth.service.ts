@@ -51,6 +51,29 @@ export class AuthService {
     return { user, token }
   }
 
+  /**
+   * Returns the given user and his new bearer JWT
+   */
+  async loginWithToken(token: string): Promise<{ user: User; token: Jwt }> {
+    const decodeResult = this.jwtService.decode(token)
+
+    if (typeof decodeResult !== 'object' || !decodeResult || typeof decodeResult.sub !== 'number') {
+      throw new UnauthorizedException('Invalid token')
+    }
+
+    const user = await this.userService.userRepository.findOne({ id: decodeResult.sub })
+
+    if (!user) {
+      throw new UnauthorizedException('User in token non existent or deactivated')
+    }
+
+    const newToken = { type: 'bearer', value: this.jwtService.sign({ sub: user.id }) }
+
+    delete user.password
+
+    return { user, token: newToken }
+  }
+
   async getUserForGoogleProfile(googleProfileId: string): Promise<User | null> {
     return this.userService.userRepository.findOne({ oauthProfileId: googleProfileId, oauthProvider: 'google' })
   }

@@ -7,8 +7,8 @@ import { UserService } from '../user.service'
 export class UnregisteredUserResolver {
   constructor(private readonly userService: UserService) {}
 
-  @Query(returns => UnregisteredUserModel)
-  async unregisteredUser(@Args({ name: 'uuid', type: () => String }) uuid: string): Promise<UnregisteredUser> {
+  @Query(returns => UnregisteredUserModel, { nullable: true })
+  unregisteredUser(@Args({ name: 'uuid', type: () => String }) uuid: string): Promise<UnregisteredUser> {
     return this.userService.unregisteredUserRepository.findOneOrFail({ uuid })
   }
 }

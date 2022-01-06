@@ -20,13 +20,14 @@ type LoginResponse {
 
 type Mutation {
   login(credentials: LoginInput!): LoginResponse!
+  loginWithToken(token: String!): LoginResponse!
   register(user: RegisterUserDTO!): LoginResponse!
 }
 
 type Query {
   isEmailInUse(email: String!): Boolean!
   me: UserModel!
-  unregisteredUser(uuid: String!): UnregisteredUserModel!
+  unregisteredUser(uuid: String!): UnregisteredUserModel
   user(id: Int!): UserModel
 }
 
