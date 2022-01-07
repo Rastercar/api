@@ -46,14 +46,14 @@ export class AuthController {
     const PWA_BASE_URL = this.configService.get<string>('PWA_BASE_URL')
     const baseUrl = `${PWA_BASE_URL}/#/`
 
-    if (userOrNull === null) {
+    if (!userOrNull) {
       const { uuid } = await this.userService.createOrFindUnregisteredUserForGoogleProfile(googleProfile)
       const query = new URLSearchParams({ finishFor: uuid })
 
       return res.redirect(`${baseUrl}register?${query.toString()}`)
     }
 
-    const { token } = await this.authService.login(userOrNull)
+    const { token } = await this.authService.login(userOrNull, { tokenOptions: { expiresIn: '60s' } })
 
     const query = new URLSearchParams({ token: token.value })
     return res.redirect(`${baseUrl}auto-login?${query.toString()}`)

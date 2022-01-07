@@ -1,16 +1,17 @@
 import { OrganizationService } from '../organization/organization.service'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { JwtService, JwtSignOptions } from '@nestjs/jwt'
 import { User } from '../user/entities/user.entity'
 import { UserService } from '../user/user.service'
 import { Jwt } from './strategies/jwt.strategy'
-import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 
 interface LoginOptions {
   /**
-   * If the lastLogin property for the user should be updated with the current timestamp
+   * If the lastLogin property for the user should be updated with the current timestamp (default: true)
    */
-  setLastLogin: boolean
+  setLastLogin?: boolean
+  tokenOptions?: JwtSignOptions
 }
 
 @Injectable()
@@ -44,9 +45,20 @@ export class AuthService {
       await this.userService.userRepository.persistAndFlush({ ...user, lastLogin: new Date() })
     }
 
-    const token = { type: 'bearer', value: this.jwtService.sign({ sub: user.id }) }
+    const token = { type: 'bearer', value: this.jwtService.sign({ sub: user.id }, options?.tokenOptions) }
 
     delete user.password
+
+    const userUsesOauth = user.oauthProfileId && user.oauthProvider
+
+    if (userUsesOauth) {
+      // There`s a chance the user`s old unregistered user was not deleted whenever he finished his registration, since the registration
+      // endpoint cannot certify the user being registered had a unregisteredUser record, so we ensure the deletion whenever logging in
+      await this.userService.unregisteredUserRepository.nativeDelete({
+        oauthProvider: user.oauthProvider,
+        oauthProfileId: user.oauthProfileId
+      })
+    }
 
     return { user, token }
   }
@@ -55,6 +67,10 @@ export class AuthService {
    * Returns the given user and his new bearer JWT
    */
   async loginWithToken(token: string): Promise<{ user: User; token: Jwt }> {
+    await this.jwtService.verifyAsync(token).catch(() => {
+      throw new UnauthorizedException('Invalid/expired token')
+    })
+
     const decodeResult = this.jwtService.decode(token)
 
     if (typeof decodeResult !== 'object' || !decodeResult || typeof decodeResult.sub !== 'number') {
@@ -64,7 +80,7 @@ export class AuthService {
     const user = await this.userService.userRepository.findOne({ id: decodeResult.sub })
 
     if (!user) {
-      throw new UnauthorizedException('User in token non existent or deactivated')
+      throw new UnauthorizedException(`User (id: ${decodeResult.sub}) in token non existent or deactivated`)
     }
 
     const newToken = { type: 'bearer', value: this.jwtService.sign({ sub: user.id }) }
@@ -74,7 +90,7 @@ export class AuthService {
     return { user, token: newToken }
   }
 
-  async getUserForGoogleProfile(googleProfileId: string): Promise<User | null> {
+  getUserForGoogleProfile(googleProfileId: string): Promise<User | null> {
     return this.userService.userRepository.findOne({ oauthProfileId: googleProfileId, oauthProvider: 'google' })
   }
 
