@@ -40,27 +40,29 @@ export class AuthService {
   /**
    * Returns the given user and his new bearer JWT
    */
-  async login(user: User, options?: LoginOptions): Promise<{ user: User; token: Jwt }> {
+  async login(user: User, options: LoginOptions = { setLastLogin: true }): Promise<{ user: User; token: Jwt }> {
+    const userCopy = { ...user }
+
     if (options?.setLastLogin) {
-      await this.userService.userRepository.persistAndFlush({ ...user, lastLogin: new Date() })
+      await this.userService.userRepository.persistAndFlush({ ...userCopy, lastLogin: new Date() })
     }
 
-    const token = { type: 'bearer', value: this.jwtService.sign({ sub: user.id }, options?.tokenOptions) }
+    const token = { type: 'bearer', value: this.jwtService.sign({ sub: userCopy.id }, options?.tokenOptions) }
 
-    delete user.password
-
-    const userUsesOauth = user.oauthProfileId && user.oauthProvider
+    const userUsesOauth = userCopy.oauthProfileId && userCopy.oauthProvider
 
     if (userUsesOauth) {
       // There`s a chance the user`s old unregistered user was not deleted whenever he finished his registration, since the registration
       // endpoint cannot certify the user being registered had a unregisteredUser record, so we ensure the deletion whenever logging in
       await this.userService.unregisteredUserRepository.nativeDelete({
-        oauthProvider: user.oauthProvider,
-        oauthProfileId: user.oauthProfileId
+        oauthProvider: userCopy.oauthProvider,
+        oauthProfileId: userCopy.oauthProfileId
       })
     }
 
-    return { user, token }
+    delete userCopy.password
+
+    return { user: userCopy, token }
   }
 
   /**
