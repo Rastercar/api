@@ -12,10 +12,13 @@
 
 import { Logger, NotFoundException } from '@nestjs/common'
 import getDatabaseConfig from '../config/database.config'
-import { Options } from '@mikro-orm/core'
+import { EntityManager, Options } from '@mikro-orm/core'
 import { entities } from './entities'
+import { AsyncLocalStorage } from 'async_hooks'
 
 const logger = new Logger('MikroORM')
+
+const storage = new AsyncLocalStorage<EntityManager>()
 
 const findOneOrFailHandler = (entityName: string) => {
   throw new NotFoundException(`${entityName} not found.`)
@@ -27,6 +30,7 @@ export default {
   entities,
 
   logger: logger.log.bind(logger),
+  context: () => storage.getStore(),
 
   findOneOrFailHandler
 } as Options

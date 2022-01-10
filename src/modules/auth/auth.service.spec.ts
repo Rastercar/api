@@ -1,11 +1,11 @@
 import { OrganizationService } from '../organization/organization.service'
+import { UnauthorizedException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { UserService } from '../user/user.service'
 import { ConfigService } from '@nestjs/config'
 import { AuthService } from './auth.service'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
-import { UnauthorizedException } from '@nestjs/common'
 
 describe('AuthService', () => {
   let organizationService: OrganizationService

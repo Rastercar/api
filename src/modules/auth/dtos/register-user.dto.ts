@@ -15,9 +15,9 @@ export class RegisterUserDTO {
   @Field()
   @MinLength(5)
   @MaxLength(200)
+  @Matches(/[0-9]/, { message: 'password must contain a number' })
   @Matches(/[A-Z]/, { message: 'Password must contain a uppercase letter' })
   @Matches(/[a-z]/, { message: 'password must contain a lowercase letter' })
-  @Matches(/[0-9]/, { message: 'password must contain a number' })
   @Matches(/[#?!@$%^&*-]/, { message: 'password must contain a symbol in: #?!@$%^&*-' })
   password!: string
 

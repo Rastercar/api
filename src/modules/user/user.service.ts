@@ -12,6 +12,7 @@ import * as bcrypt from 'bcrypt'
 @Injectable()
 export class UserService {
   constructor(
+    // This is not used but is required because @UseRequestContext needs mikroorm in its context
     readonly orm: MikroORM,
     readonly userRepository: UserRepository,
     readonly unregisteredUserRepository: UnregisteredUserRepository
@@ -58,6 +59,7 @@ export class UserService {
       username: googleProfile.username,
 
       email: profileEmail.value,
+      // Sometimes the verified prop comes as boolean despite the typing
       emailVerified: profileEmail.verified === 'true' || (profileEmail.verified as unknown as boolean) === true,
 
       oauthProfileId: googleProfile.id,
