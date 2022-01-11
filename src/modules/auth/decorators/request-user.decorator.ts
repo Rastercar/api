@@ -1,12 +1,15 @@
-import { createParamDecorator, ExecutionContext, InternalServerErrorException } from '@nestjs/common'
+import { createParamDecorator, ExecutionContext, UnauthorizedException } from '@nestjs/common'
+import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql'
 import { User } from '../../user/entities/user.entity'
 
-export function requestUserFactory(propName: keyof User | undefined, ctx: ExecutionContext) {
-  const { user } = ctx.switchToHttp().getRequest()
+export function requestUserFactory(prop: keyof User | undefined, ctx: ExecutionContext) {
+  const isGraphqlContext = ctx.getType<GqlContextType>() === 'graphql'
 
-  if (!user) throw new InternalServerErrorException('Could not get user from the request')
+  const { user } = isGraphqlContext ? GqlExecutionContext.create(ctx).getContext().req : ctx.switchToHttp().getRequest()
 
-  return propName ? user[propName] : user
+  if (!user) throw new UnauthorizedException('Cannot get request user')
+
+  return prop ? user[prop] : user
 }
 
 /**

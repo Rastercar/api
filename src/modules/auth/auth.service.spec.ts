@@ -137,8 +137,7 @@ describe('AuthService', () => {
       jest.useRealTimers()
     })
 
-    const userMock = { id: 1, password: 'i_should_be_removed' } as any
-    const { password, ...userWithoutPassword } = userMock
+    const userMock = { id: 1, password: 'i_should_be_removed', lastLogin: new Date() } as any
 
     it('Changes the user lastLogin field when options.setLastLogin is not false', async () => {
       const persistSpy = jest.spyOn(userService.userRepository, 'persistAndFlush')
@@ -150,7 +149,7 @@ describe('AuthService', () => {
 
     it('Removes the user password before returning it', async () => {
       const result = await service.login(userMock)
-      expect(result.user).toStrictEqual(userWithoutPassword)
+      expect(result.user.password).toBe(undefined)
     })
 
     it('Removes the user unregistered_user record if the user uses oauth', async () => {

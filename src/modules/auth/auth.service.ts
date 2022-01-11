@@ -44,7 +44,8 @@ export class AuthService {
     const userCopy = { ...user }
 
     if (options?.setLastLogin) {
-      await this.userService.userRepository.persistAndFlush({ ...userCopy, lastLogin: new Date() })
+      user.lastLogin = new Date()
+      await this.userService.userRepository.persistAndFlush(user)
     }
 
     const token = { type: 'bearer', value: this.jwtService.sign({ sub: userCopy.id }, options?.tokenOptions) }

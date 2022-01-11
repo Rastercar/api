@@ -1,6 +1,6 @@
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host'
-import { InternalServerErrorException } from '@nestjs/common'
 import { requestUserFactory } from './request-user.decorator'
+import { UnauthorizedException } from '@nestjs/common'
 import * as httpMock from 'node-mocks-http'
 
 const userMock = {
@@ -29,12 +29,12 @@ describe('@RequestUser', () => {
     expect(requestUserFactory('id', ctx)).toBe(userMock.id)
   })
 
-  it('Should throw a internal server exception when theres no user in the request', () => {
+  it('Should throw a UnauthorizedException when theres no user in the request', () => {
     const req = httpMock.createRequest()
     const ctx = new ExecutionContextHost([req])
 
     expect(() => {
       requestUserFactory(undefined, ctx)
-    }).toThrow(InternalServerErrorException)
+    }).toThrow(UnauthorizedException)
   })
 })

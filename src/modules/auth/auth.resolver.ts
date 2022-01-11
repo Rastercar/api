@@ -1,4 +1,4 @@
-import { CurrentUser } from './decorators/graphql-user.decorator'
+import { RequestUser } from './decorators/request-user.decorator'
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql'
 import { BadRequestException, UseGuards } from '@nestjs/common'
 import { LoginInput, LoginResponse } from './dtos/login.dto'
@@ -15,7 +15,7 @@ export class AuthResolver {
 
   @UseGuards(GqlAuthGuard)
   @Query(returns => UserModel)
-  me(@CurrentUser() user: UserModel) {
+  me(@RequestUser() user: UserModel) {
     return user
   }
 
