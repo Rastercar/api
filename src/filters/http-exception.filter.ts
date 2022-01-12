@@ -45,9 +45,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 
   catch(exception: HttpException, host: ArgumentsHost): Response<NormalizedErrorResponse> | HttpException {
-    const exceptionResponse = exception.getResponse()
-
     if (host.getType() !== 'http') return exception
+
+    const exceptionResponse = exception.getResponse()
 
     const response = host.switchToHttp().getResponse<Response>()
     const status = exception.getStatus()
@@ -75,7 +75,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     // Whenever there is only a message the error type is unknown, so we
     // should explicitely inform the consumer
-    res = { ...responseObj, message: exceptionResponse, error: 'Unknown' }
+    res = { ...responseObj, message: exceptionResponse, error: exception.name }
     return response.status(status).json(res)
   }
 }
