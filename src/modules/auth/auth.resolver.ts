@@ -8,34 +8,35 @@ import { ERROR_CODES } from '../../constants/error.codes'
 import { UserModel } from '../user/models/user.model'
 import { UserService } from '../user/user.service'
 import { AuthService } from './auth.service'
+import { returns } from '../../utils/coverage-helpers'
 
 @Resolver()
 export class AuthResolver {
   constructor(private readonly authService: AuthService, private readonly userService: UserService) {}
 
   @UseGuards(GqlAuthGuard)
-  @Query(returns => UserModel)
+  @Query(returns(UserModel))
   me(@RequestUser() user: UserModel) {
     return user
   }
 
-  @Query(returns => Boolean)
-  isEmailInUse(@Args('email', { type: () => String }) email: string) {
+  @Query(returns(Boolean))
+  isEmailInUse(@Args('email', { type: returns(String) }) email: string) {
     return this.authService.checkEmailAddressInUse(email)
   }
 
-  @Mutation(returns => LoginResponse)
+  @Mutation(returns(LoginResponse))
   async login(@Args('credentials') credentials: LoginInput): Promise<LoginResponse> {
     const user = await this.authService.validateUserByCredentials(credentials)
     return this.authService.login(user)
   }
 
-  @Mutation(returns => LoginResponse)
-  loginWithToken(@Args('token', { type: () => String }) token: string): Promise<LoginResponse> {
+  @Mutation(returns(LoginResponse))
+  loginWithToken(@Args('token', { type: returns(String) }) token: string): Promise<LoginResponse> {
     return this.authService.loginWithToken(token)
   }
 
-  @Mutation(returns => LoginResponse)
+  @Mutation(returns(LoginResponse))
   async register(@Args('user') user: RegisterUserDTO): Promise<LoginResponse> {
     const inUse = await this.authService.checkEmailAddressInUse(user.email)
     if (inUse) throw new BadRequestException(ERROR_CODES.EMAIL_IN_USE)

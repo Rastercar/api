@@ -90,4 +90,18 @@ describe('HTTP Exception filter', () => {
 
     expect(mockJsonArgs.message).toBe(errorBody)
   })
+
+  it('Sends the error body within the response when the error contains a string', () => {
+    mockArgumentsHost.getType.mockImplementationOnce(() => 'http')
+    const errorBody = 'im the body'
+
+    const error = new HttpException(errorBody, 500)
+
+    filter.catch(error, mockArgumentsHost)
+
+    expect(mockJson).toBeCalledTimes(1)
+    const mockJsonArgs = mockJson.mock.calls[0][0]
+
+    expect(mockJsonArgs.message).toBe(errorBody)
+  })
 })
