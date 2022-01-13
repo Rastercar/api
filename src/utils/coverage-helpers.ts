@@ -7,8 +7,13 @@
  * .@Mutation(() => String),
  * // equals
  * .@Mutation(returns(String))
+ * // or
+ * .@Args('token', { type: is(String) })
  * ```
  * the difference is that returns() wont appear as uncovered in test
  * coverage reports
  */
-export const returns = (type: any) => () => type
+export const returnsType = (type: any) => () => type
+
+export const is = returnsType
+export const returns = returnsType

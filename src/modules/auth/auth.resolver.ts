@@ -8,7 +8,7 @@ import { ERROR_CODES } from '../../constants/error.codes'
 import { UserModel } from '../user/models/user.model'
 import { UserService } from '../user/user.service'
 import { AuthService } from './auth.service'
-import { returns } from '../../utils/coverage-helpers'
+import { is, returns } from '../../utils/coverage-helpers'
 
 @Resolver()
 export class AuthResolver {
@@ -21,7 +21,7 @@ export class AuthResolver {
   }
 
   @Query(returns(Boolean))
-  isEmailInUse(@Args('email', { type: returns(String) }) email: string) {
+  isEmailInUse(@Args('email', { type: is(String) }) email: string) {
     return this.authService.checkEmailAddressInUse(email)
   }
 
@@ -32,7 +32,7 @@ export class AuthResolver {
   }
 
   @Mutation(returns(LoginResponse))
-  loginWithToken(@Args('token', { type: returns(String) }) token: string): Promise<LoginResponse> {
+  loginWithToken(@Args('token', { type: is(String) }) token: string): Promise<LoginResponse> {
     return this.authService.loginWithToken(token)
   }
 

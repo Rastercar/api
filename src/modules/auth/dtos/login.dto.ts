@@ -1,7 +1,7 @@
 import { IsEmail, IsString, Length, MinLength } from 'class-validator'
 import { Field, InputType, ObjectType } from '@nestjs/graphql'
 import { UserModel } from '../../user/models/user.model'
-import { JwtModel } from '../auth.model'
+import { JwtModel } from '../models/jwt.model'
 
 export class LoginDTO {
   @IsEmail()
