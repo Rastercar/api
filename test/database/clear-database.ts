@@ -14,7 +14,4 @@ export const clearDatabase = async (orm: MikroORM<IDatabaseDriver<Connection>>):
   if (pendingMigrations && pendingMigrations.length > 0) {
     await migrator.up()
   }
-
-  // TODO: check me
-  // await orm.getSchemaGenerator().updateSchema()
 }

@@ -3,7 +3,7 @@ import { config } from 'dotenv'
 import { resolve } from 'path'
 
 // If there is no NODE_ENV this means we are loading the config for the mikro-orm
-// CLI which means nest did not parse the env files for us and we in develpment mode
+// CLI which means nest did not parse the env files for us and were in develpment mode
 if (!process.env.NODE_ENV) config({ path: resolve('env', '.development.env') })
 
 const getDatabaseConfig = registerAs('database', () => ({
