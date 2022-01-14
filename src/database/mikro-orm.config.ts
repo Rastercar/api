@@ -32,5 +32,9 @@ export default {
   logger: logger.log.bind(logger),
   context: () => storage.getStore(),
 
+  migrations: {
+    path: './src/database/migrations'
+  },
+
   findOneOrFailHandler
 } as Options
