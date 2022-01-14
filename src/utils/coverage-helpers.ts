@@ -16,4 +16,5 @@
 export const returnsType = (type: any) => () => type
 
 export const is = returnsType
+export const of = returnsType
 export const returns = returnsType

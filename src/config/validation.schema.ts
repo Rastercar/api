@@ -1,14 +1,16 @@
 import * as Joi from 'joi'
 import * as fs from 'fs'
 
-const definedEnviromentFileNames = fs
-  .readdirSync('env')
-  .map(envFileName => envFileName.replace('.env', '').replace(/\W/g, ''))
-  .filter(envFileName => envFileName !== 'example')
+export const getDefinedEnviromentFileSlugs = () => {
+  return fs
+    .readdirSync('env')
+    .map(envFileName => envFileName.replace('.env', '').replace(/\W/g, ''))
+    .filter(envFileName => envFileName !== 'example')
+}
 
 export const validationSchema = Joi.object({
   NODE_ENV: Joi.string()
-    .valid(...definedEnviromentFileNames)
+    .valid(...getDefinedEnviromentFileSlugs())
     .required(),
 
   API_PORT: Joi.number().required(),

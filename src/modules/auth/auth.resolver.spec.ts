@@ -6,7 +6,7 @@ import { AuthService } from './auth.service'
 import { LoginInput } from './dtos/login.dto'
 import { RegisterUserDTO } from './dtos/register-user.dto'
 
-describe('AuthService', () => {
+describe('AuthResolver', () => {
   let userService: UserService
   let authService: AuthService
   let resolver: AuthResolver

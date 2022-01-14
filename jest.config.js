@@ -6,7 +6,8 @@ module.exports = {
     '^.+\\.(t|j)s$': 'ts-jest'
   },
   coverageDirectory: '../coverage',
-  coveragePathIgnorePatterns: ['node_modules', '.dto.ts', '.mock.ts', '.module.ts', '.entity.ts', '.model.ts', '<rootDir>/src/app/main.ts'],
+  collectCoverageFrom: ['**/*.ts'],
+  coveragePathIgnorePatterns: ['node_modules', '.dto.ts', '.mock.ts', '.module.ts', '.entity.ts', '.model.ts', 'main.ts', 'constants'],
   testEnvironment: 'node',
   setupFiles: ['../test/utils/setup.ts']
 }
