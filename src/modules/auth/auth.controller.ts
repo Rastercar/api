@@ -36,7 +36,8 @@ export class AuthController {
 
   /**
    * Handles the redirection after a successfull login with google oauth2,
-   * further redirecting to the main pa... TODO: finish me
+   * redirecting to the registration page if a the oauthprofile does not
+   * contain a user or to a auto-login page otherwise
    */
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)

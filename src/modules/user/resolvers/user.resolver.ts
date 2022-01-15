@@ -1,5 +1,5 @@
-import { Args, Int, Query, Resolver } from '@nestjs/graphql'
 import { is, of, returns } from '../../../utils/coverage-helpers'
+import { Args, Int, Query, Resolver } from '@nestjs/graphql'
 import { UserModel } from '../models/user.model'
 import { UserService } from '../user.service'
 

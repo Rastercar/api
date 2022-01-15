@@ -2,17 +2,14 @@ import { createAppTestingModule } from '../../../test/utils/create-app'
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import * as request from 'supertest'
 import { Server } from 'http'
-import { clearDatabase } from '../../../test/database/clear-database'
-import { MikroORM } from '@mikro-orm/core'
 
 describe('e2e: AuthController / AuthResolver', () => {
   let app: INestApplication
   let server: Server
 
   beforeAll(async () => {
-    app = await createAppTestingModule()
+    app = await createAppTestingModule({ clearDatabase: true, loadFixtures: true })
     server = app.getHttpServer()
-    await clearDatabase(app.get(MikroORM))
   })
 
   afterAll(async () => {
@@ -37,5 +34,14 @@ describe('e2e: AuthController / AuthResolver', () => {
 
   it('/auth/google/login (GET) - redirects to the google oauth page', () => {
     return request(server).get('/auth/google/login').expect(HttpStatus.FOUND)
+  })
+
+  it('/auth/google/callback (GET) - redirects to the google oauth handler', async () => {
+    const res = await request(server).get('/auth/google/callback').expect(HttpStatus.FOUND)
+
+    const redirectTo = res.header['location']
+    const redirectedToGoogle = typeof redirectTo === 'string' && redirectTo.startsWith('https://accounts.google')
+
+    expect(redirectedToGoogle).toBe(true)
   })
 })

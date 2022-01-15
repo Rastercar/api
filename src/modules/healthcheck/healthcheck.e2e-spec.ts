@@ -6,7 +6,7 @@ describe('e2e: HealthCheckController', () => {
   let app: INestApplication
 
   beforeAll(async () => {
-    app = await createAppTestingModule()
+    app = await createAppTestingModule({ clearDatabase: false, loadFixtures: false })
   })
 
   afterAll(async () => {
