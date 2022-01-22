@@ -28,7 +28,6 @@ export class AuthService {
    */
   async validateUserByCredentials(credentials: { email: string; password: string }): Promise<User> {
     const { email, password } = credentials
-
     const user = await this.userService.userRepository.findOneOrFail({ email })
 
     const passwordIsValid = await bcrypt.compare(password, user.password as string)
@@ -88,9 +87,9 @@ export class AuthService {
 
     const newToken = { type: 'bearer', value: this.jwtService.sign({ sub: user.id }) }
 
-    delete user.password
+    const { password, ...passwordLessUser } = user
 
-    return { user, token: newToken }
+    return { user: passwordLessUser, token: newToken }
   }
 
   getUserForGoogleProfile(googleProfileId: string): Promise<User | null> {

@@ -3,6 +3,21 @@ import { User } from '../../../src/modules/user/entities/user.entity'
 import * as bcrypt from 'bcrypt'
 import * as faker from 'faker'
 
+/**
+ * A static user for testing, this user is created
+ * everytime the user fixtures are loaded.
+ */
+export const defaultTestUser = new User({
+  username: 'testuser',
+  password: bcrypt.hashSync('testuser', 1),
+
+  email: 'testuser@gmail.com',
+  emailVerified: true,
+
+  oauthProvider: null,
+  oauthProfileId: null
+})
+
 export const loadUserFixtures = async (orm: MikroORM<IDatabaseDriver<Connection>>) => {
   const createUser = () => {
     const user = new User({
@@ -22,6 +37,9 @@ export const loadUserFixtures = async (orm: MikroORM<IDatabaseDriver<Connection>
   }
 
   const users = [...Array(5)].map(createUser)
+
+  orm.em.persist(defaultTestUser)
   await orm.em.flush()
+
   return users
 }

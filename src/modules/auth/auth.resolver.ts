@@ -4,11 +4,11 @@ import { BadRequestException, UseGuards } from '@nestjs/common'
 import { LoginInput, LoginResponse } from './dtos/login.dto'
 import { GqlAuthGuard } from './guards/gql-jwt-auth.guard'
 import { RegisterUserDTO } from './dtos/register-user.dto'
+import { is, returns } from '../../utils/coverage-helpers'
 import { ERROR_CODES } from '../../constants/error.codes'
 import { UserModel } from '../user/models/user.model'
 import { UserService } from '../user/user.service'
 import { AuthService } from './auth.service'
-import { is, returns } from '../../utils/coverage-helpers'
 
 @Resolver()
 export class AuthResolver {

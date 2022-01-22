@@ -1,7 +1,9 @@
+import { HttpExceptionFilter } from '../../src/filters/http-exception.filter'
 import { clearDatabase } from '../database/clear-database'
 import { loadFixtures } from '../database/load-fixtures'
 import { Test, TestingModule } from '@nestjs/testing'
 import { AppModule } from '../../src/app.module'
+import { ValidationPipe } from '@nestjs/common'
 import { MikroORM } from '@mikro-orm/core'
 
 interface Options {
@@ -23,6 +25,9 @@ export const createAppTestingModule = async (opts: Options = {}) => {
   const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] }).compile()
 
   const app = moduleFixture.createNestApplication()
+
+  app.useGlobalFilters(new HttpExceptionFilter())
+  app.useGlobalPipes(new ValidationPipe({ forbidUnknownValues: true }))
 
   const defailtOptions = { init: true, clearDatabase: true, loadFixture: true }
   const options = { ...defailtOptions, ...opts }
