@@ -34,10 +34,6 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# Yarn
-yarn.lock
-package-lock.json
-
 # Others
 todo.txt
 generated/

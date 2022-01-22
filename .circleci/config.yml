@@ -1,0 +1,41 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@5.0.0
+
+jobs:
+  test-unit:
+    executor:
+      name: node/default
+      tag: '14.17'
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: yarn
+      - run:
+          command: yarn run test:unit-circleci
+          name: Run unit tests
+
+  test-e2e:
+    docker:
+      - image: cimg/node:14.17
+      - image: cimg/postgres:14.0-postgis
+        environment:
+          POSTGRES_DB: raster_test
+          POSTGRES_USER: raster_user
+          POSTGRES_PASSWORD: raster_pass
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: yarn
+      - run:
+          command: yarn run test:e2e-circleci
+          name: Run e2e tests
+
+workflows:
+  test-workflow:
+    jobs:
+      - test-unit
+      - test-e2e:
+          requires:
+            - test-unit # Since e2e tests are expensive only run then after unit tests, this way if unit tests fail e2e tests will be skipped

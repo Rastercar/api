@@ -21,7 +21,9 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.config.js --runInBand",
-    "test:unit": "jest --config ./test/jest-unit.config.js",
+    "test:e2e-circleci": "jest --config ./test/jest-e2e.config.js --runInBand",
+    "test:unit": "jest --config ./test/jest-unit.config.js --max-workers=4",
+    "test:unit-circleci": "jest --config ./test/jest-unit.config.js --max-workers=2",
     "prepare": "husky install"
   },
   "dependencies": {
