@@ -1,9 +1,11 @@
 import { OrganizationService } from '../organization/organization.service'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService, JwtSignOptions } from '@nestjs/jwt'
+import { UseRequestContext } from '@mikro-orm/nestjs'
 import { User } from '../user/entities/user.entity'
 import { UserService } from '../user/user.service'
 import { Jwt } from './strategies/jwt.strategy'
+import { MikroORM } from '@mikro-orm/core'
 import * as bcrypt from 'bcrypt'
 
 interface LoginOptions {
@@ -17,6 +19,7 @@ interface LoginOptions {
 @Injectable()
 export class AuthService {
   constructor(
+    readonly orm: MikroORM,
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
     private readonly organizationService: OrganizationService
@@ -26,6 +29,7 @@ export class AuthService {
    * @throws {NotFoundException} If there is no user with the informed username
    * @throws {UnauthorizedException} If the password is invalid
    */
+  @UseRequestContext()
   async validateUserByCredentials(credentials: { email: string; password: string }): Promise<User> {
     const { email, password } = credentials
     const user = await this.userService.userRepository.findOneOrFail({ email })
@@ -39,6 +43,7 @@ export class AuthService {
   /**
    * Returns the given user and his new bearer JWT
    */
+  @UseRequestContext()
   async login(user: User, options: LoginOptions = { setLastLogin: true }): Promise<{ user: User; token: Jwt }> {
     const userCopy = { ...user }
 
@@ -68,6 +73,7 @@ export class AuthService {
   /**
    * Returns the given user and his new bearer JWT
    */
+  @UseRequestContext()
   async loginWithToken(token: string): Promise<{ user: User; token: Jwt }> {
     await this.jwtService.verifyAsync(token).catch(() => {
       throw new UnauthorizedException('Invalid/expired token')
@@ -92,6 +98,7 @@ export class AuthService {
     return { user: passwordLessUser, token: newToken }
   }
 
+  @UseRequestContext()
   getUserForGoogleProfile(googleProfileId: string): Promise<User | null> {
     return this.userService.userRepository.findOne({ oauthProfileId: googleProfileId, oauthProvider: 'google' })
   }
@@ -99,6 +106,7 @@ export class AuthService {
   /**
    * Verifies if the provided email address is in use by a user, organization or some other entity
    */
+  @UseRequestContext()
   async checkEmailAddressInUse(email: string): Promise<boolean> {
     const user = await this.userService.userRepository.findOne({ email }, { fields: ['id'] })
     const org = await this.organizationService.organizationRepository.findOne({ billingEmail: email }, { fields: ['id'] })

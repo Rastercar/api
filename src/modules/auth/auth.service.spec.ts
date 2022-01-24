@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config'
 import { AuthService } from './auth.service'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
+import { OrmModule } from '../../database/orm.module'
 
 describe('AuthService', () => {
   let organizationService: OrganizationService
@@ -47,7 +48,8 @@ describe('AuthService', () => {
             verifyAsync: jest.fn()
           })
         }
-      ]
+      ],
+      imports: [OrmModule]
     }).compile()
 
     service = module.get(AuthService)

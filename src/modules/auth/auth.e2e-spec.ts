@@ -210,6 +210,7 @@ describe('e2e: AuthController / AuthResolver', () => {
   describe('resolver: loginWithToken', () => {
     let authToken: string
 
+    //
     const createQuery = (token = '') => gql`
       mutation loginByTokenMutation {
         loginWithToken(token: "${token}") {

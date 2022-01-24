@@ -1,22 +1,23 @@
-import { HttpExceptionFilter } from './filters/http-exception.filter'
-import { ValidationPipe } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
+import { createApp, initApp, setupAppGlobals } from './bootstrap/setup-app'
+import { storage } from './database/mikro-orm.config'
+import { MikroORM } from '@mikro-orm/core'
+import { INestApplication } from '@nestjs/common'
+
+const addMikroOrmContextMiddleware = (app: INestApplication) => {
+  const orm = app.get(MikroORM)
+
+  // see: https://mikro-orm.io/docs/usage-with-nestjs/
+  app.use((req: Express.Request, res: Express.Response, next: () => void) => {
+    storage.run(orm.em.fork(true, true), next)
+  })
+}
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await createApp()
 
-  app.enableCors({ credentials: true })
-
-  app.useGlobalFilters(new HttpExceptionFilter())
-
-  app.useGlobalPipes(new ValidationPipe({ forbidUnknownValues: true }))
-
-  const configService = app.get(ConfigService)
-  const port = configService.get('PORT', 3000)
-
-  await app.listen(port)
+  addMikroOrmContextMiddleware(app)
+  setupAppGlobals(app)
+  initApp(app)
 }
 
 bootstrap()

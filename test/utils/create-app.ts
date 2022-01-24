@@ -1,10 +1,10 @@
-import { HttpExceptionFilter } from '../../src/filters/http-exception.filter'
+import { setupAppGlobals } from '../../src/bootstrap/setup-app'
 import { clearDatabase } from '../database/clear-database'
 import { loadFixtures } from '../database/load-fixtures'
 import { Test, TestingModule } from '@nestjs/testing'
 import { AppModule } from '../../src/app.module'
-import { ValidationPipe } from '@nestjs/common'
 import { MikroORM } from '@mikro-orm/core'
+import { storage } from '../../src/database/mikro-orm.config'
 
 interface Options {
   init?: boolean
@@ -26,20 +26,24 @@ export const createAppTestingModule = async (opts: Options = {}) => {
 
   const app = moduleFixture.createNestApplication()
 
-  app.useGlobalFilters(new HttpExceptionFilter())
-  app.useGlobalPipes(new ValidationPipe({ forbidUnknownValues: true }))
+  setupAppGlobals(app)
 
   const defailtOptions = { init: true, clearDatabase: true, loadFixture: true }
   const options = { ...defailtOptions, ...opts }
 
   if (options.init) await app.init()
 
-  if (options.clearDatabase || options.loadFixtures) {
-    const orm = app.get(MikroORM)
+  const orm = app.get(MikroORM)
 
-    if (options.clearDatabase) await clearDatabase(orm)
-    if (options.loadFixtures) await loadFixtures(orm)
-  }
+  if (options.clearDatabase) await clearDatabase(orm)
+  if (options.loadFixtures) await loadFixtures(orm)
+
+  // Yes this code is duplicated in main.js but this is because we cannot import the MikroORM class
+  // elsewhere (in a exported function, for example) and use it here as that would trigger mikroorm to
+  // load its configuration before the env variables were parsed !
+  app.use((req: Express.Request, res: Express.Response, next: () => void) => {
+    storage.run(orm.em.fork(true, true), next)
+  })
 
   return app
 }
