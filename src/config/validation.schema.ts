@@ -19,6 +19,8 @@ export const validationSchema = Joi.object({
   POSTGRES_USER: Joi.string().required(),
   POSTGRES_PASSWORD: Joi.string().required(),
 
+  DB_HOST: Joi.string(),
+  DB_PORT: Joi.number(),
   DB_DEBUG_MODE: Joi.boolean().required(),
 
   JWT_DEFAULT_TTL: Joi.string().required(),

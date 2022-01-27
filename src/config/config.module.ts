@@ -7,7 +7,8 @@ import { resolve } from 'path'
 const envFilePathDict = {
   test: resolve('env', '.test.env'),
   production: resolve('env', '.production.env'),
-  development: resolve('env', '.development.env')
+  development: resolve('env', '.development.env'),
+  homolog: resolve('env', '.homolog.env')
 }
 
 const envFilePath = envFilePathDict[process.env.NODE_ENV ?? 'development']

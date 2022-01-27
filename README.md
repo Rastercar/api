@@ -53,7 +53,7 @@ sudo docker-compose down --volumes
 yarn mikro-orm migration:up
 ```
 
-> Note that by default the mikro-orm cli will use the use the `env/.development.env` file to get the db connection config, if you wish to run the CLI using another env file just use run the cli with another NODE_ENV, for example: `NODE_ENV=my_file yarn mikro-orm...` would use the `env/.my_file.env` file to load the connection config variables
+> Note that by default the mikro-orm cli will use the use the `env/.development.env` file to get the db connection config, if you wish to run the CLI using another env file just use run the cli with MIKRO_ORM_CFG env var with the name of the env file containing the desired config, for example: `MIKRO_ORM_CFG=homolog yarn mikro-orm...` would use the `env/.homolog.env` file to load the connection config variables
 
 For a list of commands see: https://mikro-orm.io/docs/migrations/#using-via-cli
 
@@ -66,7 +66,7 @@ After setting up the empty databases you can sync the DB schema with mikro-orm.
 yarn mikro-orm schema:update -r --drop-tables
 
 # Sync the schema on the test DB
-NODE_ENV=test yarn mikro-orm schema:update -r --drop-tables
+MIKRO_ORM_CFG=test yarn mikro-orm schema:update -r --drop-tables
 ```
 
 ---

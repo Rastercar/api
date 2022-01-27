@@ -1,4 +1,7 @@
-/**
- * This file is imported by jest before running all tests
+/*
+ |
+ | This file is imported by jest before running all tests
+ |
  */
+
 import 'reflect-metadata'
