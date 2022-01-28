@@ -2,6 +2,8 @@ version: 2.1
 
 orbs:
   node: circleci/node@5.0.0
+  aws-ecr: circleci/aws-ecr@7.3.0
+  aws-ecs: circleci/aws-ecs@2.2.1
 
 jobs:
   test-unit:
@@ -38,4 +40,28 @@ workflows:
       - test-unit
       - test-e2e:
           requires:
-            - test-unit # Since e2e tests are expensive only run then after unit tests, this way if unit tests fail e2e tests will be skipped
+            # Since e2e tests are expensive only run then after unit tests, this way if unit tests fail e2e tests will be skipped
+            - test-unit
+      - aws-ecr/build-and-push-image:
+          # Only bother deploying if tests pass
+          requires:
+            - test-e2e
+          # Only bother deploying the image if were commiting to production (master) or homologation (homolog)
+          filters:
+            branches:
+              only:
+                - master
+                - homolog
+          repo: rastercar-api
+          # Tag with the branch so a human can differ between homolog and production images
+          tag: '${CIRCLE_BRANCH}-${CIRCLE_SHA1}'
+
+      # Updates the rastercar ECS service, this will make it run the image built on aws-ecr/build-and-push-image
+      - aws-ecs/deploy-service-update:
+          cluster-name: rastercar-cluster
+          container-image-name-updates: 'container=rastercar-api-container,tag=${CIRCLE_BRANCH}-${CIRCLE_SHA1}'
+          family: rastercar-api-task
+          service-name: rastercar-api-service
+          force-new-deployment: true
+          requires:
+            - aws-ecr/build-and-push-image

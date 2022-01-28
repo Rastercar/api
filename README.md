@@ -80,21 +80,29 @@ $ yarn start
 # watch mode
 $ yarn start:dev
 
-# production mode
+# simulate production mode (this will just change the NODE_ENV to production when running)
 $ yarn start:prod
+
+# simulate homologation mode
+$ yarn start:homolog
 ```
+
+> Its interesting to create a '.homolog.env' file on the env folder containing the connection config for the homologation database, this way testing could be done with real data, beware that even though theres no problem in breaking the homolog database its still a pain as so be carefull if you do this
 
 ---
 
 ## Test
 
 ```bash
-# unit tests
+# all tests
 $ yarn test
+
+# unit tests
+$ yarn test:unit
 
 # e2e tests
 $ yarn test:e2e
 
-# test coverage
+# test and generate coverage
 $ yarn test:cov
 ```

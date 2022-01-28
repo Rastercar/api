@@ -9,12 +9,18 @@ export class HealthcheckController {
     return 'ok'
   }
 
+  // TODO: Remove me
+  @Get('dev')
+  test() {
+    return '16:55'
+  }
+
   /**
    * For dev/debugging purposes, just return the non secret env vars
    */
   @Get('enviroment')
   showAllowedEnvVars() {
-    if (process.env.NODE_ENV === 'production') throw new UnauthorizedException('Cannot check env in prodction')
+    if (process.env.NODE_ENV === 'production') throw new UnauthorizedException('Cannot check env in production')
 
     const allowedEnvVars = [
       'NODE_ENV',

@@ -20,4 +20,4 @@ RUN yarn install --production
 # copy the builded app
 COPY --from=build /app/dist ./dist
 # start it
-CMD yarn run start:prod
+CMD node dist/main
