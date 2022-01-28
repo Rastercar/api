@@ -19,7 +19,5 @@ COPY package.json .
 RUN yarn install --production
 # copy the builded app
 COPY --from=build /app/dist ./dist
-# copy the env folder
-COPY --from=build /app/env ./env
 # start it
 CMD yarn run start:prod
