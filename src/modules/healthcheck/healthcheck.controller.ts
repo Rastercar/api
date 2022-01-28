@@ -1,7 +1,5 @@
 import { Controller, Get, UnauthorizedException } from '@nestjs/common'
 
-console.log(process.env.NODE_ENV)
-
 @Controller()
 export class HealthcheckController {
   constructor() {}
