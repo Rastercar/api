@@ -1,18 +1,6 @@
 import * as Joi from 'joi'
-import * as fs from 'fs'
-
-export const getDefinedEnviromentFileSlugs = () => {
-  return fs
-    .readdirSync('env')
-    .map(envFileName => envFileName.replace('.env', '').replace(/\W/g, ''))
-    .filter(envFileName => envFileName !== 'example')
-}
 
 export const validationSchema = Joi.object({
-  NODE_ENV: Joi.string()
-    .valid(...getDefinedEnviromentFileSlugs())
-    .required(),
-
   API_PORT: Joi.number().required(),
 
   POSTGRES_DB: Joi.string().required(),
