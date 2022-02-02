@@ -17,6 +17,8 @@ $ yarn
 - the development env file is used whenever your app is started with **NODE_ENV=development** (ex: `yarn start:dev`)
 - the test env file is used when **NODE_ENV=test**, like when running tests with `yarn test`
 
+> For now we do not support [expandable enviroment variables](https://docs.nestjs.com/techniques/configuration#expandable-variables) since theyre injected to the docker container when running and theyre interpreted as the final values
+
 ### Setting up the database
 
 **Running locally:**

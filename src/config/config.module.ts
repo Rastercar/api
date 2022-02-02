@@ -14,7 +14,7 @@ const envFilePathDict = {
 const envFilePath = envFilePathDict[process.env.NODE_ENV ?? 'development']
 
 @Module({
-  imports: [NestConfigModule.forRoot({ isGlobal: true, load: [database], envFilePath, validationSchema, expandVariables: true })],
+  imports: [NestConfigModule.forRoot({ isGlobal: true, load: [database], envFilePath, validationSchema })],
   exports: [NestConfigModule]
 })
 export class ConfigModule {}
