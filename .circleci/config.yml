@@ -62,6 +62,5 @@ workflows:
           container-image-name-updates: 'container=rastercar-api-container,tag=${CIRCLE_BRANCH}-${CIRCLE_SHA1}'
           family: rastercar-api-task
           service-name: rastercar-api-homolog-service
-          force-new-deployment: true
           requires:
             - aws-ecr/build-and-push-image
