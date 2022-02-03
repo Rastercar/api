@@ -115,4 +115,4 @@ $ yarn test:cov
 
 Currently the API is deployed using ECS and circle CI, there is a homologation "server" on `homolog.rastercar.com:3000`, to update the API simply commit to the `homolog` branch, if unit and e2e tests pass circle ci will generate a new docker image for the api, upload it to ECR and update the ECS cluster to use the new image, this process takes about 5 minutes.
 
-When deploying, either to homolog or production the enviroment variables loaded to the container are stored in the `rastercar-env-vars` bucket, to update those variables just update the `homolog.env` or `production.env` file and restart the ecs containers
+When deploying, either to homolog or production the enviroment variables loaded to the container are stored in the `rastercar-env-vars` bucket, to update those variables just update the `homolog-env-vars.env` or `production-env-vars.env` file and restart the ecs containers

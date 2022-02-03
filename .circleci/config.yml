@@ -60,7 +60,7 @@ workflows:
       - aws-ecs/deploy-service-update:
           cluster-name: rastercar-api-homolog-cluster
           container-image-name-updates: 'container=rastercar-api-container,tag=${CIRCLE_BRANCH}-${CIRCLE_SHA1}'
-          family: rastercar-api-homolog-task
+          family: rastercar-api-task
           service-name: rastercar-api-homolog-service
           force-new-deployment: true
           requires:
