@@ -1,4 +1,4 @@
-import { Entity, EntityRepositoryType, OneToMany, Property, Unique } from '@mikro-orm/core'
+import { Entity, EntityRepositoryType, ManyToOne, OneToOne, Property, Unique } from '@mikro-orm/core'
 import { Organization } from '../../organization/entities/organization.entity'
 import { oauthProvider } from '../../auth/constants/oauth-providers'
 import { UserRepository } from '../repositories/user.repository'
@@ -13,10 +13,36 @@ interface UserArgs {
 
   oauthProvider: oauthProvider | null
   oauthProfileId: string | null
+
+  organization: Organization
 }
 
 @Entity()
 export class User extends BaseEntity {
+  /**
+   * A user representing a tracker client, the user might be a direct client
+   * to the tracking service, owning a billable organization or he might be
+   * just a user with access but no ownership of a organization.
+   */
+  constructor(data: UserArgs) {
+    super()
+
+    this.username = data.username
+    this.password = data.password
+
+    this.email = data.email
+    this.emailVerified = data.emailVerified
+
+    if ((data.oauthProfileId && !data.oauthProvider) || (!data.oauthProfileId && data.oauthProvider)) {
+      throw new Error('Cannot create user, either inform oauth_profile_id AND oauth_provider or none')
+    }
+
+    this.oauthProvider = data.oauthProvider
+    this.oauthProfileId = data.oauthProfileId
+
+    this.organization = data.organization
+  }
+
   [EntityRepositoryType]?: UserRepository
 
   /**
@@ -66,27 +92,18 @@ export class User extends BaseEntity {
   oauthProfileId!: string | null
 
   /**
-   * Relationship: 1 - 1...N
+   * Relationship: N...1
    *
-   * All organizations currently owned by the user, a user might own many orgs but a org has only one owner
+   * The organization which the user belongs to and might own.
    */
-  @OneToMany({ mappedBy: (org: Organization) => org.owner, entity: () => Organization })
-  ownedOrganizations!: Organization
+  @ManyToOne(() => Organization)
+  organization!: Organization
 
-  constructor(data: UserArgs) {
-    super()
-
-    this.username = data.username
-    this.password = data.password
-
-    this.email = data.email
-    this.emailVerified = data.emailVerified
-
-    if ((data.oauthProfileId && !data.oauthProvider) || (!data.oauthProfileId && data.oauthProvider)) {
-      throw new Error('Cannot create user, either inform oauth_profile_id AND oauth_provider or none')
-    }
-
-    this.oauthProvider = data.oauthProvider
-    this.oauthProfileId = data.oauthProfileId
-  }
+  /**
+   * Relationship: 1 - 0...1
+   *
+   * The organization which the user owns, a user can own a single or no organization
+   */
+  @OneToOne({ mappedBy: (org: Organization) => org.owner, entity: () => Organization, nullable: true })
+  ownedOrganization!: Organization | null
 }

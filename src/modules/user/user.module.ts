@@ -1,4 +1,5 @@
 import { UnregisteredUserResolver } from './resolvers/unregistered-user.resolver'
+import { Organization } from '../organization/entities/organization.entity'
 import { UnregisteredUser } from './entities/unregistered-user.entity'
 import { UserResolver } from './resolvers/user.resolver'
 import { forwardRef, Module } from '@nestjs/common'
@@ -8,7 +9,7 @@ import { User } from './entities/user.entity'
 import { UserService } from './user.service'
 
 @Module({
-  imports: [forwardRef(() => AuthModule), MikroOrmModule.forFeature({ entities: [User, UnregisteredUser] })],
+  imports: [forwardRef(() => AuthModule), MikroOrmModule.forFeature({ entities: [User, UnregisteredUser, Organization] })],
   providers: [UserService, UserResolver, UnregisteredUserResolver],
   exports: [UserService, UserResolver, UnregisteredUserResolver]
 })

@@ -1,3 +1,4 @@
+import { OrganizationRepository } from '../organization/repositories/organization.repository'
 import { UnregisteredUserRepository } from './repositories/unregistered-user.repository'
 import { UnregisteredUser } from './entities/unregistered-user.entity'
 import { RegisterUserDTO } from '../auth/dtos/register-user.dto'
@@ -6,9 +7,11 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { OrmModule } from '../../database/orm.module'
 import { UserService } from '../user/user.service'
 import { Profile } from 'passport-google-oauth20'
+import { Organization } from '../organization/entities/organization.entity'
 
 describe('UserService', () => {
   let unregisteredUserRepository: UnregisteredUserRepository
+  let organizationRepository: OrganizationRepository
   let repository: UserRepository
   let service: UserService
 
@@ -28,6 +31,7 @@ describe('UserService', () => {
 
     service = module.get(UserService)
     repository = module.get(UserRepository)
+    organizationRepository = module.get(OrganizationRepository)
     unregisteredUserRepository = module.get(UnregisteredUserRepository)
 
     urUserMock = new UnregisteredUser({
@@ -44,16 +48,22 @@ describe('UserService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined()
     expect(repository).toBeDefined()
+    expect(organizationRepository).toBeDefined()
     expect(unregisteredUserRepository).toBeDefined()
   })
 
   describe('[registerUser]', () => {
     let registerDto!: RegisterUserDTO
 
-    const userMock = { id: 1 }
+    const org = new Organization({ name: 'orgMock', billingEmail: 'mock@gmail.com', billingEmailVerified: true })
+    org.owner = {} as any
+
+    const userMock = { id: 1, organization: org }
 
     beforeEach(() => {
       jest.spyOn(repository, 'findOneOrFail').mockImplementation(async () => userMock as any)
+      jest.spyOn(organizationRepository, 'persistAndFlush').mockImplementation()
+      jest.spyOn(repository, 'persistAndFlush').mockImplementation()
 
       registerDto = new RegisterUserDTO()
       registerDto.email = 'email@gmail.com'
@@ -65,8 +75,6 @@ describe('UserService', () => {
     it('attempts to find the unregistered user when the user being registered refers to one', async () => {
       const urFindOne = jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => null)
       const urRemove = jest.spyOn(unregisteredUserRepository, 'remove').mockImplementation()
-      jest.spyOn(repository, 'persistAndFlush').mockImplementation()
-      jest.spyOn(repository, 'findOneOrFail').mockImplementation()
 
       await service.registerUser(registerDto)
 
@@ -77,12 +85,28 @@ describe('UserService', () => {
     it('deletes the unregistered user when the user being registered refers to a existing one', async () => {
       const urFindOne = jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => urUserMock)
       const urRemove = jest.spyOn(unregisteredUserRepository, 'remove').mockImplementation()
-      jest.spyOn(repository, 'persistAndFlush').mockImplementation()
 
       await service.registerUser(registerDto)
 
       expect(urFindOne).toHaveBeenLastCalledWith({ uuid: registerDto.refersToUnregisteredUser })
       expect(urRemove).toHaveBeenLastCalledWith(urUserMock)
+    })
+
+    it('creates a new organization for the user', async () => {
+      jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => null)
+      const registeredUser = await service.registerUser(registerDto)
+      expect(registeredUser.organization).toBeDefined()
+    })
+
+    it('marks the registered user as the owner of his registered organization', async () => {
+      // Supply the reference to another org to test if the registration will set its owner as the mockedUser
+      const anotherOrg = new Organization({ name: 'n', billingEmail: 'xd@gmail.com', billingEmailVerified: false })
+
+      jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => null)
+      jest.spyOn(organizationRepository, 'findOneOrFail').mockImplementationOnce(async () => anotherOrg)
+
+      const registeredUser = await service.registerUser(registerDto)
+      expect(registeredUser.organization.owner).toBe(userMock)
     })
   })
 

@@ -24,6 +24,15 @@ type Mutation {
   register(user: RegisterUserDTO!): LoginResponse!
 }
 
+"""organization"""
+type OrganizationModel {
+  billingEmail: String!
+  billingEmailVerified: Boolean!
+  blocked: Boolean!
+  id: Int!
+  name: String!
+}
+
 type Query {
   isEmailInUse(email: String!): Boolean!
   me: UserModel!
@@ -56,5 +65,6 @@ type UserModel {
   emailVerified: Boolean!
   googleProfileId: String
   id: Int!
+  organization: OrganizationModel!
   username: String!
 }

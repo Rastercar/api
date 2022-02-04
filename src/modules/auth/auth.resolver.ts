@@ -36,6 +36,9 @@ export class AuthResolver {
     return this.authService.loginWithToken(token)
   }
 
+  /**
+   * Register a new user and his organization
+   */
   @Mutation(returns(LoginResponse))
   async register(@Args('user') user: RegisterUserDTO): Promise<LoginResponse> {
     const inUse = await this.authService.checkEmailAddressInUse(user.email)

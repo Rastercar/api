@@ -1,3 +1,4 @@
+import { OrganizationRepository } from '../organization/repositories/organization.repository'
 import { UnregisteredUserRepository } from './repositories/unregistered-user.repository'
 import { UnregisteredUser } from './entities/unregistered-user.entity'
 import { RegisterUserDTO } from '../auth/dtos/register-user.dto'
@@ -8,6 +9,7 @@ import { User } from './entities/user.entity'
 import { Injectable } from '@nestjs/common'
 import { MikroORM } from '@mikro-orm/core'
 import * as bcrypt from 'bcrypt'
+import { Organization } from '../organization/entities/organization.entity'
 
 @Injectable()
 export class UserService {
@@ -15,13 +17,14 @@ export class UserService {
     // This is not used but is required because @UseRequestContext needs mikroorm in its context
     readonly orm: MikroORM,
     readonly userRepository: UserRepository,
+    readonly organizationRepository: OrganizationRepository,
     readonly unregisteredUserRepository: UnregisteredUserRepository
   ) {}
 
   /**
-   * Creates a new user, if the new user being registered refers to a previously
-   * unregistered user the unregistered user data is used to fill the new user oauth
-   * columns and the unregistered user row is deleted
+   * Creates a new user and his organization, if the new user being registered refers to
+   * a previously unregistered user the unregistered user data is used to fill the new user
+   * oauth columns and the unregistered user row is deleted
    */
   @UseRequestContext()
   async registerUser(user: RegisterUserDTO): Promise<User> {
@@ -29,13 +32,20 @@ export class UserService {
       ? await this.unregisteredUserRepository.findOne({ uuid: user.refersToUnregisteredUser })
       : null
 
+    const emailVerified = urUserOrNull ? urUserOrNull.emailVerified : false
+
     const userToRegister = new User({
       email: user.email,
       username: user.username,
       password: bcrypt.hashSync(user.password, 10),
-      emailVerified: urUserOrNull ? urUserOrNull.emailVerified : false,
+      emailVerified,
+      oauthProvider: urUserOrNull ? urUserOrNull.oauthProvider : null,
       oauthProfileId: urUserOrNull ? urUserOrNull.oauthProfileId : null,
-      oauthProvider: urUserOrNull ? urUserOrNull.oauthProvider : null
+      organization: new Organization({
+        name: user.username,
+        billingEmail: user.email,
+        billingEmailVerified: emailVerified
+      })
     })
 
     if (urUserOrNull !== null) {
@@ -44,7 +54,13 @@ export class UserService {
 
     await this.userRepository.persistAndFlush(userToRegister)
 
-    return this.userRepository.findOneOrFail({ email: userToRegister.email })
+    const createdUser = await this.userRepository.findOneOrFail({ email: userToRegister.email }, ['organization'])
+
+    createdUser.organization.owner = createdUser
+
+    await this.organizationRepository.persistAndFlush(createdUser.organization)
+
+    return createdUser
   }
 
   @UseRequestContext()
