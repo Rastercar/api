@@ -12,7 +12,7 @@ interface AccessLevelArgs {
   organization: Organization
 }
 
-@Entity()
+@Entity({ customRepository: () => AccessLevelRepository })
 export class AccessLevel extends BaseEntity {
   /**
    * A access level for tracked users, contains 0-N permissions

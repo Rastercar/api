@@ -6,7 +6,7 @@ interface PermissionArgs {
   description: string
 }
 
-@Entity()
+@Entity({ customRepository: () => PermissionRepository })
 export class Permission {
   /**
    * A permission for access levels, a permission is used by many
