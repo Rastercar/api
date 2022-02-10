@@ -1,10 +1,11 @@
+import { OrganizationModel } from '../../organization/models/organization.model'
+import { AccessLevelModel } from '../../auth/models/access-level.model'
 import { Field, Int, ObjectType } from '@nestjs/graphql'
 import { is } from '../../../utils/coverage-helpers'
-import { OrganizationModel } from '../../organization/models/organization.model'
 
 @ObjectType({ description: 'user' })
 export class UserModel {
-  @Field(type => Int)
+  @Field(is(Int))
   id!: number
 
   @Field()
@@ -21,4 +22,7 @@ export class UserModel {
 
   @Field(is(OrganizationModel))
   organization!: OrganizationModel
+
+  @Field(is(AccessLevelModel))
+  accessLevel!: AccessLevelModel
 }

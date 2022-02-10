@@ -1,8 +1,15 @@
+import { Organization } from '../../../src/modules/organization/entities/organization.entity'
+import { AccessLevel } from '../../../src/modules/auth/entities/access-level.entity'
 import { Connection, IDatabaseDriver, MikroORM } from '@mikro-orm/core'
 import { User } from '../../../src/modules/user/entities/user.entity'
 import * as bcrypt from 'bcrypt'
 import * as faker from 'faker'
-import { Organization } from '../../../src/modules/organization/entities/organization.entity'
+
+const defaultTestUserOrg = new Organization({
+  name: 'testuser org',
+  billingEmail: 'testuser@gmail.com',
+  billingEmailVerified: true
+})
 
 /**
  * A static user for testing, this user is created
@@ -18,10 +25,13 @@ export const defaultTestUser = new User({
   oauthProvider: null,
   oauthProfileId: null,
 
-  organization: new Organization({
-    name: 'testuser org',
-    billingEmail: 'testuser@gmail.com',
-    billingEmailVerified: true
+  organization: defaultTestUserOrg,
+
+  accessLevel: new AccessLevel({
+    isFixed: true,
+    name: 'testUserAccessLevel',
+    description: 'wew lad !',
+    organization: defaultTestUserOrg
   })
 })
 
@@ -29,6 +39,12 @@ export const loadUserFixtures = async (orm: MikroORM<IDatabaseDriver<Connection>
   const createUser = () => {
     const username = faker.internet.userName()
     const email = faker.internet.email()
+
+    const organization = new Organization({
+      name: username,
+      billingEmail: email,
+      billingEmailVerified: true
+    })
 
     const user = new User({
       username,
@@ -40,10 +56,13 @@ export const loadUserFixtures = async (orm: MikroORM<IDatabaseDriver<Connection>
       oauthProvider: null,
       oauthProfileId: null,
 
-      organization: new Organization({
-        name: username,
-        billingEmail: email,
-        billingEmailVerified: true
+      organization,
+
+      accessLevel: new AccessLevel({
+        isFixed: true,
+        name: faker.lorem.words(2),
+        description: faker.lorem.words(6),
+        organization
       })
     })
 

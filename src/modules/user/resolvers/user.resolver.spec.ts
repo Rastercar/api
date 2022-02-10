@@ -38,10 +38,10 @@ describe('UserResolver', () => {
 
     const findOneSpy = jest.spyOn(userService.userRepository, 'findOneOrFail').mockImplementationOnce(async () => userMock as any)
 
-    const user = await resolver.user(id)
+    const user = await resolver.user(id, [])
 
     expect(user).toBe(userMock)
     expect(findOneSpy).toHaveBeenCalledTimes(1)
-    expect(findOneSpy).toHaveBeenLastCalledWith({ id })
+    expect(findOneSpy).toHaveBeenLastCalledWith({ id }, expect.anything())
   })
 })

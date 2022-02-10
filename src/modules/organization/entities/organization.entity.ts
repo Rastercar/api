@@ -12,7 +12,7 @@ interface OrgArgs {
 }
 
 @SoftDeletable()
-@Entity()
+@Entity({ customRepository: () => OrganizationRepository })
 export class Organization extends BaseEntity {
   /**
    * A organization representing a rastercar client, a organization has many

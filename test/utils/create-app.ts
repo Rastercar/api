@@ -28,22 +28,22 @@ export const createAppTestingModule = async (opts: Options = {}) => {
 
   setupAppGlobals(app)
 
-  const defailtOptions = { init: true, clearDatabase: true, loadFixture: true }
-  const options = { ...defailtOptions, ...opts }
-
-  if (options.init) await app.init()
-
   const orm = app.get(MikroORM)
-
-  if (options.clearDatabase) await clearDatabase(orm)
-  if (options.loadFixtures) await loadFixtures(orm)
 
   // Yes this code is duplicated in main.js but this is because we cannot import the MikroORM class
   // elsewhere (in a exported function, for example) and use it here as that would trigger mikroorm to
   // load its configuration before the env variables were parsed !
   app.use((req: Express.Request, res: Express.Response, next: () => void) => {
-    storage.run(orm.em.fork(true, true), next)
+    storage.run(orm.em.fork({ useContext: true }), next)
   })
+
+  const defailtOptions = { init: true, clearDatabase: true, loadFixture: true }
+  const options = { ...defailtOptions, ...opts }
+
+  if (options.init) await app.init()
+
+  if (options.clearDatabase) await clearDatabase(orm)
+  if (options.loadFixtures) await loadFixtures(orm)
 
   return app
 }

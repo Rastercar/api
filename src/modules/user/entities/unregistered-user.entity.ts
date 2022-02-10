@@ -13,7 +13,7 @@ interface UnregisteredUserArgs {
   oauthProfileId: string
 }
 
-@Entity()
+@Entity({ customRepository: () => UnregisteredUserRepository })
 export class UnregisteredUser extends UuidBaseEntity {
   /**
    * A unregistered user represents a incomplete or not fully registered user, it cannot

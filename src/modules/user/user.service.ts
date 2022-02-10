@@ -1,5 +1,6 @@
 import { OrganizationRepository } from '../organization/repositories/organization.repository'
 import { UnregisteredUserRepository } from './repositories/unregistered-user.repository'
+import { Organization } from '../organization/entities/organization.entity'
 import { UnregisteredUser } from './entities/unregistered-user.entity'
 import { RegisterUserDTO } from '../auth/dtos/register-user.dto'
 import { UserRepository } from './repositories/user.repository'
@@ -9,7 +10,7 @@ import { User } from './entities/user.entity'
 import { Injectable } from '@nestjs/common'
 import { MikroORM } from '@mikro-orm/core'
 import * as bcrypt from 'bcrypt'
-import { Organization } from '../organization/entities/organization.entity'
+import { AccessLevel } from '../auth/entities/access-level.entity'
 
 @Injectable()
 export class UserService {
@@ -34,6 +35,12 @@ export class UserService {
 
     const emailVerified = urUserOrNull ? urUserOrNull.emailVerified : false
 
+    const organizationToRegister = new Organization({
+      name: user.username,
+      billingEmail: user.email,
+      billingEmailVerified: emailVerified
+    })
+
     const userToRegister = new User({
       email: user.email,
       username: user.username,
@@ -41,10 +48,13 @@ export class UserService {
       emailVerified,
       oauthProvider: urUserOrNull ? urUserOrNull.oauthProvider : null,
       oauthProfileId: urUserOrNull ? urUserOrNull.oauthProfileId : null,
-      organization: new Organization({
-        name: user.username,
-        billingEmail: user.email,
-        billingEmailVerified: emailVerified
+      organization: organizationToRegister,
+      // TODO: FIXME
+      accessLevel: new AccessLevel({
+        name: 'admin',
+        isFixed: true,
+        description: '',
+        organization: organizationToRegister
       })
     })
 
@@ -54,13 +64,17 @@ export class UserService {
 
     await this.userRepository.persistAndFlush(userToRegister)
 
-    const createdUser = await this.userRepository.findOneOrFail({ email: userToRegister.email }, ['organization'])
+    const getUserAndSetHimAsTheOrganizationOwner = async () => {
+      const createdUser = await this.userRepository.findOneOrFail({ email: userToRegister.email }, { populate: ['organization'] })
 
-    createdUser.organization.owner = createdUser
+      createdUser.organization.owner = createdUser
 
-    await this.organizationRepository.persistAndFlush(createdUser.organization)
+      await this.organizationRepository.persistAndFlush(createdUser.organization)
 
-    return createdUser
+      return createdUser
+    }
+
+    return getUserAndSetHimAsTheOrganizationOwner()
   }
 
   @UseRequestContext()
@@ -73,11 +87,9 @@ export class UserService {
 
     const unregisteredUser = new UnregisteredUser({
       username: googleProfile.username,
-
       email: profileEmail.value,
       // Sometimes the verified prop comes as boolean despite the typing
       emailVerified: profileEmail.verified === 'true' || (profileEmail.verified as unknown as boolean) === true,
-
       oauthProfileId: googleProfile.id,
       oauthProvider: 'google'
     })

@@ -2,6 +2,13 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+"""The access level to the tracked dashboard"""
+type AccessLevelModel {
+  description: String!
+  id: Int!
+  name: String!
+}
+
 """JSON Web Token"""
 type JwtModel {
   type: String!
@@ -61,6 +68,7 @@ type UnregisteredUserModel {
 
 """user"""
 type UserModel {
+  accessLevel: AccessLevelModel!
   email: String!
   emailVerified: Boolean!
   googleProfileId: String

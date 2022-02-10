@@ -1,5 +1,6 @@
 import { Entity, EntityRepositoryType, ManyToOne, OneToOne, Property, Unique } from '@mikro-orm/core'
 import { Organization } from '../../organization/entities/organization.entity'
+import { AccessLevel } from '../../auth/entities/access-level.entity'
 import { oauthProvider } from '../../auth/constants/oauth-providers'
 import { UserRepository } from '../repositories/user.repository'
 import { BaseEntity } from '../../../database/base/base-entity'
@@ -14,10 +15,11 @@ interface UserArgs {
   oauthProvider: oauthProvider | null
   oauthProfileId: string | null
 
+  accessLevel: AccessLevel
   organization: Organization
 }
 
-@Entity()
+@Entity({ customRepository: () => UserRepository })
 export class User extends BaseEntity {
   /**
    * A user representing a tracker client, the user might be a direct client
@@ -40,6 +42,7 @@ export class User extends BaseEntity {
     this.oauthProvider = data.oauthProvider
     this.oauthProfileId = data.oauthProfileId
 
+    this.accessLevel = data.accessLevel
     this.organization = data.organization
   }
 
@@ -98,6 +101,14 @@ export class User extends BaseEntity {
    */
   @ManyToOne(() => Organization)
   organization!: Organization
+
+  /**
+   * Relationship: N...1
+   *
+   * The access level of the user
+   */
+  @ManyToOne(() => AccessLevel)
+  accessLevel!: AccessLevel
 
   /**
    * Relationship: 1 - 0...1

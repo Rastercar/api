@@ -83,7 +83,7 @@ describe('UserService', () => {
     })
 
     it('deletes the unregistered user when the user being registered refers to a existing one', async () => {
-      const urFindOne = jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => urUserMock)
+      const urFindOne = jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => urUserMock as any)
       const urRemove = jest.spyOn(unregisteredUserRepository, 'remove').mockImplementation()
 
       await service.registerUser(registerDto)
@@ -103,7 +103,7 @@ describe('UserService', () => {
       const anotherOrg = new Organization({ name: 'n', billingEmail: 'xd@gmail.com', billingEmailVerified: false })
 
       jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => null)
-      jest.spyOn(organizationRepository, 'findOneOrFail').mockImplementationOnce(async () => anotherOrg)
+      jest.spyOn(organizationRepository, 'findOneOrFail').mockImplementationOnce(async () => anotherOrg as any)
 
       const registeredUser = await service.registerUser(registerDto)
       expect(registeredUser.organization.owner).toBe(userMock)
@@ -151,7 +151,7 @@ describe('UserService', () => {
     }
 
     it('returns the existing unregistered user for the profile if it exists', async () => {
-      const urFindOne = jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => urUserMock)
+      const urFindOne = jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => urUserMock as any)
 
       const urUser = await service.createOrFindUnregisteredUserForGoogleProfile(googleProfileMock)
 
