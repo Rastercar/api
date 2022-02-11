@@ -31,7 +31,8 @@ export const defaultTestUser = new User({
     isFixed: true,
     name: 'testUserAccessLevel',
     description: 'wew lad !',
-    organization: defaultTestUserOrg
+    organization: defaultTestUserOrg,
+    permissions: []
   })
 })
 
@@ -62,7 +63,8 @@ export const loadUserFixtures = async (orm: MikroORM<IDatabaseDriver<Connection>
         isFixed: true,
         name: faker.lorem.words(2),
         description: faker.lorem.words(6),
-        organization
+        organization,
+        permissions: []
       })
     })
 

@@ -11,6 +11,7 @@ import { Injectable } from '@nestjs/common'
 import { MikroORM } from '@mikro-orm/core'
 import * as bcrypt from 'bcrypt'
 import { AccessLevel } from '../auth/entities/access-level.entity'
+import { PERMISSION } from '../auth/constants/permissions'
 
 @Injectable()
 export class UserService {
@@ -49,12 +50,12 @@ export class UserService {
       oauthProvider: urUserOrNull ? urUserOrNull.oauthProvider : null,
       oauthProfileId: urUserOrNull ? urUserOrNull.oauthProfileId : null,
       organization: organizationToRegister,
-      // TODO: FIXME
       accessLevel: new AccessLevel({
         name: 'admin',
         isFixed: true,
         description: '',
-        organization: organizationToRegister
+        organization: organizationToRegister,
+        permissions: Object.values(PERMISSION)
       })
     })
 

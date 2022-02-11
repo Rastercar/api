@@ -15,7 +15,7 @@ describe('UserResolver', () => {
           provide: UserService,
           useFactory: () => ({
             userRepository: {
-              findOneOrFail: jest.fn()
+              findOne: jest.fn()
             }
           })
         }
@@ -36,7 +36,7 @@ describe('UserResolver', () => {
     const userMock = { id: 1 }
     const id = 123
 
-    const findOneSpy = jest.spyOn(userService.userRepository, 'findOneOrFail').mockImplementationOnce(async () => userMock as any)
+    const findOneSpy = jest.spyOn(userService.userRepository, 'findOne').mockImplementationOnce(async () => userMock as any)
 
     const user = await resolver.user(id, [])
 

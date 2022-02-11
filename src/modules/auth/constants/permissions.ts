@@ -1,0 +1,3 @@
+export enum PERMISSION {
+  EDIT_OTHER_USERS = 'EDIT_OTHER_USERS'
+}

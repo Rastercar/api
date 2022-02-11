@@ -16,8 +16,7 @@ export class UserResolver {
   user(
     @Args({ name: 'id', type: is(Int) }) id: number,
     @Selections('user', ['organization', 'accessLevel']) populate: string[]
-  ): Promise<UserModel> {
-    console.log(this.orm.em.id)
-    return this.userService.userRepository.findOneOrFail({ id }, { populate: populate as any })
+  ): Promise<UserModel | null> {
+    return this.userService.userRepository.findOne({ id }, { populate: populate as any })
   }
 }

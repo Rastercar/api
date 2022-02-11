@@ -1,15 +1,16 @@
-import { Collection, Entity, EntityRepositoryType, ManyToMany, ManyToOne, OneToMany, Property } from '@mikro-orm/core'
+import { Collection, Entity, EntityRepositoryType, Enum, ManyToOne, OneToMany, Property } from '@mikro-orm/core'
 import { AccessLevelRepository } from '../repositories/access-level.repository'
 import { Organization } from '../../organization/entities/organization.entity'
 import { BaseEntity } from '../../../database/base/base-entity'
 import { User } from '../../user/entities/user.entity'
-import { Permission } from './permission.entity'
+import { PERMISSION } from '../constants/permissions'
 
 interface AccessLevelArgs {
   name: string
   isFixed: boolean
   description: string
   organization: Organization
+  permissions: PERMISSION[]
 }
 
 @Entity({ customRepository: () => AccessLevelRepository })
@@ -24,6 +25,7 @@ export class AccessLevel extends BaseEntity {
     this.isFixed = data.isFixed
     this.description = data.description
     this.organization = data.organization
+    this.permissions = data.permissions
   }
 
   [EntityRepositoryType]?: AccessLevelRepository
@@ -42,6 +44,20 @@ export class AccessLevel extends BaseEntity {
   isFixed!: boolean
 
   /**
+   * All the permissions of the access level
+   *
+   * disclaimer: permissions are not stored in a separate table
+   * and related to the access_levels table because permissions
+   * themselves are "static" (only devs can change them), so for
+   * the sake of simplicity and performance they are stored here.
+   *
+   * If in the future we need to store them on a table, a simple
+   * migration would be enough
+   */
+  @Enum({ items: () => PERMISSION, array: true, default: [] })
+  permissions!: PERMISSION[]
+
+  /**
    * Relationship 1...0-N
    *
    * The users that have this access level
@@ -56,12 +72,4 @@ export class AccessLevel extends BaseEntity {
    */
   @ManyToOne(() => Organization)
   organization!: Organization
-
-  /**
-   * Relationship: N...N
-   *
-   *  organization that created/owns the access level
-   */
-  @ManyToMany(() => Permission)
-  permissions: Collection<Permission> = new Collection<Permission>(this)
 }

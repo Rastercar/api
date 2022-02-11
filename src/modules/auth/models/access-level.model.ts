@@ -1,5 +1,8 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql'
+import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql'
 import { is } from '../../../utils/coverage-helpers'
+import { PERMISSION } from '../constants/permissions'
+
+registerEnumType(PERMISSION, { name: 'PERMISSION' })
 
 @ObjectType({ description: 'The access level to the tracked dashboard' })
 export class AccessLevelModel {
@@ -11,4 +14,7 @@ export class AccessLevelModel {
 
   @Field()
   description!: string
+
+  @Field(() => [PERMISSION])
+  permissions!: PERMISSION[]
 }
