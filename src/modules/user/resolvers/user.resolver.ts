@@ -4,7 +4,7 @@ import { Selections } from '@jenyus-org/nestjs-graphql-utils'
 import { Args, Int, Query, Resolver } from '@nestjs/graphql'
 import { UseRequestContext } from '@mikro-orm/nestjs'
 import { UserModel } from '../models/user.model'
-import { UserService } from '../user.service'
+import { UserService } from '../services/user.service'
 import { MikroORM } from '@mikro-orm/core'
 
 @Resolver(of(UserModel))

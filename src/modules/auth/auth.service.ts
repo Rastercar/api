@@ -3,10 +3,11 @@ import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService, JwtSignOptions } from '@nestjs/jwt'
 import { UseRequestContext } from '@mikro-orm/nestjs'
 import { User } from '../user/entities/user.entity'
-import { UserService } from '../user/user.service'
+import { UserService } from '../user/services/user.service'
 import { Jwt } from './strategies/jwt.strategy'
 import { MikroORM } from '@mikro-orm/core'
 import * as bcrypt from 'bcrypt'
+import { MasterUserService } from '../user/services/master-user.service'
 
 interface LoginOptions {
   /**
@@ -22,6 +23,7 @@ export class AuthService {
     readonly orm: MikroORM,
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
+    private readonly masterUserService: MasterUserService,
     private readonly organizationService: OrganizationService
   ) {}
 
@@ -109,8 +111,9 @@ export class AuthService {
   @UseRequestContext()
   async checkEmailAddressInUse(email: string): Promise<boolean> {
     const user = await this.userService.userRepository.findOne({ email }, { fields: ['id'] })
+    const masterUser = await this.masterUserService.masterUserRepository.findOne({ email }, { fields: ['id'] })
     const org = await this.organizationService.organizationRepository.findOne({ billingEmail: email }, { fields: ['id'] })
 
-    return !!(user || org)
+    return !!(user || org || masterUser)
   }
 }

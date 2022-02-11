@@ -1,15 +1,17 @@
 import { OrganizationService } from '../organization/organization.service'
+import { MasterUserService } from '../user/services/master-user.service'
+import { UserService } from '../user/services/user.service'
 import { UnauthorizedException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
-import { UserService } from '../user/user.service'
+import { OrmModule } from '../../database/orm.module'
 import { ConfigService } from '@nestjs/config'
 import { AuthService } from './auth.service'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
-import { OrmModule } from '../../database/orm.module'
 
 describe('AuthService', () => {
   let organizationService: OrganizationService
+  let masterUserService: MasterUserService
   let userService: UserService
   let jwtService: JwtService
   let service: AuthService
@@ -29,6 +31,14 @@ describe('AuthService', () => {
             },
             unregisteredUserRepository: {
               nativeDelete: jest.fn()
+            }
+          })
+        },
+        {
+          provide: MasterUserService,
+          useFactory: () => ({
+            masterUserRepository: {
+              findOne: jest.fn()
             }
           })
         },
@@ -55,6 +65,7 @@ describe('AuthService', () => {
     service = module.get(AuthService)
     jwtService = module.get(JwtService)
     userService = module.get(UserService)
+    masterUserService = module.get(MasterUserService)
     organizationService = module.get(OrganizationService)
   })
 
@@ -110,11 +121,13 @@ describe('AuthService', () => {
         .mockImplementationOnce(async () => ({ id: 1 } as any))
 
       const userFindOneSpy = jest.spyOn(userService.userRepository, 'findOne').mockImplementationOnce(async () => null)
+      const masterFindOneSpy = jest.spyOn(masterUserService.masterUserRepository, 'findOne').mockImplementationOnce(async () => null)
 
       const inUse = await service.checkEmailAddressInUse(email)
 
       expect(orgFindOneSpy).toHaveBeenLastCalledWith({ billingEmail: email }, expect.anything())
       expect(userFindOneSpy).toHaveBeenLastCalledWith({ email }, expect.anything())
+      expect(masterFindOneSpy).toHaveBeenLastCalledWith({ email }, expect.anything())
 
       expect(inUse).toBe(true)
     })

@@ -24,8 +24,8 @@ export class AccessLevel extends BaseEntity {
     this.name = data.name
     this.isFixed = data.isFixed
     this.description = data.description
-    this.organization = data.organization
     this.permissions = data.permissions
+    this.organization = data.organization
   }
 
   [EntityRepositoryType]?: AccessLevelRepository

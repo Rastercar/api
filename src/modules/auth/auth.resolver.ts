@@ -7,7 +7,7 @@ import { RegisterUserDTO } from './dtos/register-user.dto'
 import { is, returns } from '../../utils/coverage-helpers'
 import { ERROR_CODES } from '../../constants/error.codes'
 import { UserModel } from '../user/models/user.model'
-import { UserService } from '../user/user.service'
+import { UserService } from '../user/services/user.service'
 import { AuthService } from './auth.service'
 
 @Resolver()

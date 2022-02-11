@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { UserResolver } from './user.resolver'
-import { UserService } from '../user.service'
+import { UserService } from '../services/user.service'
 import { OrmModule } from '../../../database/orm.module'
 
 describe('UserResolver', () => {
