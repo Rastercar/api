@@ -1,6 +1,6 @@
 import { Migration } from '@mikro-orm/migrations'
 
-export class Migration20220211195832 extends Migration {
+export class SetDbSchema extends Migration {
   async up(): Promise<void> {
     this.addSql(
       'create table "master_access_level" ("id" serial primary key, "created_at" timestamptz(0) not null, "updated_at" timestamptz(0) null, "name" varchar(255) not null, "description" varchar(255) not null, "is_fixed" boolean not null, "permissions" text[] not null default \'{}\');'
@@ -23,7 +23,7 @@ export class Migration20220211195832 extends Migration {
     this.addSql('alter table "user" add constraint "user_email_unique" unique ("email");')
 
     this.addSql(
-      'create table "access_level" ("id" serial primary key, "created_at" timestamptz(0) not null, "updated_at" timestamptz(0) null, "name" varchar(255) not null, "description" varchar(255) not null, "is_fixed" boolean not null, "permissions" text[] not null default \'{}\', "organization_id" int not null);'
+      'create table "access_level" ("id" serial primary key, "created_at" timestamptz(0) not null, "updated_at" timestamptz(0) null, "name" varchar(255) not null, "description" varchar(255) not null, "is_fixed" boolean not null, "permissions" text[] not null default \'{}\', "organization_id" int null);'
     )
 
     this.addSql(
@@ -43,7 +43,7 @@ export class Migration20220211195832 extends Migration {
     )
 
     this.addSql(
-      'alter table "access_level" add constraint "access_level_organization_id_foreign" foreign key ("organization_id") references "organization" ("id") on update cascade;'
+      'alter table "access_level" add constraint "access_level_organization_id_foreign" foreign key ("organization_id") references "organization" ("id") on update cascade on delete set null;'
     )
 
     this.addSql(

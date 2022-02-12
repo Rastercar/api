@@ -1,6 +1,6 @@
 import { setupAppGlobals } from '../../src/bootstrap/setup-app'
 import { clearDatabase } from '../database/clear-database'
-import { loadFixtures } from '../database/load-fixtures'
+import { seedDatabase } from '../database/seed-database'
 import { Test, TestingModule } from '@nestjs/testing'
 import { AppModule } from '../../src/app.module'
 import { MikroORM } from '@mikro-orm/core'
@@ -8,7 +8,7 @@ import { storage } from '../../src/database/mikro-orm.config'
 
 interface Options {
   init?: boolean
-  loadFixtures?: boolean
+  seed?: boolean
   clearDatabase?: boolean
 }
 
@@ -18,7 +18,7 @@ interface Options {
  * HINT: dont forget to call app.close() after all tests
  *
  * @param options.init - if the server should be started, default: true
- * @param options.loadFixtures - if mockData should be inserted into the database, default: true
+ * @param options.seed - if mockData should be inserted into the database, default: true
  * @param options.clearDatabase - if the database should be cleared before loading fixtures, default: true
  */
 export const createAppTestingModule = async (opts: Options = {}) => {
@@ -43,7 +43,7 @@ export const createAppTestingModule = async (opts: Options = {}) => {
   if (options.init) await app.init()
 
   if (options.clearDatabase) await clearDatabase(orm)
-  if (options.loadFixtures) await loadFixtures(orm)
+  if (options.seed) await seedDatabase(orm)
 
   return app
 }

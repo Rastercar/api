@@ -36,6 +36,11 @@ export default {
     path: './src/database/migrations'
   },
 
+  seeder: {
+    path: './src/database/seeders',
+    defaultSeeder: 'UserSeeder'
+  },
+
   // TODO: check if we need this, ideally should be false
   allowGlobalContext: process.env.NODE_ENV === 'test',
 

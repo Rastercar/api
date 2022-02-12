@@ -9,7 +9,7 @@ interface AccessLevelArgs {
   name: string
   isFixed: boolean
   description: string
-  organization: Organization
+  organization?: Organization
   permissions: PERMISSION[]
 }
 
@@ -25,7 +25,7 @@ export class AccessLevel extends BaseEntity {
     this.isFixed = data.isFixed
     this.description = data.description
     this.permissions = data.permissions
-    this.organization = data.organization
+    this.organization = data.organization ?? null
   }
 
   [EntityRepositoryType]?: AccessLevelRepository
@@ -66,10 +66,11 @@ export class AccessLevel extends BaseEntity {
   users = new Collection<User>(this)
 
   /**
-   * Relationship: N...1
+   * Relationship: N...0-1
    *
-   * The organization that created/owns the access level
+   * The organization that created/owns the access level, if null this access
+   * level was created and is used by master users to manage its clients
    */
-  @ManyToOne(() => Organization)
-  organization!: Organization
+  @ManyToOne(() => Organization, { nullable: true })
+  organization!: Organization | null
 }

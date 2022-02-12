@@ -1,11 +1,10 @@
 import { Entity, EntityRepositoryType, ManyToOne, Property, Unique } from '@mikro-orm/core'
 import { MasterAccessLevel } from '../../auth/entities/master-access-level.entity'
-import { Organization } from '../../organization/entities/organization.entity'
 import { MasterUserRepository } from '../repositories/master-user.repository'
 import { AccessLevel } from '../../auth/entities/access-level.entity'
 import { BaseEntity } from '../../../database/base/base-entity'
 
-interface UserArgs {
+interface MasterUserArgs {
   username: string
   password: string
 
@@ -13,7 +12,7 @@ interface UserArgs {
   emailVerified: boolean
 
   accessLevel: AccessLevel
-  organization: Organization
+  masterAccessLevel: MasterAccessLevel
 }
 
 @Entity({ customRepository: () => MasterUserRepository })
@@ -22,7 +21,7 @@ export class MasterUser extends BaseEntity {
    * A user representing a manager, the user has access to the tracked
    * dashboard and might have access to edit and manage the tracker clients
    */
-  constructor(data: UserArgs) {
+  constructor(data: MasterUserArgs) {
     super()
 
     this.username = data.username
@@ -32,6 +31,7 @@ export class MasterUser extends BaseEntity {
     this.emailVerified = data.emailVerified
 
     this.accessLevel = data.accessLevel
+    this.masterAccessLevel = data.masterAccessLevel
   }
 
   [EntityRepositoryType]?: MasterUserRepository

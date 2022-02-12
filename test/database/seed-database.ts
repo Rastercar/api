@@ -1,11 +1,12 @@
 import { Connection, IDatabaseDriver, MikroORM } from '@mikro-orm/core'
-import { loadUserFixtures } from './fixtures/user.fixtures'
+import { UserSeeder } from '../../src/database/seeders/user.seeder'
 
 /**
  * Loads fixtures into the database for testing purposes
  *
  * @param orm - The mikro-orm instance, make sure this is configured with the test database
  */
-export const loadFixtures = async (orm: MikroORM<IDatabaseDriver<Connection>>) => {
-  await loadUserFixtures(orm)
+export const seedDatabase = async (orm: MikroORM<IDatabaseDriver<Connection>>) => {
+  const seeder = orm.getSeeder()
+  await seeder.seed(UserSeeder)
 }

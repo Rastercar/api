@@ -1,15 +1,15 @@
 import { loginForTestuser, getGqlFirstErrorExtension } from '../../../test/utils/e2e.utils'
-import { defaultTestUser } from '../../../test/database/fixtures/user.fixtures'
 import { createAppTestingModule } from '../../../test/utils/create-app'
 import { UserRepository } from '../user/repositories/user.repository'
+import { defaultTestUser } from '../../database/seeders/user.seeder'
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import { RegisterUserDTO } from './dtos/register-user.dto'
+import { ERROR_CODES } from '../../constants/error.codes'
 import { EntityManager } from '@mikro-orm/postgresql'
 import { User } from '../user/entities/user.entity'
 import * as request from 'supertest'
 import * as bcrypt from 'bcrypt'
 import { Server } from 'http'
-import { ERROR_CODES } from '../../constants/error.codes'
 
 // Hack for graphql syntax highlighting
 const gql = String.raw
@@ -21,9 +21,9 @@ describe('e2e: AuthController / AuthResolver', () => {
   let server: Server
 
   beforeAll(async () => {
-    app = await createAppTestingModule({ clearDatabase: true, loadFixtures: true })
-    server = app.getHttpServer()
+    app = await createAppTestingModule({ clearDatabase: true, seed: true })
     userRepo = app.get(UserRepository)
+    server = app.getHttpServer()
 
     const [firstUser] = await userRepo.find({}, { limit: 1, orderBy: { id: 'ASC' } })
     validUser = firstUser
@@ -198,7 +198,7 @@ describe('e2e: AuthController / AuthResolver', () => {
 
       expect(res.body?.data).toEqual({
         me: {
-          id: defaultTestUser.id,
+          id: expect.any(Number),
           email: defaultTestUser.email,
           username: defaultTestUser.username,
           emailVerified: defaultTestUser.emailVerified
@@ -252,7 +252,7 @@ describe('e2e: AuthController / AuthResolver', () => {
             value: expect.any(String)
           },
           user: {
-            id: defaultTestUser.id,
+            id: expect.any(Number),
             email: defaultTestUser.email,
             username: defaultTestUser.username,
             emailVerified: defaultTestUser.emailVerified
