@@ -20,7 +20,9 @@ module.exports = {
     'main.ts',
     'constants',
     'migrations',
-    'node_modules'
+    'node_modules',
+    'src/bootstrap/setup-app.ts',
+    'src/config/validation.schema.ts'
   ],
   testEnvironment: 'node',
   setupFiles: ['../test/utils/setup.ts']

@@ -120,8 +120,8 @@ export class AuthService {
   @UseRequestContext()
   async validateUserByCredentials(credentials: { email: string; password: string }): Promise<User | MasterUser> {
     const { email, password } = credentials
-    const mUser = await this.masterUserService.masterUserRepository.findOne({ email }, { populate: ['accessLevel', 'masterAccessLevel'] })
-    const user = await this.userService.userRepository.findOne({ email }, { populate: ['organization', 'accessLevel'] })
+    const mUser = await this.masterUserService.masterUserRepository.findOne({ email }, { populate: true })
+    const user = await this.userService.userRepository.findOne({ email }, { populate: true })
 
     // since emails are unique between the 2 tables, only one of the records should be non null
     const finalUser = user || mUser

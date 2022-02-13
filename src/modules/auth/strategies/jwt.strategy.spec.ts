@@ -43,4 +43,9 @@ describe('JWT Strategy', () => {
 
     return expect(() => strategy.validate({ sub: subject })).rejects.toThrow(UnauthorizedException)
   })
+
+  it('Throws a UnauthorizedException when the token subject is not a valid identifier', async () => {
+    // validate expects 'user-{id}' or 'masteruser-{id}', this should fail
+    return expect(() => strategy.validate({ sub: '1' })).rejects.toThrow(UnauthorizedException)
+  })
 })

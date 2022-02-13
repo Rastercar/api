@@ -6,8 +6,8 @@ import { OrmModule } from '../../../database/orm.module'
 import { UserService } from '../services/user.service'
 import { Test, TestingModule } from '@nestjs/testing'
 import { Loaded, MikroORM } from '@mikro-orm/core'
-import { User } from '../entities/user.entity'
 import { UserResolver } from './user.resolver'
+import { User } from '../entities/user.entity'
 
 describe('UserResolver', () => {
   let masterUserService: MasterUserService

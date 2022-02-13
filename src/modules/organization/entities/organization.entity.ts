@@ -1,5 +1,5 @@
 import { Collection, Entity, EntityRepositoryType, OneToMany, OneToOne, Property, Unique } from '@mikro-orm/core'
-import { SoftDeletable } from '../../../database/decorators/soft-deletable.decorator'
+import { SoftDeletable } from '../../../database/filters/soft-deletable.decorator'
 import { OrganizationRepository } from '../repositories/organization.repository'
 import { BaseEntity } from '../../../database/base/base-entity'
 import { User } from '../../user/entities/user.entity'

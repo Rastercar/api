@@ -1,19 +1,25 @@
+import { MasterUserFactory } from '../../database/seeders/master-user.seeder'
 import { OrganizationService } from '../organization/organization.service'
+import { createRepositoryMock } from '../../../test/mocks/repository.mock'
+import { NotFoundException, UnauthorizedException } from '@nestjs/common'
 import { MasterUserService } from '../user/services/master-user.service'
+import { createFakeUser } from '../../database/seeders/user.seeder'
 import { UserService } from '../user/services/user.service'
-import { UnauthorizedException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { OrmModule } from '../../database/orm.module'
+import { User } from '../user/entities/user.entity'
+import { Loaded, MikroORM } from '@mikro-orm/core'
 import { ConfigService } from '@nestjs/config'
 import { AuthService } from './auth.service'
+import { faker } from '@mikro-orm/seeder'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
-import { User } from '../user/entities/user.entity'
-import { createRepositoryMock } from '../../../test/mocks/repository.mock'
+import { MasterUser } from '../user/entities/master-user.entity'
 
 describe('AuthService', () => {
   let organizationService: OrganizationService
   let masterUserService: MasterUserService
+  let masterUserFactory: MasterUserFactory
   let userService: UserService
   let jwtService: JwtService
   let service: AuthService
@@ -32,15 +38,11 @@ describe('AuthService', () => {
         },
         {
           provide: MasterUserService,
-          useFactory: () => ({
-            masterUserRepository: createRepositoryMock()
-          })
+          useFactory: () => ({ masterUserRepository: createRepositoryMock() })
         },
         {
           provide: OrganizationService,
-          useFactory: () => ({
-            organizationRepository: createRepositoryMock()
-          })
+          useFactory: () => ({ organizationRepository: createRepositoryMock() })
         },
         {
           provide: JwtService,
@@ -54,11 +56,15 @@ describe('AuthService', () => {
       imports: [OrmModule]
     }).compile()
 
+    const em = module.get(MikroORM).em
+
     service = module.get(AuthService)
     jwtService = module.get(JwtService)
     userService = module.get(UserService)
     masterUserService = module.get(MasterUserService)
     organizationService = module.get(OrganizationService)
+
+    masterUserFactory = new MasterUserFactory(em)
   })
 
   it('should be defined', () => {
@@ -66,15 +72,18 @@ describe('AuthService', () => {
     expect(jwtService).toBeDefined()
     expect(userService).toBeDefined()
     expect(organizationService).toBeDefined()
+    expect(masterUserFactory).toBeDefined()
   })
 
   describe('[validateUserByCredentials]', () => {
-    const userMock = { id: 1, password: '$imahashedpass' }
+    const userMock = createFakeUser(faker) as Loaded<User, string>
+    userMock.password = '$imahashedpass'
+    userMock.id = 1
 
     const credentials = { email: 'some_email@gmail.com', password: 'plain_text_pass' }
 
     beforeEach(() => {
-      jest.spyOn(userService.userRepository, 'findOne').mockImplementation(async () => userMock as any)
+      jest.spyOn(userService.userRepository, 'findOne').mockImplementation(async () => userMock)
     })
 
     it('Finds the user by his unique email', async () => {
@@ -86,6 +95,20 @@ describe('AuthService', () => {
       await service.validateUserByCredentials(credentials)
 
       expect(findOneOrFailSpy).toHaveBeenLastCalledWith({ email: credentials.email }, expect.anything())
+    })
+
+    it('Attempts to find a master user with the email when a regular user is no found', async () => {
+      const masterUserMock = masterUserFactory.makeOne()
+
+      jest.spyOn(masterUserService.masterUserRepository, 'findOne').mockImplementationOnce(async () => masterUserMock)
+      // prettier-ignore
+      jest.spyOn(userService.userRepository, 'findOne').mockImplementationOnce(async () => null);
+      // prettier-ignore
+      (bcrypt.compare as jest.Mock) = jest.fn().mockResolvedValue(true);
+
+      const user = await service.validateUserByCredentials(credentials)
+
+      expect(user).toBeInstanceOf(MasterUser)
     })
 
     it('Uses bycrypt to compare the passwords', async () => {
@@ -101,6 +124,12 @@ describe('AuthService', () => {
       // prettier-ignore
       (bcrypt.compare as jest.Mock) = jest.fn().mockResolvedValue(false)
       await expect(service.validateUserByCredentials(credentials)).rejects.toThrow(UnauthorizedException)
+    })
+
+    it('Throws a not found exception when no user is found', async () => {
+      jest.spyOn(masterUserService.masterUserRepository, 'findOne').mockImplementationOnce(async () => null)
+      jest.spyOn(userService.userRepository, 'findOne').mockImplementationOnce(async () => null)
+      await expect(service.validateUserByCredentials(credentials)).rejects.toThrow(NotFoundException)
     })
   })
 
@@ -173,6 +202,13 @@ describe('AuthService', () => {
 
     it('Fails if token is invalid or expired', async () => {
       jest.spyOn(jwtService, 'verifyAsync').mockRejectedValueOnce(new Error())
+
+      await expect(service.loginWithToken(token)).rejects.toThrow(UnauthorizedException)
+    })
+
+    it('Fails if token subject is invalid', async () => {
+      jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
+      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: 1 })
 
       await expect(service.loginWithToken(token)).rejects.toThrow(UnauthorizedException)
     })
