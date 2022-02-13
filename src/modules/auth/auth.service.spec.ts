@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config'
 import { AuthService } from './auth.service'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
+import { User } from '../user/entities/user.entity'
 
 describe('AuthService', () => {
   let organizationService: OrganizationService
@@ -82,18 +83,18 @@ describe('AuthService', () => {
     const credentials = { email: 'some_email@gmail.com', password: 'plain_text_pass' }
 
     beforeEach(() => {
-      jest.spyOn(userService.userRepository, 'findOneOrFail').mockImplementation(async () => userMock as any)
+      jest.spyOn(userService.userRepository, 'findOne').mockImplementation(async () => userMock as any)
     })
 
     it('Finds the user by his unique email', async () => {
       // prettier-ignore
-      const findOneOrFailSpy = jest.spyOn(userService.userRepository, 'findOneOrFail');
+      const findOneOrFailSpy = jest.spyOn(userService.userRepository, 'findOne');
       // prettier-ignore
       (bcrypt.compare as jest.Mock) = jest.fn().mockResolvedValue(true);
 
       await service.validateUserByCredentials(credentials)
 
-      expect(findOneOrFailSpy).toHaveBeenLastCalledWith({ email: credentials.email })
+      expect(findOneOrFailSpy).toHaveBeenLastCalledWith({ email: credentials.email }, expect.anything())
     })
 
     it('Uses bycrypt to compare the passwords', async () => {
@@ -164,13 +165,13 @@ describe('AuthService', () => {
 
     it('Removes the user password before returning it', async () => {
       const result = await service.login(userMock)
-      expect(result.user.password).toBe(undefined)
+      expect((result.user as any).password).toBe(undefined)
     })
 
     it('Removes the user unregistered_user record if the user uses oauth', async () => {
       const userOauthData = { oauthProfileId: 'abc', oauthProvider: 'google' }
 
-      await service.login({ ...userMock, ...userOauthData })
+      await service.login(new User({ ...userMock, ...userOauthData }))
 
       expect(userService.unregisteredUserRepository.nativeDelete).toHaveBeenLastCalledWith(userOauthData)
     })
@@ -187,14 +188,14 @@ describe('AuthService', () => {
 
     it('Fails if token is valid but has no subject', async () => {
       jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
-      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ im: 'a useless token' })
+      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: '' })
 
       await expect(service.loginWithToken(token)).rejects.toThrow(UnauthorizedException)
     })
 
     it('Fails if token subject is not a existing user', async () => {
       jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
-      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: 1 })
+      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: 'user-9999' })
       jest.spyOn(userService.userRepository, 'findOne').mockImplementationOnce(async () => null)
 
       await expect(service.loginWithToken(token)).rejects.toThrow(UnauthorizedException)
@@ -206,7 +207,7 @@ describe('AuthService', () => {
 
       jest.spyOn(jwtService, 'sign').mockReturnValueOnce(returnedTokenMock)
       jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
-      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: 1 })
+      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: 'user-1' })
       jest.spyOn(userService.userRepository, 'findOne').mockImplementationOnce(async () => userMock as any)
 
       const { user, token: newToken } = await service.loginWithToken(token)

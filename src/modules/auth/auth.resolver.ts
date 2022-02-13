@@ -1,24 +1,16 @@
-import { RequestUser } from './decorators/request-user.decorator'
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql'
-import { BadRequestException, UseGuards } from '@nestjs/common'
-import { LoginInput, LoginResponse } from './dtos/login.dto'
-import { GqlAuthGuard } from './guards/gql-jwt-auth.guard'
+import { LoginResponse } from './models/login-response.model'
+import { UserService } from '../user/services/user.service'
 import { RegisterUserDTO } from './dtos/register-user.dto'
 import { is, returns } from '../../utils/coverage-helpers'
 import { ERROR_CODES } from '../../constants/error.codes'
-import { UserModel } from '../user/models/user.model'
-import { UserService } from '../user/services/user.service'
+import { BadRequestException } from '@nestjs/common'
+import { LoginInput } from './dtos/login.dto'
 import { AuthService } from './auth.service'
 
 @Resolver()
 export class AuthResolver {
   constructor(private readonly authService: AuthService, private readonly userService: UserService) {}
-
-  @UseGuards(GqlAuthGuard)
-  @Query(returns(UserModel))
-  me(@RequestUser() user: UserModel) {
-    return user
-  }
 
   @Query(returns(Boolean))
   isEmailInUse(@Args('email', { type: is(String) }) email: string) {
@@ -36,9 +28,6 @@ export class AuthResolver {
     return this.authService.loginWithToken(token)
   }
 
-  /**
-   * Register a new user and his organization
-   */
   @Mutation(returns(LoginResponse))
   async register(@Args('user') user: RegisterUserDTO): Promise<LoginResponse> {
     const inUse = await this.authService.checkEmailAddressInUse(user.email)

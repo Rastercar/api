@@ -1,13 +1,14 @@
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common'
 import { OrganizationService } from '../organization/organization.service'
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { MasterUserService } from '../user/services/master-user.service'
+import { MasterUser } from '../user/entities/master-user.entity'
+import { LoginResponse } from './models/login-response.model'
+import { UserService } from '../user/services/user.service'
 import { JwtService, JwtSignOptions } from '@nestjs/jwt'
 import { UseRequestContext } from '@mikro-orm/nestjs'
 import { User } from '../user/entities/user.entity'
-import { UserService } from '../user/services/user.service'
-import { Jwt } from './strategies/jwt.strategy'
 import { MikroORM } from '@mikro-orm/core'
 import * as bcrypt from 'bcrypt'
-import { MasterUserService } from '../user/services/master-user.service'
 
 interface LoginOptions {
   /**
@@ -27,26 +28,12 @@ export class AuthService {
     private readonly organizationService: OrganizationService
   ) {}
 
-  /**
-   * @throws {NotFoundException} If there is no user with the informed username
-   * @throws {UnauthorizedException} If the password is invalid
-   */
-  @UseRequestContext()
-  async validateUserByCredentials(credentials: { email: string; password: string }): Promise<User> {
-    const { email, password } = credentials
-    const user = await this.userService.userRepository.findOneOrFail({ email })
-
-    const passwordIsValid = await bcrypt.compare(password, user.password as string)
-    if (!passwordIsValid) throw new UnauthorizedException('Invalid password')
-
-    return user
+  private createTokenForUser(user: User | MasterUser, options?: JwtSignOptions) {
+    const isMaster = user instanceof MasterUser
+    return { type: 'bearer', value: this.jwtService.sign({ sub: `${isMaster ? 'masteruser' : 'user'}-${user.id}` }, options) }
   }
 
-  /**
-   * Returns the given user and his new bearer JWT
-   */
-  @UseRequestContext()
-  async login(user: User, options: LoginOptions = { setLastLogin: true }): Promise<{ user: User; token: Jwt }> {
+  private async loginForUser(user: User, options: LoginOptions) {
     const userCopy = { ...user }
 
     if (options?.setLastLogin) {
@@ -54,7 +41,7 @@ export class AuthService {
       await this.userService.userRepository.persistAndFlush(user)
     }
 
-    const token = { type: 'bearer', value: this.jwtService.sign({ sub: userCopy.id }, options?.tokenOptions) }
+    const token = this.createTokenForUser(user, options.tokenOptions)
 
     const userUsesOauth = userCopy.oauthProfileId && userCopy.oauthProvider
 
@@ -72,32 +59,79 @@ export class AuthService {
     return { user: userCopy, token }
   }
 
+  private async loginForMasterUser(user: MasterUser, options: LoginOptions) {
+    const userCopy = { ...user }
+
+    if (options?.setLastLogin) {
+      user.lastLogin = new Date()
+      await this.userService.userRepository.persistAndFlush(user)
+    }
+
+    const token = this.createTokenForUser(user, options.tokenOptions)
+
+    delete userCopy.password
+
+    return { user: userCopy, token }
+  }
+
   /**
    * Returns the given user and his new bearer JWT
    */
   @UseRequestContext()
-  async loginWithToken(token: string): Promise<{ user: User; token: Jwt }> {
+  async login(user: User | MasterUser, options: LoginOptions = { setLastLogin: true }): Promise<LoginResponse> {
+    return user instanceof User ? this.loginForUser(user, options) : this.loginForMasterUser(user, options)
+  }
+
+  /**
+   * Returns the given user and his new bearer JWT
+   */
+  @UseRequestContext()
+  async loginWithToken(token: string): Promise<LoginResponse> {
     await this.jwtService.verifyAsync(token).catch(() => {
       throw new UnauthorizedException('Invalid/expired token')
     })
 
     const decodeResult = this.jwtService.decode(token)
 
-    if (typeof decodeResult !== 'object' || !decodeResult || typeof decodeResult.sub !== 'number') {
+    if (typeof decodeResult !== 'object' || !decodeResult || typeof decodeResult.sub !== 'string') {
       throw new UnauthorizedException('Invalid token')
     }
 
-    const user = await this.userService.userRepository.findOne({ id: decodeResult.sub })
+    const id = parseInt(decodeResult.sub.replace(/\D/g, ''), 10)
+
+    let user: MasterUser | User | null = await this.userService.userRepository.findOne({ id })
+    if (!user) user = await this.masterUserService.masterUserRepository.findOne({ id })
 
     if (!user) {
       throw new UnauthorizedException(`User (id: ${decodeResult.sub}) in token non existent or deactivated`)
     }
 
-    const newToken = { type: 'bearer', value: this.jwtService.sign({ sub: user.id }) }
+    const newToken = this.createTokenForUser(user)
 
     const { password, ...passwordLessUser } = user
 
     return { user: passwordLessUser, token: newToken }
+  }
+
+  /**
+   * @throws {NotFoundException} If there is no user with the informed username
+   * @throws {UnauthorizedException} If the password is invalid
+   */
+  @UseRequestContext()
+  async validateUserByCredentials(credentials: { email: string; password: string }): Promise<User | MasterUser> {
+    const { email, password } = credentials
+    const mUser = await this.masterUserService.masterUserRepository.findOne({ email }, { populate: ['accessLevel', 'masterAccessLevel'] })
+    const user = await this.userService.userRepository.findOne({ email }, { populate: ['organization', 'accessLevel'] })
+
+    // since emails are unique between the 2 tables, only one of the records should be non null
+    const finalUser = user || mUser
+
+    if (!finalUser) throw new NotFoundException('User with provided email not found')
+
+    const passwordIsValid = await bcrypt.compare(password, finalUser.password as string)
+    if (!passwordIsValid) throw new UnauthorizedException('Invalid password')
+
+    return finalUser
   }
 
   @UseRequestContext()

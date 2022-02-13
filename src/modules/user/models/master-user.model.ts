@@ -1,10 +1,10 @@
-import { OrganizationModel } from '../../organization/models/organization.model'
+import { MasterAccessLevelModel } from '../../auth/models/master-access-level.model'
 import { AccessLevelModel } from '../../auth/models/access-level.model'
 import { Field, Int, ObjectType } from '@nestjs/graphql'
 import { is } from '../../../utils/coverage-helpers'
 
-@ObjectType({ description: 'user' })
-export class UserModel {
+@ObjectType({ description: 'master user (a user with access to the main panel' })
+export class MasterUserModel {
   @Field(is(Int))
   id!: number
 
@@ -17,15 +17,9 @@ export class UserModel {
   @Field()
   emailVerified!: boolean
 
-  @Field(() => String, { nullable: true })
-  oauthProvider!: string | null
-
-  @Field(() => String, { nullable: true })
-  oauthProfileId!: string | null
-
-  @Field(is(OrganizationModel))
-  organization!: OrganizationModel
-
   @Field(is(AccessLevelModel))
   accessLevel!: AccessLevelModel
+
+  @Field(is(MasterAccessLevelModel))
+  masterAccessLevel!: MasterAccessLevelModel
 }

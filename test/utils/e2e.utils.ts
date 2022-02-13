@@ -1,5 +1,5 @@
+import { LoginResponse } from '../../src/modules/auth/models/login-response.model'
 import { defaultTestUser } from '../../src/database/seeders/user.seeder'
-import { LoginResponse } from '../../src/modules/auth/dtos/login.dto'
 import { Response } from 'supertest'
 import * as request from 'supertest'
 import { Server } from 'http'

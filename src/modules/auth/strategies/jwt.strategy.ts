@@ -1,11 +1,19 @@
+import { MasterUser } from '../../user/entities/master-user.entity'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { UserService } from '../../user/services/user.service'
+import { User } from '../../user/entities/user.entity'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { PassportStrategy } from '@nestjs/passport'
 import { ConfigService } from '@nestjs/config'
+import { MasterUserService } from '../../user/services/master-user.service'
 
 interface JwtPayload {
-  sub: number
+  /**
+   * The token subject, a string in the format: {user | masteruser}{user_or_masteruser_id}
+   *
+   * ex: 'masteruser-1', 'user-3'
+   */
+  sub: string
 }
 
 export interface Jwt {
@@ -15,7 +23,7 @@ export interface Jwt {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService, private userService: UserService) {
+  constructor(configService: ConfigService, private userService: UserService, private masterUserService: MasterUserService) {
     super({
       ignoreExpiration: false,
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -26,9 +34,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   /**
    * Validates the user on the JWT sub (subject) field and exposes it on req.user
    */
-  async validate({ sub: userID }: JwtPayload) {
-    const user = await this.userService.userRepository.findOne({ id: userID })
-    if (!user) throw new UnauthorizedException('No user found with id')
+  async validate({ sub }: JwtPayload): Promise<User | MasterUser> {
+    const id = parseInt(sub.replace(/\D/g, ''), 10)
+
+    const idRefersToMasterUser = sub.startsWith('masteruser')
+    const idRefersToUser = sub.startsWith('user')
+
+    if (!idRefersToMasterUser && !idRefersToUser) {
+      throw new UnauthorizedException(`JWT subject does not start with 'user' or 'masteruser' followed by its id`)
+    }
+
+    const user = idRefersToUser
+      ? await this.userService.userRepository.findOne({ id })
+      : await this.masterUserService.masterUserRepository.findOne({ id })
+
+    if (!user) throw new UnauthorizedException(`No ${idRefersToUser ? 'user' : 'master user'} found with id`)
 
     return user
   }

@@ -2,8 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { UserResolver } from './user.resolver'
 import { UserService } from '../services/user.service'
 import { OrmModule } from '../../../database/orm.module'
+import { MasterUserService } from '../services/master-user.service'
 
-describe('UserResolver', () => {
+describe.only('UserResolver', () => {
+  let masterUserService: MasterUserService
   let userService: UserService
   let resolver: UserResolver
 
@@ -18,6 +20,14 @@ describe('UserResolver', () => {
               findOne: jest.fn()
             }
           })
+        },
+        {
+          provide: MasterUserService,
+          useFactory: () => ({
+            masterUserRepository: {
+              findOne: jest.fn()
+            }
+          })
         }
       ],
       imports: [OrmModule]
@@ -25,11 +35,19 @@ describe('UserResolver', () => {
 
     resolver = module.get(UserResolver)
     userService = module.get(UserService)
+    masterUserService = module.get(MasterUserService)
   })
 
   it('should be defined', () => {
     expect(resolver).toBeDefined()
     expect(userService).toBeDefined()
+    expect(masterUserService).toBeDefined()
+  })
+
+  it('[me] just returns the user extracted by the CurrentUser guard', async () => {
+    const userMock = { id: 1 }
+    const result = await resolver.me(userMock as any, [])
+    expect(result).toBe(userMock)
   })
 
   it('[user] finds the user by id', async () => {

@@ -14,14 +14,20 @@ describe('JWT Strategy', () => {
     }
   }
 
-  const strategy = new JwtStrategy(configServiceMock as any, userServiceMock as any)
-  const subject = 1
+  const masterUserServiceMock = {
+    masterUserRepository: {
+      findOne: jest.fn(async () => userMock as any)
+    }
+  }
+
+  const strategy = new JwtStrategy(configServiceMock as any, userServiceMock as any, masterUserServiceMock as any)
+  const subject = 'user-1'
 
   it('Finds the user by search it by the id supplied in the token sub (subject)', async () => {
     const user = await strategy.validate({ sub: subject })
 
     expect(user).toEqual(userMock)
-    expect(userServiceMock.userRepository.findOne).toHaveBeenLastCalledWith({ id: subject })
+    expect(userServiceMock.userRepository.findOne).toHaveBeenLastCalledWith({ id: 1 })
   })
 
   it('Throws a UnauthorizedException when the token subject is not a valid user', async () => {

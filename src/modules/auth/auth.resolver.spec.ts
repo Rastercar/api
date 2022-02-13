@@ -47,10 +47,6 @@ describe('AuthResolver', () => {
     expect(userService).toBeDefined()
   })
 
-  it('[me] just returns the user extracted by the CurrentUser guard', () => {
-    expect(resolver.me(userMock as any)).toBe(userMock)
-  })
-
   it('[isEmailInUse] just checks if email is in use using the authService', async () => {
     const checkSpy = jest.spyOn(authService, 'checkEmailAddressInUse').mockImplementationOnce(async () => false)
     const res = await resolver.isEmailInUse('mock_email@gmail.com')

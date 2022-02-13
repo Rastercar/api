@@ -107,10 +107,12 @@ describe('e2e: AuthController / AuthResolver', () => {
               type
             }
             user {
-              id
-              email
-              username
-              emailVerified
+              ... on UserModel {
+                id
+                email
+                username
+                emailVerified
+              }
             }
           }
         }
@@ -174,10 +176,12 @@ describe('e2e: AuthController / AuthResolver', () => {
     const query = gql`
       query currentUserQuery {
         me {
-          id
-          email
-          username
-          emailVerified
+          ... on UserModel {
+            id
+            email
+            username
+            emailVerified
+          }
         }
       }
     `
@@ -219,10 +223,12 @@ describe('e2e: AuthController / AuthResolver', () => {
             type
           }
           user {
-            id
-            email
-            username
-            emailVerified
+            ... on UserModel {
+              id
+              email
+              username
+              emailVerified
+            }
           }
         }
       }
@@ -278,10 +284,12 @@ describe('e2e: AuthController / AuthResolver', () => {
             type
           }
           user {
-            id
-            email
-            username
-            emailVerified
+            ... on UserModel {
+              id
+              email
+              username
+              emailVerified
+            }
           }
         }
       }

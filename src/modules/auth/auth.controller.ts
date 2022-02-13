@@ -1,12 +1,12 @@
 import { ValidLoginRequestGuard } from './guards/valid-login-request.guard'
 import { Controller, Get, Post, Res, UseGuards } from '@nestjs/common'
 import { RequestUser } from './decorators/request-user.decorator'
+import { LoginResponse } from './models/login-response.model'
 import { GoogleAuthGuard } from './guards/google-auth.guard'
 import { UserService } from '../user/services/user.service'
 import { LocalAuthGuard } from './guards/local-auth.guard'
 import { User } from '../user/entities/user.entity'
 import { Profile } from 'passport-google-oauth20'
-import { Jwt } from './strategies/jwt.strategy'
 import { ConfigService } from '@nestjs/config'
 import { AuthService } from './auth.service'
 import { URLSearchParams } from 'url'
@@ -22,7 +22,7 @@ export class AuthController {
 
   @Post('login')
   @UseGuards(ValidLoginRequestGuard, LocalAuthGuard)
-  login(@RequestUser() user: User): Promise<{ user: User; token: Jwt }> {
+  login(@RequestUser() user: User): Promise<LoginResponse> {
     return this.authService.login(user)
   }
 
