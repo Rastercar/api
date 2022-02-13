@@ -7,7 +7,7 @@ import { PERMISSION } from '../constants/permissions'
 
 interface AccessLevelArgs {
   name: string
-  isFixed: boolean
+  isFixed?: boolean
   description: string
   organization?: Organization
   permissions: PERMISSION[]
@@ -22,7 +22,7 @@ export class AccessLevel extends BaseEntity {
     super()
 
     this.name = data.name
-    this.isFixed = data.isFixed
+    this.isFixed = data.isFixed ?? false
     this.description = data.description
     this.permissions = data.permissions
     this.organization = data.organization ?? null

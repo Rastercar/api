@@ -7,16 +7,19 @@ module.exports = {
   },
   coverageDirectory: '../coverage',
   collectCoverageFrom: ['**/*.ts'],
+  testPathIgnorePatterns: ['/node_modules/', 'e2e'],
   coveragePathIgnorePatterns: [
-    'node_modules',
     '.dto.ts',
     '.mock.ts',
+    '.model.ts',
     '.module.ts',
     '.entity.ts',
-    '.model.ts',
+    '.seeder.ts',
+    '.e2e-spec.ts',
     'main.ts',
     'constants',
-    'migrations'
+    'migrations',
+    'node_modules'
   ],
   testEnvironment: 'node',
   setupFiles: ['../test/utils/setup.ts']

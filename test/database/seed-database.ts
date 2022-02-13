@@ -1,3 +1,4 @@
+import { MasterUserSeeder } from '../../src/database/seeders/master-user.seeder'
 import { Connection, IDatabaseDriver, MikroORM } from '@mikro-orm/core'
 import { UserSeeder } from '../../src/database/seeders/user.seeder'
 
@@ -9,4 +10,5 @@ import { UserSeeder } from '../../src/database/seeders/user.seeder'
 export const seedDatabase = async (orm: MikroORM<IDatabaseDriver<Connection>>) => {
   const seeder = orm.getSeeder()
   await seeder.seed(UserSeeder)
+  await seeder.seed(MasterUserSeeder)
 }

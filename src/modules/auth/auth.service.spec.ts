@@ -9,6 +9,7 @@ import { AuthService } from './auth.service'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 import { User } from '../user/entities/user.entity'
+import { createRepositoryMock } from '../../../test/mocks/repository.mock'
 
 describe('AuthService', () => {
   let organizationService: OrganizationService
@@ -25,30 +26,20 @@ describe('AuthService', () => {
         {
           provide: UserService,
           useFactory: () => ({
-            userRepository: {
-              findOne: jest.fn(),
-              findOneOrFail: jest.fn(),
-              persistAndFlush: jest.fn()
-            },
-            unregisteredUserRepository: {
-              nativeDelete: jest.fn()
-            }
+            userRepository: createRepositoryMock(),
+            unregisteredUserRepository: createRepositoryMock()
           })
         },
         {
           provide: MasterUserService,
           useFactory: () => ({
-            masterUserRepository: {
-              findOne: jest.fn()
-            }
+            masterUserRepository: createRepositoryMock()
           })
         },
         {
           provide: OrganizationService,
           useFactory: () => ({
-            organizationRepository: {
-              findOne: jest.fn()
-            }
+            organizationRepository: createRepositoryMock()
           })
         },
         {

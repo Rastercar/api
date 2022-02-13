@@ -6,7 +6,7 @@ import { MASTER_PERMISSION } from '../constants/permissions'
 
 interface MasterAccessLevelArgs {
   name: string
-  isFixed: boolean
+  isFixed?: boolean
   description: string
   permissions: MASTER_PERMISSION[]
 }
@@ -20,7 +20,7 @@ export class MasterAccessLevel extends BaseEntity {
     super()
 
     this.name = data.name
-    this.isFixed = data.isFixed
+    this.isFixed = data.isFixed ?? false
     this.description = data.description
     this.permissions = data.permissions
   }

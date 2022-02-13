@@ -1,13 +1,13 @@
-import { OrganizationRepository } from '../organization/repositories/organization.repository'
-import { UnregisteredUserRepository } from './repositories/unregistered-user.repository'
-import { UnregisteredUser } from './entities/unregistered-user.entity'
-import { RegisterUserDTO } from '../auth/dtos/register-user.dto'
-import { UserRepository } from './repositories/user.repository'
+import { OrganizationRepository } from '../../organization/repositories/organization.repository'
+import { UnregisteredUserRepository } from '../repositories/unregistered-user.repository'
+import { Organization } from '../../organization/entities/organization.entity'
+import { UnregisteredUser } from '../entities/unregistered-user.entity'
+import { RegisterUserDTO } from '../../auth/dtos/register-user.dto'
+import { UserRepository } from '../repositories/user.repository'
 import { Test, TestingModule } from '@nestjs/testing'
-import { OrmModule } from '../../database/orm.module'
-import { UserService } from './services/user.service'
+import { OrmModule } from '../../../database/orm.module'
+import { UserService } from '../services/user.service'
 import { Profile } from 'passport-google-oauth20'
-import { Organization } from '../organization/entities/organization.entity'
 
 describe('UserService', () => {
   let unregisteredUserRepository: UnregisteredUserRepository

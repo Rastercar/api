@@ -13,8 +13,8 @@ const defaultTestUserOrg = new Organization({
 })
 
 /**
- * A static user for testing, this user is created
- * everytime the user fixtures are loaded.
+ * A static user for testing, this user is
+ * created everytime the user seeders are run.
  */
 export const defaultTestUser = new User({
   username: 'testuser',
@@ -37,38 +37,42 @@ export const defaultTestUser = new User({
   })
 })
 
+export const createFakeUser = (faker: Faker): Partial<User> => {
+  const orgname = faker.company.companyName()
+
+  const org = new Organization({
+    name: orgname,
+    billingEmail: faker.internet.email(),
+    billingEmailVerified: true
+  })
+
+  return {
+    username: faker.internet.userName(),
+    password: bcrypt.hashSync(faker.internet.password(), 1),
+
+    email: faker.internet.email(),
+    emailVerified: Math.random() < 0.5,
+
+    oauthProvider: null,
+    oauthProfileId: null,
+
+    organization: org,
+
+    accessLevel: new AccessLevel({
+      isFixed: true,
+      name: `${orgname} access level`,
+      description: faker.lorem.words(7),
+      organization: org,
+      permissions: []
+    })
+  }
+}
+
 export class UserFactory extends Factory<User> {
   model = User as any
 
   definition(faker: Faker): Partial<User> {
-    const orgname = faker.company.companyName()
-
-    const org = new Organization({
-      name: orgname,
-      billingEmail: faker.internet.email(),
-      billingEmailVerified: true
-    })
-
-    return {
-      username: faker.internet.userName(),
-      password: bcrypt.hashSync(faker.internet.password(), 1),
-
-      email: faker.internet.email(),
-      emailVerified: Math.random() < 0.5,
-
-      oauthProvider: null,
-      oauthProfileId: null,
-
-      organization: org,
-
-      accessLevel: new AccessLevel({
-        isFixed: true,
-        name: `${orgname} access level`,
-        description: faker.lorem.words(7),
-        organization: org,
-        permissions: []
-      })
-    }
+    return createFakeUser(faker)
   }
 }
 

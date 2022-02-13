@@ -1,8 +1,12 @@
+import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
+import { createFakeUser } from '../../../database/seeders/user.seeder'
 import { UnauthorizedException } from '@nestjs/common'
 import { JwtStrategy } from './jwt.strategy'
+import { faker } from '@mikro-orm/seeder'
 
 describe('JWT Strategy', () => {
-  const userMock = { id: 1 }
+  const userMock = createFakeUser(faker)
+  userMock.id = 1
 
   const configServiceMock = {
     get: jest.fn(() => 'mock')
@@ -10,12 +14,16 @@ describe('JWT Strategy', () => {
 
   const userServiceMock = {
     userRepository: {
-      findOne: jest.fn(async () => userMock as any)
+      ...createRepositoryMock(),
+      ...{
+        findOne: jest.fn(async () => userMock as any)
+      }
     }
   }
 
   const masterUserServiceMock = {
-    masterUserRepository: {
+    ...createRepositoryMock(),
+    ...{
       findOne: jest.fn(async () => userMock as any)
     }
   }
