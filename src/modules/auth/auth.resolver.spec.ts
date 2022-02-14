@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
-import { UserService } from '../user/user.service'
+import { UserService } from '../user/services/user.service'
 import { AuthResolver } from './auth.resolver'
 import { AuthService } from './auth.service'
 import { LoginInput } from './dtos/login.dto'
@@ -45,10 +45,6 @@ describe('AuthResolver', () => {
     expect(resolver).toBeDefined()
     expect(authService).toBeDefined()
     expect(userService).toBeDefined()
-  })
-
-  it('[me] just returns the user extracted by the CurrentUser guard', () => {
-    expect(resolver.me(userMock as any)).toBe(userMock)
   })
 
   it('[isEmailInUse] just checks if email is in use using the authService', async () => {

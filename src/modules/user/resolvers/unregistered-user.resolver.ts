@@ -3,7 +3,7 @@ import { UnregisteredUser } from '../entities/unregistered-user.entity'
 import { is, of, returns } from '../../../utils/coverage-helpers'
 import { Args, Query, Resolver } from '@nestjs/graphql'
 import { UseRequestContext } from '@mikro-orm/nestjs'
-import { UserService } from '../user.service'
+import { UserService } from '../services/user.service'
 import { MikroORM } from '@mikro-orm/core'
 
 @Resolver(of(UnregisteredUser))

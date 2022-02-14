@@ -9,12 +9,6 @@ export class HealthcheckController {
     return 'ok'
   }
 
-  // TODO: Remove me
-  @Get('dev')
-  test() {
-    return '16:55'
-  }
-
   /**
    * For dev/debugging purposes, just return the non secret env vars
    */

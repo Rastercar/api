@@ -1,5 +1,5 @@
-import { defaultTestUser } from '../database/fixtures/user.fixtures'
-import { LoginResponse } from '../../src/modules/auth/dtos/login.dto'
+import { LoginResponse } from '../../src/modules/auth/models/login-response.model'
+import { defaultTestUser } from '../../src/database/seeders/user.seeder'
 import { Response } from 'supertest'
 import * as request from 'supertest'
 import { Server } from 'http'
@@ -21,6 +21,7 @@ export const getGqlFirstErrorExtension = (res: Response) => {
  */
 export const loginForTestuser = async (server: Server): Promise<LoginResponse> => {
   const response = await request(server).post('/auth/login').send({ email: defaultTestUser.email, password: 'testuser' })
+
   if (!response.body.user || !response.body.token) throw new Error('Cannot login as default user')
   return response.body
 }

@@ -36,6 +36,7 @@ lerna-debug.log*
 
 # Others
 todo.txt
+notes.txt
 generated/
 backup/
 tmp

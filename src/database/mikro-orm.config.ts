@@ -10,9 +10,9 @@
  |
  */
 
+import { EntityManager, LoadStrategy, Options } from '@mikro-orm/core'
 import { Logger, NotFoundException } from '@nestjs/common'
 import getDatabaseConfig from '../config/database.config'
-import { EntityManager, Options } from '@mikro-orm/core'
 import { AsyncLocalStorage } from 'async_hooks'
 import { entities } from './entities'
 
@@ -35,6 +35,16 @@ export default {
   migrations: {
     path: './src/database/migrations'
   },
+
+  seeder: {
+    path: './src/database/seeders',
+    defaultSeeder: 'UserSeeder'
+  },
+
+  // TODO: check if we need this, ideally should be false
+  allowGlobalContext: process.env.NODE_ENV === 'test',
+
+  loadStrategy: LoadStrategy.JOINED,
 
   findOneOrFailHandler
 } as Options

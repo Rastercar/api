@@ -8,7 +8,7 @@ import { Connection, IDatabaseDriver, MikroORM } from '@mikro-orm/core'
 export const clearDatabase = async (orm: MikroORM<IDatabaseDriver<Connection>>): Promise<void> => {
   if (process.env.NODE_ENV !== 'test') throw new Error('Cannot clear database on non test enviroments')
 
-  await orm.getSchemaGenerator().dropSchema(true, true)
+  await orm.getSchemaGenerator().dropSchema({ dropDb: false, dropMigrationsTable: true })
 
   const migrator = orm.getMigrator()
 

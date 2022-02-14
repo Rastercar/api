@@ -1,8 +1,11 @@
+import { OrganizationModel } from '../../organization/models/organization.model'
+import { AccessLevelModel } from '../../auth/models/access-level.model'
 import { Field, Int, ObjectType } from '@nestjs/graphql'
+import { is } from '../../../utils/coverage-helpers'
 
 @ObjectType({ description: 'user' })
 export class UserModel {
-  @Field(type => Int)
+  @Field(is(Int))
   id!: number
 
   @Field()
@@ -14,6 +17,15 @@ export class UserModel {
   @Field()
   emailVerified!: boolean
 
-  @Field({ nullable: true })
-  googleProfileId?: string
+  @Field(() => String, { nullable: true })
+  oauthProvider!: string | null
+
+  @Field(() => String, { nullable: true })
+  oauthProfileId!: string | null
+
+  @Field(is(OrganizationModel))
+  organization!: OrganizationModel
+
+  @Field(is(AccessLevelModel))
+  accessLevel!: AccessLevelModel
 }

@@ -2,6 +2,14 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+"""The access level to the tracked dashboard"""
+type AccessLevelModel {
+  description: String!
+  id: Int!
+  name: String!
+  permissions: [PERMISSION!]!
+}
+
 """JSON Web Token"""
 type JwtModel {
   type: String!
@@ -15,7 +23,29 @@ input LoginInput {
 
 type LoginResponse {
   token: JwtModel!
-  user: UserModel!
+  user: UserOrMasterUser!
+}
+
+enum MASTER_PERMISSION {
+  EDIT_OTHER_USERS
+}
+
+"""The access level to the tracker dashboard"""
+type MasterAccessLevelModel {
+  description: String!
+  id: Int!
+  name: String!
+  permissions: [MASTER_PERMISSION!]!
+}
+
+"""master user (a user with access to the main panel"""
+type MasterUserModel {
+  accessLevel: AccessLevelModel!
+  email: String!
+  emailVerified: Boolean!
+  id: Int!
+  masterAccessLevel: MasterAccessLevelModel!
+  username: String!
 }
 
 type Mutation {
@@ -24,9 +54,22 @@ type Mutation {
   register(user: RegisterUserDTO!): LoginResponse!
 }
 
+"""organization"""
+type OrganizationModel {
+  billingEmail: String!
+  billingEmailVerified: Boolean!
+  blocked: Boolean!
+  id: Int!
+  name: String!
+}
+
+enum PERMISSION {
+  EDIT_OTHER_USERS
+}
+
 type Query {
   isEmailInUse(email: String!): Boolean!
-  me: UserModel!
+  me: UserOrMasterUser!
   unregisteredUser(uuid: String!): UnregisteredUserModel
   user(id: Int!): UserModel
 }
@@ -52,9 +95,14 @@ type UnregisteredUserModel {
 
 """user"""
 type UserModel {
+  accessLevel: AccessLevelModel!
   email: String!
   emailVerified: Boolean!
-  googleProfileId: String
   id: Int!
+  oauthProfileId: String
+  oauthProvider: String
+  organization: OrganizationModel!
   username: String!
 }
+
+union UserOrMasterUser = MasterUserModel | UserModel

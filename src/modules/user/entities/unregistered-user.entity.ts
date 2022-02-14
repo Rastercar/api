@@ -13,16 +13,27 @@ interface UnregisteredUserArgs {
   oauthProfileId: string
 }
 
-/**
- * A unregistered user represents a incomplete or not fully registered user, it cannot
- * be used to login to the plataform or basically do anything at all, it is created when
- * someone logins using oauth for the first time.
- *
- * Its used to suggest profile autocompletion for the new user to be registered for the
- * oauth provider and keeping track of users who did not finish their registration.
- */
-@Entity()
+@Entity({ customRepository: () => UnregisteredUserRepository })
 export class UnregisteredUser extends UuidBaseEntity {
+  /**
+   * A unregistered user represents a incomplete or not fully registered user, it cannot
+   * be used to login to the plataform or basically do anything at all, it is created when
+   * someone logins using oauth for the first time.
+   *
+   * Its used to suggest profile autocompletion for the new user to be registered for the
+   * oauth provider and keeping track of users who did not finish their registration.
+   */
+  constructor(data: UnregisteredUserArgs) {
+    super()
+
+    this.username = data.username ?? null
+
+    this.email = data.email ?? null
+    this.emailVerified = data.emailVerified ?? false
+    this.oauthProvider = data.oauthProvider
+    this.oauthProfileId = data.oauthProfileId
+  }
+
   [EntityRepositoryType]?: UnregisteredUserRepository
 
   @Property({ type: String, nullable: true })
@@ -45,15 +56,4 @@ export class UnregisteredUser extends UuidBaseEntity {
    */
   @Property({ type: String })
   oauthProfileId!: string
-
-  constructor(data: UnregisteredUserArgs) {
-    super()
-
-    this.username = data.username ?? null
-
-    this.email = data.email ?? null
-    this.emailVerified = data.emailVerified ?? false
-    this.oauthProvider = data.oauthProvider
-    this.oauthProfileId = data.oauthProfileId
-  }
 }
