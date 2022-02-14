@@ -3,7 +3,8 @@
 FROM node:14.17 as build
 
 WORKDIR /app
-COPY package.*json .
+COPY package.json .
+COPY yarn.lock .
 # install dependencies
 RUN yarn install
 # copy all files
