@@ -13,10 +13,9 @@ const defaultTestUserOrg = new Organization({
 })
 
 /**
- * A static user for testing, this user is
- * created everytime the user seeders are run.
+ * A static user for testing, this user is, created everytime the user seeders are run.
  */
-export const defaultTestUser = new User({
+export const defaultTestUser: Partial<User> = {
   username: 'testuser',
   password: bcrypt.hashSync('testuser', 10),
 
@@ -35,7 +34,7 @@ export const defaultTestUser = new User({
     organization: defaultTestUserOrg,
     permissions: []
   })
-})
+}
 
 export const createFakeUser = (faker: Faker): Partial<User> => {
   const orgname = faker.company.companyName()
@@ -79,7 +78,8 @@ export class UserFactory extends Factory<User> {
 export class UserSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
     const factory = new UserFactory(em)
-    factory.make(5)
-    factory.createOne(defaultTestUser)
+    await factory.createOne(defaultTestUser)
+
+    await factory.create(5)
   }
 }

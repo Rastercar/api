@@ -1,32 +1,26 @@
 import { loginForTestuser, getGqlFirstErrorExtension } from '../../../test/utils/e2e.utils'
 import { createAppTestingModule } from '../../../test/utils/create-app'
-import { UserRepository } from '../user/repositories/user.repository'
 import { defaultTestUser } from '../../database/seeders/user.seeder'
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import { RegisterUserDTO } from './dtos/register-user.dto'
 import { ERROR_CODES } from '../../constants/error.codes'
-import { EntityManager } from '@mikro-orm/postgresql'
 import { User } from '../user/entities/user.entity'
 import * as request from 'supertest'
-import * as bcrypt from 'bcrypt'
 import { Server } from 'http'
 
 // Hack for graphql syntax highlighting
 const gql = String.raw
 
 describe('e2e: AuthController / AuthResolver', () => {
-  let userRepo: UserRepository
   let app: INestApplication
   let validUser: User
   let server: Server
 
   beforeAll(async () => {
     app = await createAppTestingModule({ clearDatabase: true, seed: true })
-    userRepo = app.get(UserRepository)
     server = app.getHttpServer()
 
-    const [firstUser] = await userRepo.find({}, { limit: 1, orderBy: { id: 'ASC' } })
-    validUser = firstUser
+    validUser = new User(defaultTestUser as any)
   })
 
   afterAll(async () => {
@@ -89,15 +83,6 @@ describe('e2e: AuthController / AuthResolver', () => {
   })
 
   describe('resolver: login', () => {
-    const validPassword = '12345'
-
-    beforeAll(async () => {
-      // Change the password manually to ensure its the same
-      const password = '12345'
-      validUser.password = bcrypt.hashSync(password, 1)
-      await app.get(EntityManager).persistAndFlush(validUser)
-    })
-
     const createLoginMutation = (args: { email: string; password: string }) => {
       return gql`
         mutation loginMutation {
@@ -152,14 +137,14 @@ describe('e2e: AuthController / AuthResolver', () => {
     it('returns the user and its token on success', async () => {
       const res = await request(server)
         .post('/graphql')
-        .send({ query: createLoginMutation({ email: validUser.email, password: validPassword }) })
+        .send({ query: createLoginMutation({ email: validUser.email, password: 'testuser' }) })
         .expect(HttpStatus.OK)
 
       const loginRes = res.body?.data?.login ?? {}
 
       const expectedToken = expect.objectContaining({ value: expect.any(String), type: 'bearer' })
       const expectedUser = expect.objectContaining({
-        id: validUser.id,
+        id: expect.any(Number),
         email: validUser.email,
         username: validUser.username,
         emailVerified: validUser.emailVerified

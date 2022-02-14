@@ -59,7 +59,7 @@ export class MasterUserFactory extends Factory<MasterUser> {
 export class MasterUserSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
     const factory = new MasterUserFactory(em)
-    factory.make(5)
+    factory.create(5)
     factory.createOne(defaultMasterUser)
   }
 }

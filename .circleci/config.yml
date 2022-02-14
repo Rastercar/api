@@ -35,7 +35,7 @@ jobs:
           name: Run e2e tests
 
 workflows:
-  test-workflow:
+  main-workflow:
     jobs:
       - test-unit
       - test-e2e:
@@ -52,16 +52,15 @@ workflows:
               only:
                 - master
                 - homolog
-          repo: rastercar-api
+          repo: rastercar-api-repository
           # Tag with the branch so a human can differ between homolog and production images
           tag: '${CIRCLE_BRANCH}-${CIRCLE_SHA1}'
 
       # Updates the rastercar ECS service, this will make it run the image built on aws-ecr/build-and-push-image
       - aws-ecs/deploy-service-update:
-          cluster-name: rastercar-cluster
+          cluster-name: rastercar-api-homolog-cluster
           container-image-name-updates: 'container=rastercar-api-container,tag=${CIRCLE_BRANCH}-${CIRCLE_SHA1}'
           family: rastercar-api-task
-          service-name: rastercar-api-service
-          force-new-deployment: true
+          service-name: rastercar-api-homolog-service
           requires:
             - aws-ecr/build-and-push-image

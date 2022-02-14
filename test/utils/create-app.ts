@@ -24,15 +24,13 @@ interface Options {
 export const createAppTestingModule = async (opts: Options = {}) => {
   const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] }).compile()
 
-  const app = moduleFixture.createNestApplication()
+  const app = moduleFixture.createNestApplication(undefined, { bodyParser: false })
 
   setupAppGlobals(app)
 
   const orm = app.get(MikroORM)
 
-  // Yes this code is duplicated in main.js but this is because we cannot import the MikroORM class
-  // elsewhere (in a exported function, for example) and use it here as that would trigger mikroorm to
-  // load its configuration before the env variables were parsed !
+  // see: https://mikro-orm.io/docs/usage-with-nestjs/
   app.use((req: Express.Request, res: Express.Response, next: () => void) => {
     storage.run(orm.em.fork({ useContext: true }), next)
   })

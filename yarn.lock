@@ -1175,6 +1175,26 @@
     tslib "2.3.1"
     uuid "8.3.2"
 
+"@nestjs/graphql@9.1.2":
+  version "9.1.2"
+  resolved "https://registry.yarnpkg.com/@nestjs/graphql/-/graphql-9.1.2.tgz#248f9e4017119689488ee9336d323eae8063dd2f"
+  integrity sha512-ncxmkKmrswnHJ+jLgc6tbkRET6HAyC3gK6WKt1CdPLjvMnXVpFVpyQMFSenNXxAndInw9IgaiSyiJFdRYZVD/w==
+  dependencies:
+    "@graphql-tools/merge" "6.2.5"
+    "@graphql-tools/schema" "7.1.5"
+    "@graphql-tools/utils" "7.10.0"
+    "@nestjs/mapped-types" "1.0.0"
+    chokidar "3.5.2"
+    fast-glob "3.2.7"
+    graphql-ws "5.5.5"
+    iterall "1.3.0"
+    lodash "4.17.21"
+    normalize-path "3.0.0"
+    subscriptions-transport-ws "0.11.0"
+    tslib "2.3.1"
+    uuid "8.3.2"
+    ws "8.3.0"
+
 "@nestjs/graphql@^7.9.8":
   version "7.11.0"
   resolved "https://registry.yarnpkg.com/@nestjs/graphql/-/graphql-7.11.0.tgz#5c2c93dddb1f85956f25dd81cc2df6c2e56d708b"
@@ -1195,26 +1215,6 @@
     "@apollo/gateway" "^0.29.0"
     apollo-server-testing "^2.21.1"
     ts-morph "^11.0.0"
-
-"@nestjs/graphql@^9.1.2":
-  version "9.1.2"
-  resolved "https://registry.yarnpkg.com/@nestjs/graphql/-/graphql-9.1.2.tgz#248f9e4017119689488ee9336d323eae8063dd2f"
-  integrity sha512-ncxmkKmrswnHJ+jLgc6tbkRET6HAyC3gK6WKt1CdPLjvMnXVpFVpyQMFSenNXxAndInw9IgaiSyiJFdRYZVD/w==
-  dependencies:
-    "@graphql-tools/merge" "6.2.5"
-    "@graphql-tools/schema" "7.1.5"
-    "@graphql-tools/utils" "7.10.0"
-    "@nestjs/mapped-types" "1.0.0"
-    chokidar "3.5.2"
-    fast-glob "3.2.7"
-    graphql-ws "5.5.5"
-    iterall "1.3.0"
-    lodash "4.17.21"
-    normalize-path "3.0.0"
-    subscriptions-transport-ws "0.11.0"
-    tslib "2.3.1"
-    uuid "8.3.2"
-    ws "8.3.0"
 
 "@nestjs/jwt@^8.0.0":
   version "8.0.0"
