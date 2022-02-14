@@ -79,6 +79,7 @@ export class UserSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
     const factory = new UserFactory(em)
     await factory.createOne(defaultTestUser)
+
     await factory.create(5)
   }
 }

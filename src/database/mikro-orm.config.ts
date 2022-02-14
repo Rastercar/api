@@ -41,8 +41,7 @@ export default {
     defaultSeeder: 'UserSeeder'
   },
 
-  // TODO: check if we need this, ideally should be false
-  allowGlobalContext: process.env.NODE_ENV === 'test',
+  allowGlobalContext: false,
 
   loadStrategy: LoadStrategy.JOINED,
 
