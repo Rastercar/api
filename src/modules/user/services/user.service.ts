@@ -47,8 +47,7 @@ export class UserService {
       username: user.username,
       password: bcrypt.hashSync(user.password, 10),
       emailVerified,
-      oauthProvider: urUserOrNull ? urUserOrNull.oauthProvider : null,
-      oauthProfileId: urUserOrNull ? urUserOrNull.oauthProfileId : null,
+      googleProfileId: urUserOrNull?.oauthProfileId && urUserOrNull.oauthProvider === 'google' ? urUserOrNull.oauthProfileId : null,
       organization: organizationToRegister,
       accessLevel: new AccessLevel({
         name: 'admin',

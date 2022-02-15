@@ -160,7 +160,7 @@ describe('AuthService', () => {
 
     await service.getUserForGoogleProfile(googleProfileId)
 
-    expect(userFindOneSpy).toHaveBeenLastCalledWith({ oauthProfileId: googleProfileId, oauthProvider: 'google' })
+    expect(userFindOneSpy).toHaveBeenLastCalledWith({ googleProfileId })
   })
 
   describe('[login]', () => {
@@ -189,11 +189,14 @@ describe('AuthService', () => {
     })
 
     it('Removes the user unregistered_user record if the user uses oauth', async () => {
-      const userOauthData = { oauthProfileId: 'abc', oauthProvider: 'google' }
+      const userOauthData = { googleProfileId: 'abc' }
 
       await service.login(new User({ ...userMock, ...userOauthData }))
 
-      expect(userService.unregisteredUserRepository.nativeDelete).toHaveBeenLastCalledWith(userOauthData)
+      expect(userService.unregisteredUserRepository.nativeDelete).toHaveBeenLastCalledWith({
+        oauthProfileId: userOauthData.googleProfileId,
+        oauthProvider: 'google'
+      })
     })
   })
 

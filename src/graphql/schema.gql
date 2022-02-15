@@ -98,9 +98,8 @@ type UserModel {
   accessLevel: AccessLevelModel!
   email: String!
   emailVerified: Boolean!
+  googleProfileId: String
   id: Int!
-  oauthProfileId: String
-  oauthProvider: String
   organization: OrganizationModel!
   username: String!
 }

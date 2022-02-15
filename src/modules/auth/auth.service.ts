@@ -43,14 +43,12 @@ export class AuthService {
 
     const token = this.createTokenForUser(user, options.tokenOptions)
 
-    const userUsesOauth = userCopy.oauthProfileId && userCopy.oauthProvider
-
-    if (userUsesOauth) {
+    if (userCopy.googleProfileId) {
       // There`s a chance the user`s old unregistered user was not deleted whenever he finished his registration, since the registration
       // endpoint cannot certify the user being registered had a unregisteredUser record, so we ensure the deletion whenever logging in
       await this.userService.unregisteredUserRepository.nativeDelete({
-        oauthProvider: userCopy.oauthProvider,
-        oauthProfileId: userCopy.oauthProfileId
+        oauthProvider: 'google',
+        oauthProfileId: userCopy.googleProfileId
       })
     }
 
@@ -137,7 +135,7 @@ export class AuthService {
 
   @UseRequestContext()
   getUserForGoogleProfile(googleProfileId: string): Promise<User | null> {
-    return this.userService.userRepository.findOne({ oauthProfileId: googleProfileId, oauthProvider: 'google' })
+    return this.userService.userRepository.findOne({ googleProfileId })
   }
 
   /**

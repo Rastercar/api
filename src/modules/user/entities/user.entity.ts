@@ -1,7 +1,6 @@
 import { Entity, EntityRepositoryType, ManyToOne, OneToOne, Property, Unique } from '@mikro-orm/core'
 import { Organization } from '../../organization/entities/organization.entity'
 import { AccessLevel } from '../../auth/entities/access-level.entity'
-import { oauthProvider } from '../../auth/constants/oauth-providers'
 import { UserRepository } from '../repositories/user.repository'
 import { BaseEntity } from '../../../database/base/base-entity'
 
@@ -12,8 +11,7 @@ interface UserArgs {
   email: string
   emailVerified: boolean
 
-  oauthProvider: oauthProvider | null
-  oauthProfileId: string | null
+  googleProfileId: string | null
 
   accessLevel: AccessLevel
   organization: Organization
@@ -35,12 +33,7 @@ export class User extends BaseEntity {
     this.email = data.email
     this.emailVerified = data.emailVerified
 
-    if ((data.oauthProfileId && !data.oauthProvider) || (!data.oauthProfileId && data.oauthProvider)) {
-      throw new Error('Cannot create user, either inform oauth_profile_id AND oauth_provider or none')
-    }
-
-    this.oauthProvider = data.oauthProvider
-    this.oauthProfileId = data.oauthProfileId
+    this.googleProfileId = data.googleProfileId
 
     this.accessLevel = data.accessLevel
     this.organization = data.organization
@@ -83,16 +76,12 @@ export class User extends BaseEntity {
   password?: string
 
   /**
-   * The slug for the oauth provider
+   * ID of the google profile associated with the user,
+   * that can be user to login using OAUTH
    */
   @Property({ type: String, nullable: true })
-  oauthProvider!: oauthProvider | null
-
-  /**
-   * The third party profile identifier for the authentication provider in oauthProvider
-   */
-  @Property({ type: String, nullable: true })
-  oauthProfileId!: string | null
+  @Unique()
+  googleProfileId!: string | null
 
   /**
    * Relationship: N...1

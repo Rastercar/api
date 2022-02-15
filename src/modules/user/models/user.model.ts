@@ -18,10 +18,7 @@ export class UserModel {
   emailVerified!: boolean
 
   @Field(() => String, { nullable: true })
-  oauthProvider!: string | null
-
-  @Field(() => String, { nullable: true })
-  oauthProfileId!: string | null
+  googleProfileId!: string | null
 
   @Field(is(OrganizationModel))
   organization!: OrganizationModel

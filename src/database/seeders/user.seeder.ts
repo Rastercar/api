@@ -22,8 +22,7 @@ export const defaultTestUser: Partial<User> = {
   email: 'testuser@gmail.com',
   emailVerified: true,
 
-  oauthProvider: null,
-  oauthProfileId: null,
+  googleProfileId: null,
 
   organization: defaultTestUserOrg,
 
@@ -52,8 +51,7 @@ export const createFakeUser = (faker: Faker): Partial<User> => {
     email: faker.internet.email(),
     emailVerified: Math.random() < 0.5,
 
-    oauthProvider: null,
-    oauthProfileId: null,
+    googleProfileId: null,
 
     organization: org,
 
