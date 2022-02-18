@@ -3,8 +3,6 @@ import { LoginResponse } from './models/login-response.model'
 import { UserService } from '../user/services/user.service'
 import { RegisterUserDTO } from './dtos/register-user.dto'
 import { is, returns } from '../../utils/coverage-helpers'
-import { ERROR_CODES } from '../../constants/error.codes'
-import { BadRequestException } from '@nestjs/common'
 import { LoginInput } from './dtos/login.dto'
 import { AuthService } from './auth.service'
 
@@ -30,8 +28,7 @@ export class AuthResolver {
 
   @Mutation(returns(LoginResponse))
   async register(@Args('user') user: RegisterUserDTO): Promise<LoginResponse> {
-    const inUse = await this.authService.checkEmailAddressInUse(user.email)
-    if (inUse) throw new BadRequestException(ERROR_CODES.EMAIL_IN_USE)
+    await this.authService.checkEmailAddressInUse(user.email, { throwExceptionIfInUse: true })
 
     const registeredUser = await this.userService.registerUser(user)
     return this.authService.login(registeredUser, { setLastLogin: false })

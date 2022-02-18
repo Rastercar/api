@@ -52,6 +52,7 @@ type Mutation {
   login(credentials: LoginInput!): LoginResponse!
   loginWithToken(token: String!): LoginResponse!
   register(user: RegisterUserDTO!): LoginResponse!
+  updateMyProfile(profileData: UpdateUserDTO!): UserModel!
 }
 
 """organization"""
@@ -91,6 +92,13 @@ type UnregisteredUserModel {
   emailVerified: Boolean!
   username: String
   uuid: String!
+}
+
+input UpdateUserDTO {
+  email: String
+  password: String
+  removeGoogleProfileLink: Boolean
+  username: String
 }
 
 """user"""

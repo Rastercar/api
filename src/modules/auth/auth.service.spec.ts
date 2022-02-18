@@ -1,10 +1,11 @@
+import { UnregisteredUserRepository } from '../user/repositories/unregistered-user.repository'
+import { OrganizationRepository } from '../organization/repositories/organization.repository'
+import { MasterUserRepository } from '../user/repositories/master-user.repository'
 import { MasterUserFactory } from '../../database/seeders/master-user.seeder'
-import { OrganizationService } from '../organization/organization.service'
-import { createRepositoryMock } from '../../../test/mocks/repository.mock'
 import { NotFoundException, UnauthorizedException } from '@nestjs/common'
-import { MasterUserService } from '../user/services/master-user.service'
+import { UserRepository } from '../user/repositories/user.repository'
 import { createFakeUser } from '../../database/seeders/user.seeder'
-import { UserService } from '../user/services/user.service'
+import { MasterUser } from '../user/entities/master-user.entity'
 import { Test, TestingModule } from '@nestjs/testing'
 import { OrmModule } from '../../database/orm.module'
 import { User } from '../user/entities/user.entity'
@@ -14,13 +15,13 @@ import { AuthService } from './auth.service'
 import { faker } from '@mikro-orm/seeder'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
-import { MasterUser } from '../user/entities/master-user.entity'
 
 describe('AuthService', () => {
-  let organizationService: OrganizationService
-  let masterUserService: MasterUserService
+  let unregisteredUserRepository: UnregisteredUserRepository
+  let organizationRepository: OrganizationRepository
+  let masterUserRepository: MasterUserRepository
   let masterUserFactory: MasterUserFactory
-  let userService: UserService
+  let userRepository: UserRepository
   let jwtService: JwtService
   let service: AuthService
 
@@ -30,49 +31,42 @@ describe('AuthService', () => {
         AuthService,
         ConfigService,
         {
-          provide: UserService,
-          useFactory: () => ({
-            userRepository: createRepositoryMock(),
-            unregisteredUserRepository: createRepositoryMock()
-          })
-        },
-        {
-          provide: MasterUserService,
-          useFactory: () => ({ masterUserRepository: createRepositoryMock() })
-        },
-        {
-          provide: OrganizationService,
-          useFactory: () => ({ organizationRepository: createRepositoryMock() })
-        },
-        {
           provide: JwtService,
-          useFactory: () => ({
-            sign: jest.fn(),
-            decode: jest.fn(),
-            verifyAsync: jest.fn()
-          })
+          useFactory: () => ({ sign: jest.fn(), decode: jest.fn(), verifyAsync: jest.fn() })
         }
       ],
       imports: [OrmModule]
     }).compile()
 
-    const em = module.get(MikroORM).em
-
     service = module.get(AuthService)
     jwtService = module.get(JwtService)
-    userService = module.get(UserService)
-    masterUserService = module.get(MasterUserService)
-    organizationService = module.get(OrganizationService)
+    userRepository = module.get(UserRepository)
+    masterUserRepository = module.get(MasterUserRepository)
+    organizationRepository = module.get(OrganizationRepository)
+    unregisteredUserRepository = module.get(UnregisteredUserRepository)
 
+    console.log({ isMock: !!(userRepository as any).isMock })
+
+    const em = module.get(MikroORM).em
     masterUserFactory = new MasterUserFactory(em)
   })
 
   it('should be defined', () => {
     expect(service).toBeDefined()
     expect(jwtService).toBeDefined()
-    expect(userService).toBeDefined()
-    expect(organizationService).toBeDefined()
+    expect(userRepository).toBeDefined()
     expect(masterUserFactory).toBeDefined()
+    expect(masterUserRepository).toBeDefined()
+    expect(organizationRepository).toBeDefined()
+  })
+
+  it.only('[getUserForGoogleProfile] ensures google is the oauth provider when searching', async () => {
+    const googleProfileId = 'profileidmock'
+    jest.spyOn(userRepository, 'findOne').mockImplementation(async () => null)
+
+    await service.getUserForGoogleProfile(googleProfileId)
+
+    expect(userRepository.findOne).toHaveBeenLastCalledWith({ googleProfileId })
   })
 
   describe('[validateUserByCredentials]', () => {
@@ -83,12 +77,12 @@ describe('AuthService', () => {
     const credentials = { email: 'some_email@gmail.com', password: 'plain_text_pass' }
 
     beforeEach(() => {
-      jest.spyOn(userService.userRepository, 'findOne').mockImplementation(async () => userMock)
+      jest.spyOn(userRepository, 'findOne').mockImplementation(async () => userMock)
     })
 
     it('Finds the user by his unique email', async () => {
       // prettier-ignore
-      const findOneOrFailSpy = jest.spyOn(userService.userRepository, 'findOne');
+      const findOneOrFailSpy = jest.spyOn(userRepository, 'findOne');
       // prettier-ignore
       (bcrypt.compare as jest.Mock) = jest.fn().mockResolvedValue(true);
 
@@ -100,9 +94,9 @@ describe('AuthService', () => {
     it('Attempts to find a master user with the email when a regular user is no found', async () => {
       const masterUserMock = masterUserFactory.makeOne()
 
-      jest.spyOn(masterUserService.masterUserRepository, 'findOne').mockImplementationOnce(async () => masterUserMock)
+      jest.spyOn(masterUserRepository, 'findOne').mockImplementationOnce(async () => masterUserMock)
       // prettier-ignore
-      jest.spyOn(userService.userRepository, 'findOne').mockImplementationOnce(async () => null);
+      jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => null);
       // prettier-ignore
       (bcrypt.compare as jest.Mock) = jest.fn().mockResolvedValue(true);
 
@@ -127,8 +121,8 @@ describe('AuthService', () => {
     })
 
     it('Throws a not found exception when no user is found', async () => {
-      jest.spyOn(masterUserService.masterUserRepository, 'findOne').mockImplementationOnce(async () => null)
-      jest.spyOn(userService.userRepository, 'findOne').mockImplementationOnce(async () => null)
+      jest.spyOn(masterUserRepository, 'findOne').mockImplementationOnce(async () => null)
+      jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => null)
       await expect(service.validateUserByCredentials(credentials)).rejects.toThrow(NotFoundException)
     })
   })
@@ -137,12 +131,10 @@ describe('AuthService', () => {
     const email = 'some_email@gmail.com'
 
     it('checks against organizations and users', async () => {
-      const orgFindOneSpy = jest
-        .spyOn(organizationService.organizationRepository, 'findOne')
-        .mockImplementationOnce(async () => ({ id: 1 } as any))
+      const orgFindOneSpy = jest.spyOn(organizationRepository, 'findOne').mockImplementationOnce(async () => ({ id: 1 } as any))
 
-      const userFindOneSpy = jest.spyOn(userService.userRepository, 'findOne').mockImplementationOnce(async () => null)
-      const masterFindOneSpy = jest.spyOn(masterUserService.masterUserRepository, 'findOne').mockImplementationOnce(async () => null)
+      const userFindOneSpy = jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => null)
+      const masterFindOneSpy = jest.spyOn(masterUserRepository, 'findOne').mockImplementationOnce(async () => null)
 
       const inUse = await service.checkEmailAddressInUse(email)
 
@@ -152,15 +144,6 @@ describe('AuthService', () => {
 
       expect(inUse).toBe(true)
     })
-  })
-
-  it('[getUserForGoogleProfile] ensures google is the oauth provider when searching', async () => {
-    const userFindOneSpy = jest.spyOn(userService.userRepository, 'findOne')
-    const googleProfileId = 'profileidmock'
-
-    await service.getUserForGoogleProfile(googleProfileId)
-
-    expect(userFindOneSpy).toHaveBeenLastCalledWith({ googleProfileId })
   })
 
   describe('[login]', () => {
@@ -176,7 +159,7 @@ describe('AuthService', () => {
     const userMock = { id: 1, password: 'i_should_be_removed', lastLogin: new Date() } as any
 
     it('Changes the user lastLogin field when options.setLastLogin is not false', async () => {
-      const persistSpy = jest.spyOn(userService.userRepository, 'persistAndFlush')
+      const persistSpy = jest.spyOn(userRepository, 'persistAndFlush')
 
       await service.login(userMock)
 
@@ -193,7 +176,7 @@ describe('AuthService', () => {
 
       await service.login(new User({ ...userMock, ...userOauthData }))
 
-      expect(userService.unregisteredUserRepository.nativeDelete).toHaveBeenLastCalledWith({
+      expect(unregisteredUserRepository.nativeDelete).toHaveBeenLastCalledWith({
         oauthProfileId: userOauthData.googleProfileId,
         oauthProvider: 'google'
       })
@@ -226,7 +209,7 @@ describe('AuthService', () => {
     it('Fails if token subject is not a existing user', async () => {
       jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
       jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: 'user-9999' })
-      jest.spyOn(userService.userRepository, 'findOne').mockImplementationOnce(async () => null)
+      jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => null)
 
       await expect(service.loginWithToken(token)).rejects.toThrow(UnauthorizedException)
     })
@@ -238,7 +221,7 @@ describe('AuthService', () => {
       jest.spyOn(jwtService, 'sign').mockReturnValueOnce(returnedTokenMock)
       jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
       jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: 'user-1' })
-      jest.spyOn(userService.userRepository, 'findOne').mockImplementationOnce(async () => userMock as any)
+      jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => userMock as any)
 
       const { user, token: newToken } = await service.loginWithToken(token)
 

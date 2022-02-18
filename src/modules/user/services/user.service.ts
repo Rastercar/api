@@ -6,18 +6,21 @@ import { AccessLevel } from '../../auth/entities/access-level.entity'
 import { RegisterUserDTO } from '../../auth/dtos/register-user.dto'
 import { UserRepository } from '../repositories/user.repository'
 import { PERMISSION } from '../../auth/constants/permissions'
+import { UpdateUserDTO } from '../dtos/update-user.dto'
 import { UseRequestContext } from '@mikro-orm/nestjs'
 import { Profile } from 'passport-google-oauth20'
 import { User } from '../entities/user.entity'
 import { Injectable } from '@nestjs/common'
 import { MikroORM } from '@mikro-orm/core'
 import * as bcrypt from 'bcrypt'
+import { AuthService } from '../../auth/auth.service'
 
 @Injectable()
 export class UserService {
   constructor(
     // This is not used but is required because @UseRequestContext needs mikroorm in its context
     readonly orm: MikroORM,
+    readonly authService: AuthService,
     readonly userRepository: UserRepository,
     readonly organizationRepository: OrganizationRepository,
     readonly unregisteredUserRepository: UnregisteredUserRepository
@@ -75,6 +78,26 @@ export class UserService {
     }
 
     return getUserAndSetHimAsTheOrganizationOwner()
+  }
+
+  @UseRequestContext()
+  async updateUser(userToUpdate: User, newData: UpdateUserDTO): Promise<User> {
+    const { password, email, username, removeGoogleProfileLink } = newData
+
+    const isChangingEmail = newData.email && newData.email !== userToUpdate.email
+
+    if (isChangingEmail) {
+      await this.authService.checkEmailAddressInUse(userToUpdate.email, { throwExceptionIfInUse: true })
+    }
+
+    if (password) userToUpdate.password = bcrypt.hashSync(password, 10)
+    if (removeGoogleProfileLink) userToUpdate.googleProfileId = null
+    if (username) userToUpdate.username = username
+    if (email) userToUpdate.email = email
+
+    await this.userRepository.persistAndFlush(userToUpdate)
+
+    return userToUpdate
   }
 
   @UseRequestContext()

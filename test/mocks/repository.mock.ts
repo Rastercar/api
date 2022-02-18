@@ -4,11 +4,16 @@
  * disclaimer: automatic mocking EntityRepository using jest.mock is a pain, use this instead
  */
 export const createRepositoryMock = () => ({
+  // for debugging purposes
+  isMock: true,
+
   persist: jest.fn(),
 
   persistAndFlush: jest.fn(),
 
-  findOne: jest.fn(),
+  findOne: jest.fn(async () => {
+    console.log('create mock called')
+  }),
 
   findOneOrFail: jest.fn(),
 
