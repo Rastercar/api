@@ -13,7 +13,7 @@ it('Uses the ENV vars to setup the jwt options', async () => {
 
   const config = await jwtConfig.useFactory(configService)
 
-  expect(getSpy).toHaveBeenCalledTimes(2)
+  expect(configService.get).toHaveBeenCalledTimes(2)
   expect(config).toEqual({ secret: 'secret', signOptions: { expiresIn: 'ttl' } })
   expect(getSpy.mock.calls[0][0]).toBe('JWT_SECRET')
   expect(getSpy.mock.calls[1][0]).toBe('JWT_DEFAULT_TTL')

@@ -28,8 +28,6 @@ export class AuthResolver {
 
   @Mutation(returns(LoginResponse))
   async register(@Args('user') user: RegisterUserDTO): Promise<LoginResponse> {
-    await this.authService.checkEmailAddressInUse(user.email, { throwExceptionIfInUse: true })
-
     const registeredUser = await this.userService.registerUser(user)
     return this.authService.login(registeredUser, { setLastLogin: false })
   }

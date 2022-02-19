@@ -1,4 +1,3 @@
-import { BadRequestException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { UserService } from '../user/services/user.service'
 import { AuthResolver } from './auth.resolver'
@@ -48,32 +47,32 @@ describe('AuthResolver', () => {
   })
 
   it('[isEmailInUse] just checks if email is in use using the authService', async () => {
-    const checkSpy = jest.spyOn(authService, 'checkEmailAddressInUse').mockImplementationOnce(async () => false)
+    jest.spyOn(authService, 'checkEmailAddressInUse').mockImplementationOnce(async () => false)
     const res = await resolver.isEmailInUse('mock_email@gmail.com')
 
-    expect(checkSpy).toHaveBeenLastCalledWith('mock_email@gmail.com')
+    expect(authService.checkEmailAddressInUse).toHaveBeenLastCalledWith('mock_email@gmail.com')
     expect(typeof res).toBe('boolean')
   })
 
   it('[login] validates the user credentials and logs him in if valid', async () => {
     const credentials: LoginInput = { email: 'mock@gmail.com', password: '12345' }
 
-    const validateSpy = jest.spyOn(authService, 'validateUserByCredentials').mockImplementationOnce(async () => userMock as any)
-    const loginSpy = jest.spyOn(authService, 'login').mockImplementationOnce(async () => authServiceLoginRes as any)
+    jest.spyOn(authService, 'validateUserByCredentials').mockImplementationOnce(async () => userMock as any)
+    jest.spyOn(authService, 'login').mockImplementationOnce(async () => authServiceLoginRes as any)
     const loginRes = await resolver.login(credentials)
 
-    expect(validateSpy).toHaveBeenLastCalledWith(credentials)
-    expect(loginSpy).toHaveBeenLastCalledWith(userMock)
+    expect(authService.validateUserByCredentials).toHaveBeenLastCalledWith(credentials)
+    expect(authService.login).toHaveBeenLastCalledWith(userMock)
     expect(loginRes).toBe(authServiceLoginRes)
   })
 
   it('[loginWithToken] logs the user with the provided token with the authService', async () => {
     const token = '12345abcde'
 
-    const loginWithTokenSpy = jest.spyOn(authService, 'loginWithToken').mockImplementationOnce(async () => authServiceLoginRes as any)
+    jest.spyOn(authService, 'loginWithToken').mockImplementationOnce(async () => authServiceLoginRes as any)
     const loginRes = await resolver.loginWithToken(token)
 
-    expect(loginWithTokenSpy).toHaveBeenLastCalledWith(token)
+    expect(authService.loginWithToken).toHaveBeenLastCalledWith(token)
     expect(loginRes).toBe(authServiceLoginRes)
   })
 
@@ -85,25 +84,20 @@ describe('AuthResolver', () => {
       refersToUnregisteredUser: null
     }
 
-    it('throws a BadRequestException when the email is in use', () => {
-      jest.spyOn(authService, 'checkEmailAddressInUse').mockImplementationOnce(async () => true)
-      return expect(() => resolver.register(registerDto)).rejects.toThrow(BadRequestException)
-    })
-
     it('registers the user with the userService', async () => {
-      const registerSpy = jest.spyOn(userService, 'registerUser').mockImplementationOnce(async () => userMock as any)
+      jest.spyOn(userService, 'registerUser').mockImplementationOnce(async () => userMock as any)
       await resolver.register(registerDto)
-      expect(registerSpy).toHaveBeenLastCalledWith(registerDto)
+      expect(userService.registerUser).toHaveBeenLastCalledWith(registerDto)
     })
 
     it('logs in the registered user, without updating his lastLogin date', async () => {
-      const registerSpy = jest.spyOn(userService, 'registerUser').mockImplementationOnce(async () => userMock as any)
-      const loginSpy = jest.spyOn(authService, 'login').mockImplementationOnce(async () => authServiceLoginRes as any)
+      jest.spyOn(userService, 'registerUser').mockImplementationOnce(async () => userMock as any)
+      jest.spyOn(authService, 'login').mockImplementationOnce(async () => authServiceLoginRes as any)
 
       const registerRes = await resolver.register(registerDto)
 
-      expect(registerSpy).toHaveBeenLastCalledWith(registerDto)
-      expect(loginSpy).toHaveBeenLastCalledWith(userMock, { setLastLogin: false })
+      expect(userService.registerUser).toHaveBeenLastCalledWith(registerDto)
+      expect(authService.login).toHaveBeenLastCalledWith(userMock, { setLastLogin: false })
       expect(registerRes).toBe(authServiceLoginRes)
     })
   })

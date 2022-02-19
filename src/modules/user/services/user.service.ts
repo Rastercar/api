@@ -7,19 +7,15 @@ import { RegisterUserDTO } from '../../auth/dtos/register-user.dto'
 import { UserRepository } from '../repositories/user.repository'
 import { PERMISSION } from '../../auth/constants/permissions'
 import { UpdateUserDTO } from '../dtos/update-user.dto'
-import { UseRequestContext } from '@mikro-orm/nestjs'
+import { AuthService } from '../../auth/auth.service'
 import { Profile } from 'passport-google-oauth20'
 import { User } from '../entities/user.entity'
 import { Injectable } from '@nestjs/common'
-import { MikroORM } from '@mikro-orm/core'
 import * as bcrypt from 'bcrypt'
-import { AuthService } from '../../auth/auth.service'
 
 @Injectable()
 export class UserService {
   constructor(
-    // This is not used but is required because @UseRequestContext needs mikroorm in its context
-    readonly orm: MikroORM,
     readonly authService: AuthService,
     readonly userRepository: UserRepository,
     readonly organizationRepository: OrganizationRepository,
@@ -31,8 +27,9 @@ export class UserService {
    * a previously unregistered user the unregistered user data is used to fill the new user
    * oauth columns and the unregistered user row is deleted
    */
-  @UseRequestContext()
   async registerUser(user: RegisterUserDTO): Promise<User> {
+    await this.authService.checkEmailAddressInUse(user.email, { throwExceptionIfInUse: true })
+
     const urUserOrNull = user.refersToUnregisteredUser
       ? await this.unregisteredUserRepository.findOne({ uuid: user.refersToUnregisteredUser })
       : null
@@ -80,7 +77,6 @@ export class UserService {
     return getUserAndSetHimAsTheOrganizationOwner()
   }
 
-  @UseRequestContext()
   async updateUser(userToUpdate: User, newData: UpdateUserDTO): Promise<User> {
     const { password, email, username, removeGoogleProfileLink } = newData
 
@@ -100,7 +96,6 @@ export class UserService {
     return userToUpdate
   }
 
-  @UseRequestContext()
   async createOrFindUnregisteredUserForGoogleProfile(googleProfile: Profile): Promise<UnregisteredUser> {
     const existingUrUser = await this.unregisteredUserRepository.findOne({ oauthProfileId: googleProfile.id, oauthProvider: 'google' })
 

@@ -30,29 +30,31 @@ export const defaultMasterUser = new MasterUser({
   })
 })
 
+export const createFakeMasterUser = (faker: Faker) => ({
+  username: faker.internet.userName(),
+  password: bcrypt.hashSync(faker.internet.password(), 1),
+
+  email: faker.internet.email(),
+  emailVerified: Math.random() < 0.5,
+
+  accessLevel: new AccessLevel({
+    name: `access level ${faker.lorem.words(1)}`,
+    description: faker.lorem.words(7),
+    permissions: []
+  }),
+
+  masterAccessLevel: new MasterAccessLevel({
+    name: `master access level ${faker.lorem.words(1)}`,
+    description: faker.lorem.words(7),
+    permissions: []
+  })
+})
+
 export class MasterUserFactory extends Factory<MasterUser> {
   model = MasterUser as any
 
   definition(faker: Faker): Partial<MasterUser> {
-    return {
-      username: faker.internet.userName(),
-      password: bcrypt.hashSync(faker.internet.password(), 1),
-
-      email: faker.internet.email(),
-      emailVerified: Math.random() < 0.5,
-
-      accessLevel: new AccessLevel({
-        name: `access level ${faker.lorem.words(1)}`,
-        description: faker.lorem.words(7),
-        permissions: []
-      }),
-
-      masterAccessLevel: new MasterAccessLevel({
-        name: `master access level ${faker.lorem.words(1)}`,
-        description: faker.lorem.words(7),
-        permissions: []
-      })
-    }
+    return createFakeMasterUser(faker)
   }
 }
 

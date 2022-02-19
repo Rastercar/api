@@ -11,9 +11,7 @@ export const createRepositoryMock = () => ({
 
   persistAndFlush: jest.fn(),
 
-  findOne: jest.fn(async () => {
-    console.log('create mock called')
-  }),
+  findOne: jest.fn(),
 
   findOneOrFail: jest.fn(),
 

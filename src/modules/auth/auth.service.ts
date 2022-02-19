@@ -7,9 +7,7 @@ import { MasterUser } from '../user/entities/master-user.entity'
 import { LoginResponse } from './models/login-response.model'
 import { ERROR_CODES } from '../../constants/error.codes'
 import { JwtService, JwtSignOptions } from '@nestjs/jwt'
-import { UseRequestContext } from '@mikro-orm/nestjs'
 import { User } from '../user/entities/user.entity'
-import { MikroORM } from '@mikro-orm/core'
 import * as bcrypt from 'bcrypt'
 
 interface LoginOptions {
@@ -30,7 +28,6 @@ interface CheckEmailInUseOptions {
 @Injectable()
 export class AuthService {
   constructor(
-    readonly orm: MikroORM,
     readonly jwtService: JwtService,
     readonly userRepository: UserRepository,
     readonly masterUserRepository: MasterUserRepository,
@@ -85,7 +82,6 @@ export class AuthService {
   /**
    * Returns the given user and his new bearer JWT
    */
-  @UseRequestContext()
   async login(user: User | MasterUser, options: LoginOptions = { setLastLogin: true }): Promise<LoginResponse> {
     return user instanceof User ? this.loginForUser(user, options) : this.loginForMasterUser(user, options)
   }
@@ -93,7 +89,6 @@ export class AuthService {
   /**
    * Returns the given user and his new bearer JWT
    */
-  @UseRequestContext()
   async loginWithToken(token: string): Promise<LoginResponse> {
     await this.jwtService.verifyAsync(token).catch(() => {
       throw new UnauthorizedException('Invalid/expired token')
@@ -125,7 +120,6 @@ export class AuthService {
    * @throws {NotFoundException} If there is no user with the informed username
    * @throws {UnauthorizedException} If the password is invalid
    */
-  @UseRequestContext()
   async validateUserByCredentials(credentials: { email: string; password: string }): Promise<User | MasterUser> {
     const { email, password } = credentials
 
@@ -143,7 +137,6 @@ export class AuthService {
     return finalUser
   }
 
-  @UseRequestContext()
   getUserForGoogleProfile(googleProfileId: string): Promise<User | null> {
     return this.userRepository.findOne({ googleProfileId })
   }
@@ -151,7 +144,6 @@ export class AuthService {
   /**
    * Verifies if the provided email address is in use by a user, organization or some other entity
    */
-  @UseRequestContext()
   async checkEmailAddressInUse(email: string, options?: CheckEmailInUseOptions): Promise<boolean> {
     const [org, masterUser, user] = await Promise.all([
       this.organizationRepository.findOne({ billingEmail: email }, { fields: ['id'] }),

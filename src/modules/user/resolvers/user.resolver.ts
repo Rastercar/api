@@ -11,10 +11,8 @@ import { Selections } from '@jenyus-org/nestjs-graphql-utils'
 import { MasterUser } from '../entities/master-user.entity'
 import { UpdateUserDTO } from '../dtos/update-user.dto'
 import { UserService } from '../services/user.service'
-import { UseRequestContext } from '@mikro-orm/nestjs'
 import { UserModel } from '../models/user.model'
 import { User } from '../entities/user.entity'
-import { MikroORM } from '@mikro-orm/core'
 import { UseGuards } from '@nestjs/common'
 
 const USER_MODEL_FIELDS = ['organization', 'accessLevel']
@@ -23,7 +21,6 @@ const MASTER_USER_MODEL_FIELDS = ['masterAccessLevel', 'accessLevel']
 @Resolver(of(UserModel))
 export class UserResolver {
   constructor(
-    readonly orm: MikroORM,
     private readonly userService: UserService,
     private readonly masterUserService: MasterUserService,
     readonly organizationRepository: OrganizationRepository
@@ -46,7 +43,6 @@ export class UserResolver {
   }
 
   @Query(returns(UserModel), { nullable: true })
-  @UseRequestContext()
   user(
     @Args({ name: 'id', type: is(Int) }) id: number,
     @Selections('user', USER_MODEL_FIELDS) populate: string[]
@@ -54,7 +50,6 @@ export class UserResolver {
     return this.userService.userRepository.findOne({ id }, { populate: populate as any })
   }
 
-  @UseRequestContext()
   @UseGuards(GqlAuthGuard, UserOnlyGuard)
   @Mutation(returns(UserModel))
   async updateMyProfile(

@@ -1,13 +1,15 @@
 import { OrganizationRepository } from '../../organization/repositories/organization.repository'
 import { UnregisteredUserRepository } from '../repositories/unregistered-user.repository'
 import { Organization } from '../../organization/entities/organization.entity'
+import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
 import { UnregisteredUser } from '../entities/unregistered-user.entity'
+import { createEmptyMocksFor } from '../../../../test/utils/mocking'
 import { RegisterUserDTO } from '../../auth/dtos/register-user.dto'
 import { UserRepository } from '../repositories/user.repository'
-import { Test, TestingModule } from '@nestjs/testing'
-import { OrmModule } from '../../../database/orm.module'
 import { UserService } from '../services/user.service'
+import { Test, TestingModule } from '@nestjs/testing'
 import { Profile } from 'passport-google-oauth20'
+import { AuthService } from '../../auth/auth.service'
 
 describe('UserService', () => {
   let unregisteredUserRepository: UnregisteredUserRepository
@@ -19,14 +21,14 @@ describe('UserService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      /**
-       * Since we're testing @UseRequestContext decorated methods MikroOrm
-       * needs to be avaliable inside the service context, this means that
-       * mikroorm will use its instances instead of nestjs provided ones,
-       * hence we cant mock repositories here
-       */
-      imports: [OrmModule],
-      providers: [UserService]
+      providers: [
+        ...createEmptyMocksFor([UserRepository, OrganizationRepository, UnregisteredUserRepository], createRepositoryMock),
+        {
+          provide: AuthService,
+          useFactory: () => ({ checkEmailAddressInUse: jest.fn() })
+        },
+        UserService
+      ]
     }).compile()
 
     service = module.get(UserService)
@@ -73,28 +75,29 @@ describe('UserService', () => {
     })
 
     it('attempts to find the unregistered user when the user being registered refers to one', async () => {
-      const urFindOne = jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => null)
-      const urRemove = jest.spyOn(unregisteredUserRepository, 'remove').mockImplementation()
+      jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => null)
+      jest.spyOn(unregisteredUserRepository, 'remove').mockImplementation()
 
       await service.registerUser(registerDto)
 
-      expect(urFindOne).toHaveBeenLastCalledWith({ uuid: registerDto.refersToUnregisteredUser })
-      expect(urRemove).not.toHaveBeenCalled()
+      expect(unregisteredUserRepository.findOne).toHaveBeenLastCalledWith({ uuid: registerDto.refersToUnregisteredUser })
+      expect(unregisteredUserRepository.remove).not.toHaveBeenCalled()
     })
 
     it('deletes the unregistered user when the user being registered refers to a existing one', async () => {
-      const urFindOne = jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => urUserMock as any)
-      const urRemove = jest.spyOn(unregisteredUserRepository, 'remove').mockImplementation()
+      jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => urUserMock as any)
+      jest.spyOn(unregisteredUserRepository, 'remove').mockImplementation()
 
       await service.registerUser(registerDto)
 
-      expect(urFindOne).toHaveBeenLastCalledWith({ uuid: registerDto.refersToUnregisteredUser })
-      expect(urRemove).toHaveBeenLastCalledWith(urUserMock)
+      expect(unregisteredUserRepository.findOne).toHaveBeenLastCalledWith({ uuid: registerDto.refersToUnregisteredUser })
+      expect(unregisteredUserRepository.remove).toHaveBeenLastCalledWith(urUserMock)
     })
 
     it('creates a new organization for the user', async () => {
       jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => null)
       const registeredUser = await service.registerUser(registerDto)
+
       expect(registeredUser.organization).toBeDefined()
     })
 
@@ -151,11 +154,11 @@ describe('UserService', () => {
     }
 
     it('returns the existing unregistered user for the profile if it exists', async () => {
-      const urFindOne = jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => urUserMock as any)
+      jest.spyOn(unregisteredUserRepository, 'findOne').mockImplementationOnce(async () => urUserMock as any)
 
       const urUser = await service.createOrFindUnregisteredUserForGoogleProfile(googleProfileMock)
 
-      expect(urFindOne).toHaveBeenLastCalledWith({ oauthProvider: 'google', oauthProfileId: googleProfileMock.id })
+      expect(unregisteredUserRepository.findOne).toHaveBeenLastCalledWith({ oauthProvider: 'google', oauthProfileId: googleProfileMock.id })
       expect(urUser).toBe(urUserMock)
     })
 
