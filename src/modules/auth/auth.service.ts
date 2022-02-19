@@ -151,9 +151,11 @@ export class AuthService {
       this.userRepository.findOne({ email }, { fields: ['id'] })
     ])
 
+    console.log({ org, masterUser, user })
+
     const inUse = !!(user || org || masterUser)
 
-    if (options?.throwExceptionIfInUse && !inUse) {
+    if (options?.throwExceptionIfInUse && inUse) {
       throw new BadRequestException(ERROR_CODES.EMAIL_IN_USE)
     }
 

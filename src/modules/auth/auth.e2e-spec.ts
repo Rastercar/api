@@ -3,7 +3,6 @@ import { createAppTestingModule } from '../../../test/utils/create-app'
 import { defaultTestUser } from '../../database/seeders/user.seeder'
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import { RegisterUserDTO } from './dtos/register-user.dto'
-import { ERROR_CODES } from '../../constants/error.codes'
 import { User } from '../user/entities/user.entity'
 import * as request from 'supertest'
 import { Server } from 'http'
@@ -290,21 +289,12 @@ describe('e2e: AuthController / AuthResolver', () => {
       expect(errorExtension?.response?.statusCode).toBe(HttpStatus.BAD_REQUEST)
     })
 
-    it('fails when the new user email address is in use', async () => {
-      const res = await request(server)
-        .post('/graphql')
-        .send({ query: mutation, variables: { user: { ...registerUserDto, email: defaultTestUser.email } } })
-
-      const errorExtension = getGqlFirstErrorExtension(res)
-
-      expect(errorExtension?.response?.statusCode).toBe(HttpStatus.BAD_REQUEST)
-      expect(errorExtension?.response?.message).toBe(ERROR_CODES.EMAIL_IN_USE)
-    })
-
-    it('returns the registered user and its token on success', async () => {
+    it.only('returns the registered user and its token on success', async () => {
       const res = await request(server)
         .post('/graphql')
         .send({ query: mutation, variables: { user: registerUserDto } })
+
+      console.log(res.body)
 
       expect(res.body?.data).toEqual({
         register: {
