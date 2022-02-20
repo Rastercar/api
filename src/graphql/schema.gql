@@ -96,6 +96,11 @@ type UnregisteredUserModel {
 
 input UpdateUserDTO {
   email: String
+
+  """
+  The user old password, required when changing the user password with the password prop
+  """
+  oldPassword: String
   password: String
   removeGoogleProfileLink: Boolean
   username: String

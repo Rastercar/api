@@ -80,6 +80,13 @@ export class AuthService {
   }
 
   /**
+   * Checks if a password is valid agains a given hash
+   */
+  comparePasswords(password: string, hashedPassword: string) {
+    return bcrypt.compare(password, hashedPassword)
+  }
+
+  /**
    * Returns the given user and his new bearer JWT
    */
   async login(user: User | MasterUser, options: LoginOptions = { setLastLogin: true }): Promise<LoginResponse> {
@@ -131,7 +138,7 @@ export class AuthService {
 
     if (!finalUser) throw new NotFoundException('User with provided email not found')
 
-    const passwordIsValid = await bcrypt.compare(password, finalUser.password as string)
+    const passwordIsValid = await this.comparePasswords(password, finalUser.password as string)
     if (!passwordIsValid) throw new UnauthorizedException('Invalid password')
 
     return finalUser
@@ -150,8 +157,6 @@ export class AuthService {
       this.masterUserRepository.findOne({ email }, { fields: ['id'] }),
       this.userRepository.findOne({ email }, { fields: ['id'] })
     ])
-
-    console.log({ org, masterUser, user })
 
     const inUse = !!(user || org || masterUser)
 

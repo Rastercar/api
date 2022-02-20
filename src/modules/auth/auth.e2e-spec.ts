@@ -289,7 +289,7 @@ describe('e2e: AuthController / AuthResolver', () => {
       expect(errorExtension?.response?.statusCode).toBe(HttpStatus.BAD_REQUEST)
     })
 
-    it.only('returns the registered user and its token on success', async () => {
+    it('returns the registered user and its token on success', async () => {
       const res = await request(server)
         .post('/graphql')
         .send({ query: mutation, variables: { user: registerUserDto } })

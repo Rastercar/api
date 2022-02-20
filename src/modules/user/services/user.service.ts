@@ -10,8 +10,9 @@ import { UpdateUserDTO } from '../dtos/update-user.dto'
 import { AuthService } from '../../auth/auth.service'
 import { Profile } from 'passport-google-oauth20'
 import { User } from '../entities/user.entity'
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import * as bcrypt from 'bcrypt'
+import { ERROR_CODES } from '../../../constants/error.codes'
 
 @Injectable()
 export class UserService {
@@ -78,15 +79,18 @@ export class UserService {
   }
 
   async updateUser(userToUpdate: User, newData: UpdateUserDTO): Promise<User> {
-    const { password, email, username, removeGoogleProfileLink } = newData
+    const { password, email, username, removeGoogleProfileLink, oldPassword } = newData
 
-    const isChangingEmail = newData.email && newData.email !== userToUpdate.email
-
-    if (isChangingEmail) {
-      await this.authService.checkEmailAddressInUse(userToUpdate.email, { throwExceptionIfInUse: true })
+    if (newData.email && newData.email !== userToUpdate.email) {
+      await this.authService.checkEmailAddressInUse(newData.email, { throwExceptionIfInUse: true })
     }
 
-    if (password) userToUpdate.password = bcrypt.hashSync(password, 10)
+    if (password && oldPassword) {
+      const oldPasswordIsValid = await this.authService.comparePasswords(oldPassword, userToUpdate.password as string)
+      if (!oldPasswordIsValid) throw new BadRequestException(ERROR_CODES.OLD_PASSWORD_INVALID)
+      userToUpdate.password = bcrypt.hashSync(password, 10)
+    }
+
     if (removeGoogleProfileLink) userToUpdate.googleProfileId = null
     if (username) userToUpdate.username = username
     if (email) userToUpdate.email = email
