@@ -5,14 +5,14 @@ import { UnregisteredUser } from '../entities/unregistered-user.entity'
 import { AccessLevel } from '../../auth/entities/access-level.entity'
 import { RegisterUserDTO } from '../../auth/dtos/register-user.dto'
 import { UserRepository } from '../repositories/user.repository'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { PERMISSION } from '../../auth/constants/permissions'
+import { ERROR_CODES } from '../../../constants/error.codes'
 import { UpdateUserDTO } from '../dtos/update-user.dto'
 import { AuthService } from '../../auth/auth.service'
 import { Profile } from 'passport-google-oauth20'
 import { User } from '../entities/user.entity'
-import { BadRequestException, Injectable } from '@nestjs/common'
 import * as bcrypt from 'bcrypt'
-import { ERROR_CODES } from '../../../constants/error.codes'
 
 @Injectable()
 export class UserService {
@@ -93,7 +93,10 @@ export class UserService {
 
     if (removeGoogleProfileLink) userToUpdate.googleProfileId = null
     if (username) userToUpdate.username = username
-    if (email) userToUpdate.email = email
+    if (email) {
+      userToUpdate.emailVerified = false
+      userToUpdate.email = email
+    }
 
     await this.userRepository.persistAndFlush(userToUpdate)
 
