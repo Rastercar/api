@@ -19,5 +19,11 @@ export const validationSchema = Joi.object({
   GOOGLE_OAUTH_CLIENT_SECRET: Joi.string().min(10).required(),
 
   API_BASE_URL: Joi.string().required(),
-  PWA_BASE_URL: Joi.string().required()
+  PWA_BASE_URL: Joi.string().required(),
+
+  SMTP_HOST: Joi.string().required(),
+  SMTP_PORT: Joi.number().required(),
+  SMTP_USERNAME: Joi.string().required(),
+  SMTP_PASSWORD: Joi.string().required(),
+  NO_REPLY_EMAIL: Joi.string().required()
 })

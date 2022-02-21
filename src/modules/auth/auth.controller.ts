@@ -5,20 +5,16 @@ import { LoginResponse } from './models/login-response.model'
 import { GoogleAuthGuard } from './guards/google-auth.guard'
 import { UserService } from '../user/services/user.service'
 import { LocalAuthGuard } from './guards/local-auth.guard'
+import { AuthService } from './services/auth.service'
 import { User } from '../user/entities/user.entity'
 import { Profile } from 'passport-google-oauth20'
 import { ConfigService } from '@nestjs/config'
-import { AuthService } from './auth.service'
 import { URLSearchParams } from 'url'
 import { Response } from 'express'
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly userService: UserService,
-    private readonly configService: ConfigService
-  ) {}
+  constructor(readonly authService: AuthService, readonly userService: UserService, readonly configService: ConfigService) {}
 
   @Post('login')
   @UseGuards(ValidLoginRequestGuard, LocalAuthGuard)

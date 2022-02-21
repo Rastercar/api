@@ -4,7 +4,7 @@ import { UserService } from '../user/services/user.service'
 import { RegisterUserDTO } from './dtos/register-user.dto'
 import { is, returns } from '../../utils/coverage-helpers'
 import { LoginInput } from './dtos/login.dto'
-import { AuthService } from './auth.service'
+import { AuthService } from './services/auth.service'
 
 @Resolver()
 export class AuthResolver {
