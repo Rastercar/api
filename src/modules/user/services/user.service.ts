@@ -79,16 +79,19 @@ export class UserService {
   }
 
   async updateUser(userToUpdate: User, newData: UpdateUserDTO): Promise<User> {
-    const { password, email, username, removeGoogleProfileLink, oldPassword } = newData
+    const { password: newPassword, email, username, removeGoogleProfileLink, oldPassword: oldPasswordVerification } = newData
 
     if (newData.email && newData.email !== userToUpdate.email) {
       await this.authService.checkEmailAddressInUse(newData.email, { throwExceptionIfInUse: true })
     }
 
-    if (password && oldPassword) {
-      const oldPasswordIsValid = await this.authService.comparePasswords(oldPassword, userToUpdate.password as string)
+    if (newPassword && oldPasswordVerification) {
+      const { password: currentPassword } = userToUpdate
+
+      const oldPasswordIsValid = await this.authService.comparePasswords(oldPasswordVerification, currentPassword as string)
       if (!oldPasswordIsValid) throw new BadRequestException(ERROR_CODES.OLD_PASSWORD_INVALID)
-      userToUpdate.password = bcrypt.hashSync(password, 10)
+
+      userToUpdate.password = bcrypt.hashSync(newPassword, 10)
     }
 
     if (removeGoogleProfileLink) userToUpdate.googleProfileId = null

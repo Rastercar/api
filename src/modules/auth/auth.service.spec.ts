@@ -3,11 +3,12 @@ import { OrganizationRepository } from '../organization/repositories/organizatio
 import { MasterUserRepository } from '../user/repositories/master-user.repository'
 import { createFakeMasterUser } from '../../database/seeders/master-user.seeder'
 import { createRepositoryMock } from '../../../test/mocks/repository.mock'
-import { NotFoundException, UnauthorizedException } from '@nestjs/common'
+import { BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common'
 import { UserRepository } from '../user/repositories/user.repository'
 import { createFakeUser } from '../../database/seeders/user.seeder'
 import { createEmptyMocksFor } from '../../../test/utils/mocking'
 import { MasterUser } from '../user/entities/master-user.entity'
+import { ERROR_CODES } from '../../constants/error.codes'
 import { Test, TestingModule } from '@nestjs/testing'
 import { User } from '../user/entities/user.entity'
 import { ConfigService } from '@nestjs/config'
@@ -75,39 +76,35 @@ describe('AuthService', () => {
       jest.spyOn(userRepository, 'findOne').mockImplementation(async () => userMock)
     })
 
-    // prettier-ignore
     it('Finds the user by his unique email', async () => {
-      (bcrypt.compare as jest.Mock) = jest.fn().mockResolvedValue(true);
+      jest.spyOn(bcrypt, 'compare').mockImplementationOnce(() => true)
       await service.validateUserByCredentials(credentials)
-      
+
       expect(userRepository.findOne).toHaveBeenLastCalledWith({ email: credentials.email }, expect.anything())
     })
 
-    // prettier-ignore
     it('Attempts to find a master user with the email when a regular user is no found', async () => {
       const masterUserMock = new MasterUser(createFakeMasterUser(faker))
-      
+
       jest.spyOn(masterUserRepository, 'findOne').mockImplementationOnce(async () => masterUserMock as any)
-      jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => null);
-      (bcrypt.compare as jest.Mock) = jest.fn().mockResolvedValue(true);
+      jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => null)
+      jest.spyOn(bcrypt, 'compare').mockImplementationOnce(() => true)
 
       const user = await service.validateUserByCredentials(credentials)
-      
+
       expect(user).toBeInstanceOf(MasterUser)
     })
 
-    // prettier-ignore
     it('Uses bycrypt to compare the passwords', async () => {
-      (bcrypt.compare as jest.Mock) = jest.fn().mockResolvedValue(true);
+      jest.spyOn(bcrypt, 'compare').mockImplementationOnce(() => true)
       await service.validateUserByCredentials(credentials)
 
-      expect(bcrypt.compare as jest.Mock).toHaveBeenLastCalledWith(credentials.password, userMock.password)
+      expect(bcrypt.compare).toHaveBeenLastCalledWith(credentials.password, userMock.password)
     })
 
-    // prettier-ignore
     it('Throws a UnauthorizedException on bcrypt comparison fail', async () => {
-      (bcrypt.compare as jest.Mock) = jest.fn().mockResolvedValue(false)
-      
+      jest.spyOn(bcrypt, 'compare').mockImplementationOnce(() => false)
+
       await expect(service.validateUserByCredentials(credentials)).rejects.toThrow(UnauthorizedException)
     })
 
@@ -122,7 +119,7 @@ describe('AuthService', () => {
   describe('[checkEmailAddressInUse]', () => {
     const email = 'some_email@gmail.com'
 
-    it('checks against organizations and users', async () => {
+    it('checks against organizations, master users and users', async () => {
       jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => null)
       jest.spyOn(masterUserRepository, 'findOne').mockImplementationOnce(async () => null)
       jest.spyOn(organizationRepository, 'findOne').mockImplementationOnce(async () => ({ id: 1 } as any))
@@ -133,6 +130,15 @@ describe('AuthService', () => {
       expect(userRepository.findOne).toHaveBeenLastCalledWith({ email }, expect.anything())
       expect(masterUserRepository.findOne).toHaveBeenLastCalledWith({ email }, expect.anything())
       expect(organizationRepository.findOne).toHaveBeenLastCalledWith({ billingEmail: email }, expect.anything())
+    })
+
+    it('throws BadRequestException with EMAIL_IN_USE error code when throwExceptionIfInUse is true', async () => {
+      jest.spyOn(organizationRepository, 'findOne').mockImplementationOnce(async () => ({ id: 1 } as any))
+
+      const error = await service.checkEmailAddressInUse(email, { throwExceptionIfInUse: true }).catch(error => error)
+
+      expect(error).toBeInstanceOf(BadRequestException)
+      expect(error?.response?.message).toBe(ERROR_CODES.EMAIL_IN_USE)
     })
   })
 

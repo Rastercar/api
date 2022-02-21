@@ -1,6 +1,7 @@
+import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
 import { MasterUserRepository } from '../repositories/master-user.repository'
+import { createEmptyMocksFor } from '../../../../test/utils/mocking'
 import { MasterUserService } from './master-user.service'
-import { OrmModule } from '../../../database/orm.module'
 import { Test, TestingModule } from '@nestjs/testing'
 
 describe('MasterUserService', () => {
@@ -9,8 +10,7 @@ describe('MasterUserService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [OrmModule],
-      providers: [MasterUserService]
+      providers: [MasterUserService, ...createEmptyMocksFor([MasterUserRepository], createRepositoryMock)]
     }).compile()
 
     service = module.get(MasterUserService)

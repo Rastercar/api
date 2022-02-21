@@ -3,18 +3,24 @@ import { UnregisteredUserRepository } from '../repositories/unregistered-user.re
 import { Organization } from '../../organization/entities/organization.entity'
 import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
 import { UnregisteredUser } from '../entities/unregistered-user.entity'
+import { createFakeUser } from '../../../database/seeders/user.seeder'
 import { createEmptyMocksFor } from '../../../../test/utils/mocking'
 import { RegisterUserDTO } from '../../auth/dtos/register-user.dto'
 import { UserRepository } from '../repositories/user.repository'
+import { UpdateUserDTO } from '../dtos/update-user.dto'
 import { UserService } from '../services/user.service'
 import { Test, TestingModule } from '@nestjs/testing'
-import { Profile } from 'passport-google-oauth20'
 import { AuthService } from '../../auth/auth.service'
+import { Profile } from 'passport-google-oauth20'
+import { User } from '../entities/user.entity'
+import { faker } from '@mikro-orm/seeder'
+import * as bcrypt from 'bcrypt'
 
 describe('UserService', () => {
   let unregisteredUserRepository: UnregisteredUserRepository
   let organizationRepository: OrganizationRepository
   let repository: UserRepository
+  let authService: AuthService
   let service: UserService
 
   let urUserMock!: UnregisteredUser
@@ -25,13 +31,17 @@ describe('UserService', () => {
         ...createEmptyMocksFor([UserRepository, OrganizationRepository, UnregisteredUserRepository], createRepositoryMock),
         {
           provide: AuthService,
-          useFactory: () => ({ checkEmailAddressInUse: jest.fn() })
+          useFactory: () => ({
+            comparePasswords: jest.fn(),
+            checkEmailAddressInUse: jest.fn()
+          })
         },
         UserService
       ]
     }).compile()
 
     service = module.get(UserService)
+    authService = module.get(AuthService)
     repository = module.get(UserRepository)
     organizationRepository = module.get(OrganizationRepository)
     unregisteredUserRepository = module.get(UnregisteredUserRepository)
@@ -50,6 +60,7 @@ describe('UserService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined()
     expect(repository).toBeDefined()
+    expect(authService).toBeDefined()
     expect(organizationRepository).toBeDefined()
     expect(unregisteredUserRepository).toBeDefined()
   })
@@ -110,6 +121,95 @@ describe('UserService', () => {
 
       const registeredUser = await service.registerUser(registerDto)
       expect(registeredUser.organization.owner).toBe(userMock)
+    })
+  })
+
+  describe('[updateUser]', () => {
+    const createUpdateDTO = (args: Partial<UpdateUserDTO>) => {
+      const dto = new UpdateUserDTO()
+
+      Object.entries(args).map(([key, value]) => {
+        if (value) dto[key] = value
+      })
+
+      return dto
+    }
+
+    const createUserMock = () => new User(createFakeUser(faker) as any)
+
+    it('Doesnt verify if the email is in use if it didnt change and vice versa', async () => {
+      const user = createUserMock()
+
+      const dtoWithSameEmail = createUpdateDTO({ email: user.email })
+      const dtoWithoutNewEmail = createUpdateDTO({ username: 'newUsername' })
+
+      const checkEmailSpy = jest.spyOn(authService, 'checkEmailAddressInUse')
+
+      await service.updateUser(user, dtoWithSameEmail)
+      await service.updateUser(user, dtoWithoutNewEmail)
+
+      expect(checkEmailSpy).not.toHaveBeenCalled()
+
+      const dtoWithNewEmail = createUpdateDTO({ email: 'new.email@gmail.com' })
+
+      await service.updateUser(user, dtoWithNewEmail)
+      expect(checkEmailSpy).toHaveBeenLastCalledWith(dtoWithNewEmail.email, { throwExceptionIfInUse: true })
+    })
+
+    it('Checks if the old password is valid if a new password is being set', async () => {
+      const user = createUserMock()
+      const dto = createUpdateDTO({ oldPassword: 'oldPass', password: 'Newpassword123!' })
+
+      const comparePasswordsSpy = jest.spyOn(authService, 'comparePasswords')
+
+      await service.updateUser(user, dto).catch(() => null)
+
+      expect(comparePasswordsSpy).toHaveBeenLastCalledWith(dto.oldPassword, user.password)
+    })
+
+    it('Changes email verified to false on email change', async () => {
+      const user = createUserMock()
+      const dto = createUpdateDTO({ email: 'new_email@gmail.com' })
+
+      const updatedUser = await service.updateUser(user, dto)
+
+      expect(updatedUser.emailVerified).toBe(false)
+    })
+
+    it('Hashes the new password on password change', async () => {
+      const user = createUserMock()
+      const dto = createUpdateDTO({ oldPassword: 'oldPass', password: 'Newpassword123!' })
+
+      jest.spyOn(authService, 'comparePasswords').mockImplementationOnce(async () => true)
+      jest.spyOn(bcrypt, 'hashSync').mockReturnValue('dasuihdiaushdas')
+
+      await service.updateUser(user, dto)
+
+      expect(bcrypt.hashSync).toHaveBeenLastCalledWith(dto.password, expect.anything())
+    })
+
+    it('Updates the user', async () => {
+      const user = createUserMock()
+      user.googleProfileId = 'i_should_change_to_null'
+
+      const dto = createUpdateDTO({
+        email: 'new.email@hotmail.com',
+        username: 'new_username',
+        password: 'hahahah123!',
+        oldPassword: 'oldPass',
+        removeGoogleProfileLink: true
+      })
+
+      jest.spyOn(authService, 'comparePasswords').mockImplementationOnce(async () => true)
+      jest.spyOn(bcrypt, 'hashSync').mockReturnValueOnce('newpasshashwow')
+
+      const updatedUser = await service.updateUser(user, dto)
+
+      expect(updatedUser.email).toBe(dto.email)
+      expect(updatedUser.username).toBe(dto.username)
+      expect(updatedUser.emailVerified).toBe(false)
+      expect(updatedUser.googleProfileId).toBe(null)
+      expect(updatedUser.password === dto.password).toBe(false)
     })
   })
 

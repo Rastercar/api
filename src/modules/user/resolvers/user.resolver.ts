@@ -1,10 +1,11 @@
-import { OrganizationRepository } from '../../organization/repositories/organization.repository'
+import { MasterUserRepository } from '../repositories/master-user.repository'
 import { RequestUser } from '../../auth/decorators/request-user.decorator'
 import { UserOrMasterUser } from '../../auth/models/login-response.model'
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql'
 import { MasterUserService } from '../services/master-user.service'
 import { GqlAuthGuard } from '../../auth/guards/gql-jwt-auth.guard'
 import { is, of, returns } from '../../../utils/coverage-helpers'
+import { UserRepository } from '../repositories/user.repository'
 import { UserOnlyGuard } from '../guards/user-only-route.guard'
 import { MasterUserModel } from '../models/master-user.model'
 import { Selections } from '@jenyus-org/nestjs-graphql-utils'
@@ -21,9 +22,10 @@ const MASTER_USER_MODEL_FIELDS = ['masterAccessLevel', 'accessLevel']
 @Resolver(of(UserModel))
 export class UserResolver {
   constructor(
-    private readonly userService: UserService,
-    private readonly masterUserService: MasterUserService,
-    readonly organizationRepository: OrganizationRepository
+    readonly userService: UserService,
+    readonly userRepository: UserRepository,
+    readonly masterUserService: MasterUserService,
+    readonly masterUserRepository: MasterUserRepository
   ) {}
 
   @UseGuards(GqlAuthGuard)
@@ -38,8 +40,8 @@ export class UserResolver {
     const masterUserOnlyFields = populate.filter(field => MASTER_USER_MODEL_FIELDS.includes(field))
 
     return user instanceof User
-      ? this.userService.userRepository.findOneOrFail({ id: user.id }, { populate: selectedUserFields as any })
-      : this.masterUserService.masterUserRepository.findOneOrFail({ id: user.id }, { populate: masterUserOnlyFields as any })
+      ? this.userRepository.findOneOrFail({ id: user.id }, { populate: selectedUserFields as any })
+      : this.masterUserRepository.findOneOrFail({ id: user.id }, { populate: masterUserOnlyFields as any })
   }
 
   @Query(returns(UserModel), { nullable: true })
@@ -47,7 +49,7 @@ export class UserResolver {
     @Args({ name: 'id', type: is(Int) }) id: number,
     @Selections('user', USER_MODEL_FIELDS) populate: string[]
   ): Promise<UserModel | null> {
-    return this.userService.userRepository.findOne({ id }, { populate: populate as any })
+    return this.userRepository.findOne({ id }, { populate: populate as any })
   }
 
   @UseGuards(GqlAuthGuard, UserOnlyGuard)
@@ -58,7 +60,6 @@ export class UserResolver {
     @Selections('user', USER_MODEL_FIELDS) populate: string[]
   ): Promise<UserModel> {
     await this.userService.updateUser(user, profileData)
-
-    return this.userService.userRepository.findOneOrFail({ id: user.id }, { populate: populate as any })
+    return this.userRepository.findOneOrFail({ id: user.id }, { populate: populate as any })
   }
 }

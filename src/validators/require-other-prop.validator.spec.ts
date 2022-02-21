@@ -1,20 +1,16 @@
-import { IsOptional, validate, ValidationError } from 'class-validator'
 import { RequiredProps } from './require-other-prop.validator'
+import { validate, ValidationError } from 'class-validator'
 
 export class Test {
-  @IsOptional()
   required_prop?: unknown
 
-  @IsOptional()
   @RequiredProps([{ prop: 'required_prop' }])
   common_prop?: unknown
 }
 
 export class AdvancedTest {
-  @IsOptional()
   required_prop?: unknown
 
-  @IsOptional()
   @RequiredProps([{ prop: 'required_prop', value: 'i_will_match' }])
   common_prop?: unknown
 }
@@ -35,6 +31,17 @@ async function testValuesAndGetValidationErrors(args: TestHelperArgs) {
 }
 
 describe('RequireOtherProp validator', () => {
+  it('Pass when prop that would require another prop is not set, regardless of the required prop value', async () => {
+    let validationErrors = await testValuesAndGetValidationErrors({ classToTest: Test })
+    expect(validationErrors.length).toBe(0)
+
+    validationErrors = await testValuesAndGetValidationErrors({ classToTest: Test, required_prop: 1 })
+    expect(validationErrors.length).toBe(0)
+
+    validationErrors = await testValuesAndGetValidationErrors({ classToTest: Test, required_prop: 'abc' })
+    expect(validationErrors.length).toBe(0)
+  })
+
   it('Pass when required_prop is set', async () => {
     const validationErrors = await testValuesAndGetValidationErrors({ classToTest: Test, required_prop: 10, common_prop: 9 })
     expect(validationErrors.length).toBe(0)
