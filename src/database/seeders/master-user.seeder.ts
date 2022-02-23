@@ -30,7 +30,7 @@ export const defaultMasterUser = new MasterUser({
   })
 })
 
-export const createFakeMasterUser = (faker: Faker) => ({
+export const createFakeMasterUser = (faker: Faker): Partial<MasterUser> => ({
   username: faker.internet.userName(),
   password: bcrypt.hashSync(faker.internet.password(), 1),
 

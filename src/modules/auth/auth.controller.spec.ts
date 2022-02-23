@@ -1,14 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing'
-import { AuthController } from './auth.controller'
+import { AuthMailerService } from './services/auth-mailer.service'
 import { UserService } from '../user/services/user.service'
-import { ConfigService } from '@nestjs/config'
+import { Test, TestingModule } from '@nestjs/testing'
 import { AuthService } from './services/auth.service'
+import { AuthController } from './auth.controller'
+import { ConfigService } from '@nestjs/config'
 import { JwtModule } from '@nestjs/jwt'
+import { MasterUserService } from '../user/services/master-user.service'
 
 describe('AuthController', () => {
-  let controller: AuthController
+  let authMailerService: AuthMailerService
   let authService: AuthService
   let userService: UserService
+  let controller: AuthController
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,6 +23,14 @@ describe('AuthController', () => {
             login: jest.fn(),
             getUserForGoogleProfile: jest.fn()
           })
+        },
+        {
+          provide: AuthMailerService,
+          useFactory: () => ({})
+        },
+        {
+          provide: MasterUserService,
+          useFactory: () => ({})
         },
         {
           provide: ConfigService,
@@ -40,11 +51,14 @@ describe('AuthController', () => {
     controller = module.get(AuthController)
     userService = module.get(UserService)
     authService = module.get(AuthService)
+    authMailerService = module.get(AuthMailerService)
   })
 
   it('is defined', () => {
     expect(controller).toBeDefined()
     expect(authService).toBeDefined()
+    expect(userService).toBeDefined()
+    expect(authMailerService).toBeDefined()
   })
 
   it('[login] calls the service login function', () => {

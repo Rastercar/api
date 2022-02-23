@@ -84,7 +84,7 @@ describe('AuthService', () => {
     })
 
     it('Attempts to find a master user with the email when a regular user is no found', async () => {
-      const masterUserMock = new MasterUser(createFakeMasterUser(faker))
+      const masterUserMock = new MasterUser(createFakeMasterUser(faker) as any)
 
       jest.spyOn(masterUserRepository, 'findOne').mockImplementationOnce(async () => masterUserMock as any)
       jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => null)

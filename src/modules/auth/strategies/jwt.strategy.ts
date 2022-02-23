@@ -1,11 +1,11 @@
+import { MasterUserRepository } from '../../user/repositories/master-user.repository'
+import { UserRepository } from '../../user/repositories/user.repository'
 import { MasterUser } from '../../user/entities/master-user.entity'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { UserService } from '../../user/services/user.service'
 import { User } from '../../user/entities/user.entity'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { PassportStrategy } from '@nestjs/passport'
 import { ConfigService } from '@nestjs/config'
-import { MasterUserService } from '../../user/services/master-user.service'
 
 interface JwtPayload {
   /**
@@ -23,7 +23,7 @@ export interface Jwt {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService, private userService: UserService, private masterUserService: MasterUserService) {
+  constructor(configService: ConfigService, private userRepository: UserRepository, private masterUserRepository: MasterUserRepository) {
     super({
       ignoreExpiration: false,
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -44,9 +44,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException(`JWT subject does not start with 'user' or 'masteruser' followed by its id`)
     }
 
-    const user = idRefersToUser
-      ? await this.userService.userRepository.findOne({ id })
-      : await this.masterUserService.masterUserRepository.findOne({ id })
+    const user = idRefersToUser ? await this.userRepository.findOne({ id }) : await this.masterUserRepository.findOne({ id })
 
     if (!user) throw new UnauthorizedException(`No ${idRefersToUser ? 'user' : 'master user'} found with id`)
 

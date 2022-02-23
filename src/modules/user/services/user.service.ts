@@ -78,11 +78,11 @@ export class UserService {
     return getUserAndSetHimAsTheOrganizationOwner()
   }
 
-  async updateUser(userToUpdate: User, newData: UpdateUserDTO): Promise<User> {
-    const { password: newPassword, email, username, removeGoogleProfileLink, oldPassword: oldPasswordVerification } = newData
+  async updateUser(userToUpdate: User, newData: UpdateUserDTO & { emailVerified?: boolean }): Promise<User> {
+    const { password: newPassword, email, username, removeGoogleProfileLink, oldPassword: oldPasswordVerification, emailVerified } = newData
 
-    if (newData.email && newData.email !== userToUpdate.email) {
-      await this.authService.checkEmailAddressInUse(newData.email, { throwExceptionIfInUse: true })
+    if (email && email !== userToUpdate.email) {
+      await this.authService.checkEmailAddressInUse(email, { throwExceptionIfInUse: true })
     }
 
     if (newPassword && oldPasswordVerification) {
@@ -94,10 +94,13 @@ export class UserService {
       userToUpdate.password = bcrypt.hashSync(newPassword, 10)
     }
 
+    if (typeof emailVerified === 'boolean') userToUpdate.emailVerified = emailVerified
     if (removeGoogleProfileLink) userToUpdate.googleProfileId = null
     if (username) userToUpdate.username = username
+
     if (email) {
-      userToUpdate.emailVerified = false
+      // If were changing the email we assume its unverified unless told otherwise
+      userToUpdate.emailVerified = emailVerified ?? false
       userToUpdate.email = email
     }
 

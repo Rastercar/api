@@ -63,8 +63,9 @@ export class MasterUser extends BaseEntity {
 
   /**
    * Note: marked as optional for convenience, column is not nullable
+   * and will only be populated with `populate: true` or `populate: ['password']`
    */
-  @Property()
+  @Property({ lazy: true })
   password?: string
 
   /**

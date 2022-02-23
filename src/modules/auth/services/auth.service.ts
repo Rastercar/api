@@ -124,14 +124,17 @@ export class AuthService {
   }
 
   /**
+   * Finds a user or a master user by email/password
+   *
    * @throws {NotFoundException} If there is no user with the informed username
    * @throws {UnauthorizedException} If the password is invalid
    */
   async validateUserByCredentials(credentials: { email: string; password: string }): Promise<User | MasterUser> {
     const { email, password } = credentials
 
-    const mUser = await this.masterUserRepository.findOne({ email }, { populate: true })
-    const user = await this.userRepository.findOne({ email }, { populate: true })
+    // Note: if populating organization.users implement a solution to delete their passwords
+    const mUser = await this.masterUserRepository.findOne({ email }, { populate: ['accessLevel', 'password', 'masterAccessLevel'] })
+    const user = await this.userRepository.findOne({ email }, { populate: ['password', 'accessLevel', 'organization'] })
 
     // since emails are unique between the 2 tables, only one of the records should be non null
     const finalUser = user || mUser

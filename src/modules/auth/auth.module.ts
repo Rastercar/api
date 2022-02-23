@@ -16,6 +16,7 @@ import { UserModule } from '../user/user.module'
 import { AuthResolver } from './auth.resolver'
 import { Module } from '@nestjs/common'
 import { JwtModule } from '@nestjs/jwt'
+import { JwtEmailStrategy } from './strategies/jwt-email.strategy'
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { JwtModule } from '@nestjs/jwt'
     MikroOrmModule.forFeature({ entities: [User, UnregisteredUser, Organization, MasterUser] })
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthResolver, LocalStrategy, JwtStrategy, GoogleStrategy, AuthMailerService],
-  exports: [AuthService, AuthResolver, LocalStrategy, JwtStrategy, GoogleStrategy]
+  providers: [AuthService, AuthResolver, LocalStrategy, JwtStrategy, JwtEmailStrategy, GoogleStrategy, AuthMailerService],
+  exports: [AuthService, AuthResolver, LocalStrategy, JwtStrategy, JwtEmailStrategy, GoogleStrategy]
 })
 export class AuthModule {}
