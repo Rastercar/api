@@ -1,5 +1,6 @@
 import { ValidLoginRequestGuard } from './guards/valid-login-request.guard'
-import { Controller, Get, Post, Res, UseGuards } from '@nestjs/common'
+import { MasterUserService } from '../user/services/master-user.service'
+import { Body, Controller, Get, Post, Res, UnauthorizedException, UseGuards } from '@nestjs/common'
 import { AuthMailerService } from './services/auth-mailer.service'
 import { JwtEmailAuthGuard } from './guards/jwt-email-auth.guard'
 import { RequestUser } from './decorators/request-user.decorator'
@@ -15,14 +16,14 @@ import { createPwaUrl } from '../mail/mailer.utils'
 import { User } from '../user/entities/user.entity'
 import { Profile } from 'passport-google-oauth20'
 import { Response } from 'express'
-import { MasterUserService } from '../user/services/master-user.service'
+import { CheckPasswordDTO } from './dtos/check-password.dto'
 
 @Controller('auth')
 export class AuthController {
   constructor(
     readonly authService: AuthService,
-    readonly authMailerService: AuthMailerService,
     readonly userService: UserService,
+    readonly authMailerService: AuthMailerService,
     readonly masterUserService: MasterUserService
   ) {}
 
@@ -48,6 +49,19 @@ export class AuthController {
   @UseGuards(ValidLoginRequestGuard, LocalAuthGuard)
   login(@RequestUser() user: User): Promise<LoginResponse> {
     return this.authService.login(user)
+  }
+
+  /**
+   * Checks if the password on the request body is the same as the password
+   * of the user in the token, this is usefull for validating critical actions
+   */
+  @Post('check-password')
+  @UseGuards(ValidLoginRequestGuard, LocalAuthGuard)
+  async checckPassword(@RequestUser('password') userPass: string, @Body() dto: CheckPasswordDTO) {
+    const isValid = await this.authService.comparePasswords(dto.password, userPass)
+    if (!isValid) throw new UnauthorizedException('Invalid password')
+
+    return 'ok'
   }
 
   /**

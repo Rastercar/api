@@ -11,6 +11,7 @@
  */
 
 import { EntityManager, LoadStrategy, Options } from '@mikro-orm/core'
+import { SqlHighlighter } from '@mikro-orm/sql-highlighter'
 import { Logger, NotFoundException } from '@nestjs/common'
 import getDatabaseConfig from '../config/database.config'
 import { AsyncLocalStorage } from 'async_hooks'
@@ -44,6 +45,8 @@ export default {
   allowGlobalContext: false,
 
   loadStrategy: LoadStrategy.JOINED,
+
+  highlighter: process.env.NODE_ENV === 'development' ? new SqlHighlighter() : null,
 
   findOneOrFailHandler
 } as Options

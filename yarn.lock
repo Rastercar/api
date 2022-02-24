@@ -1112,6 +1112,13 @@
   dependencies:
     "@faker-js/faker" "6.0.0-alpha.5"
 
+"@mikro-orm/sql-highlighter@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@mikro-orm/sql-highlighter/-/sql-highlighter-1.0.1.tgz#f821cad6d6dbd6fd8be486e223f2d92fd6a280e6"
+  integrity sha512-iO+FwRNuqNDVlIo5zfgOu2mMGVicX/FqzP+F/A0xpJLHyqvWyXzVwntgAMimBjQaxiX9Rpmc0u3Jq6/A6V6JQA==
+  dependencies:
+    ansi-colors "^4.1.1"
+
 "@nestjs-modules/mailer@^1.6.1":
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/@nestjs-modules/mailer/-/mailer-1.6.1.tgz#741a095e7450a19ec1925b733ce9b98bba0f51fb"

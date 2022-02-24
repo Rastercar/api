@@ -73,7 +73,8 @@ export class Organization extends BaseEntity {
    * since users reference this table with the non nullable organization_id key, the organization
    * must be created first, making it impossible to informe the owner_id on creation.
    *
-   * If by some error a org contains a null owner, the owner is the user of the lowest id associated with the org.
+   * If by some error a org contains a null owner, the owner is the user of the lowest id associated
+   * with the org.
    */
   @OneToOne({ entity: () => User, nullable: true })
   owner!: User | null

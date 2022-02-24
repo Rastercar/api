@@ -94,7 +94,17 @@ export class UserService {
       userToUpdate.password = bcrypt.hashSync(newPassword, 10)
     }
 
-    if (typeof emailVerified === 'boolean') userToUpdate.emailVerified = emailVerified
+    if (typeof emailVerified === 'boolean') {
+      // If the user owns a organization with the same email address
+      // and were updating the emailVerifiedStatus we can set the org
+      // billingEmailVerified to the same value
+      if (userToUpdate.ownedOrganization?.billingEmail === userToUpdate.email) {
+        userToUpdate.ownedOrganization.billingEmailVerified = emailVerified
+      }
+
+      userToUpdate.emailVerified = emailVerified
+    }
+
     if (removeGoogleProfileLink) userToUpdate.googleProfileId = null
     if (username) userToUpdate.username = username
 

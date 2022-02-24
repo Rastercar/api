@@ -152,7 +152,7 @@ export class AuthService {
   }
 
   /**
-   * Verifies if the provided email address is in use by a user, organization or some other entity
+   * Verifies if the provided email address is in use by a user or master user
    */
   async checkEmailAddressInUse(email: string, options?: CheckEmailInUseOptions): Promise<boolean> {
     const [org, masterUser, user] = await Promise.all([

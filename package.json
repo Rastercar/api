@@ -83,6 +83,7 @@
     "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
+    "@mikro-orm/sql-highlighter": "^1.0.1",
     "commitizen": "^4.2.4",
     "commitlint": "^15.0.0",
     "cz-conventional-changelog": "3.3.0",
