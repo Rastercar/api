@@ -42,8 +42,8 @@ describe('e2e: AuthController / AuthResolver', () => {
     })
   })
 
-  it('/auth/google/login (GET) - redirects to the google oauth page', () => {
-    return request(server).get('/auth/google/login').expect(HttpStatus.FOUND)
+  it('/auth/google/authenticate (GET) - redirects to the google oauth page', () => {
+    return request(server).get('/auth/google/authenticate').expect(HttpStatus.FOUND)
   })
 
   it('/auth/google/callback (GET) - redirects to the google oauth handler', async () => {
