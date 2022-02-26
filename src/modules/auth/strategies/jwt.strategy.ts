@@ -1,17 +1,16 @@
-import { MasterUserRepository } from '../../user/repositories/master-user.repository'
-import { UserRepository } from '../../user/repositories/user.repository'
 import { MasterUser } from '../../user/entities/master-user.entity'
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { AuthTokenService } from '../services/auth-token.service'
 import { User } from '../../user/entities/user.entity'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { PassportStrategy } from '@nestjs/passport'
 import { ConfigService } from '@nestjs/config'
+import { Injectable } from '@nestjs/common'
 
-interface JwtPayload {
+export interface JwtPayload {
   /**
-   * The token subject, a string in the format: {user | masteruser}{user_or_masteruser_id}
+   * The token subject, a string in the format: {user | masteruser}{user_or_masteruser_id} or a email address
    *
-   * ex: 'masteruser-1', 'user-3'
+   * ex: masteruser-1, user-3, jhon@gmail.com
    */
   sub: string
 }
@@ -23,31 +22,18 @@ export interface Jwt {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService, private userRepository: UserRepository, private masterUserRepository: MasterUserRepository) {
+  constructor(configService: ConfigService, readonly authTokenService: AuthTokenService) {
     super({
-      ignoreExpiration: false,
+      secretOrKey: configService.get('JWT_SECRET'),
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configService.get('JWT_SECRET')
+      ignoreExpiration: false
     })
   }
 
   /**
-   * Validates the user on the JWT sub (subject) field and exposes it on req.user
+   * Validates the user on the JWT and exposes it on req.user
    */
-  async validate({ sub }: JwtPayload): Promise<User | MasterUser> {
-    const id = parseInt(sub.replace(/\D/g, ''), 10)
-
-    const idRefersToMasterUser = sub.startsWith('masteruser')
-    const idRefersToUser = sub.startsWith('user')
-
-    if (!idRefersToMasterUser && !idRefersToUser) {
-      throw new UnauthorizedException(`JWT subject does not start with 'user' or 'masteruser' followed by its id`)
-    }
-
-    const user = idRefersToUser ? await this.userRepository.findOne({ id }) : await this.masterUserRepository.findOne({ id })
-
-    if (!user) throw new UnauthorizedException(`No ${idRefersToUser ? 'user' : 'master user'} found with id`)
-
-    return user
+  async validate(tokenPayload: JwtPayload): Promise<User | MasterUser> {
+    return this.authTokenService.getUserFromTokenOrFail(tokenPayload)
   }
 }

@@ -1,16 +1,17 @@
 import { UnregisteredUserRepository } from '../../user/repositories/unregistered-user.repository'
 import { OrganizationRepository } from '../../organization/repositories/organization.repository'
+import { BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common'
 import { MasterUserRepository } from '../../user/repositories/master-user.repository'
 import { createFakeMasterUser } from '../../../database/seeders/master-user.seeder'
 import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
-import { BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common'
 import { UserRepository } from '../../user/repositories/user.repository'
 import { createFakeUser } from '../../../database/seeders/user.seeder'
 import { createEmptyMocksFor } from '../../../../test/utils/mocking'
 import { MasterUser } from '../../user/entities/master-user.entity'
 import { ERROR_CODES } from '../../../constants/error.codes'
-import { Test, TestingModule } from '@nestjs/testing'
+import { AuthTokenService } from './auth-token.service'
 import { User } from '../../user/entities/user.entity'
+import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { AuthService } from './auth.service'
 import { faker } from '@mikro-orm/seeder'
@@ -22,6 +23,7 @@ describe('AuthService', () => {
   let unregisteredUserRepository: UnregisteredUserRepository
   let organizationRepository: OrganizationRepository
   let masterUserRepository: MasterUserRepository
+  let authTokenService: AuthTokenService
   let userRepository: UserRepository
   let jwtService: JwtService
   let service: AuthService
@@ -36,6 +38,14 @@ describe('AuthService', () => {
           createRepositoryMock
         ),
         {
+          provide: AuthTokenService,
+          useFactory: () => ({
+            createTokenForUser: jest.fn(),
+            getUserFromTokenOrFail: jest.fn(),
+            validateAndDecodeToken: jest.fn()
+          })
+        },
+        {
           provide: JwtService,
           useFactory: () => ({ sign: jest.fn(), decode: jest.fn(), verifyAsync: jest.fn() })
         }
@@ -45,6 +55,7 @@ describe('AuthService', () => {
     service = module.get(AuthService)
     jwtService = module.get(JwtService)
     userRepository = module.get(UserRepository)
+    authTokenService = module.get(AuthTokenService)
     masterUserRepository = module.get(MasterUserRepository)
     organizationRepository = module.get(OrganizationRepository)
     unregisteredUserRepository = module.get(UnregisteredUserRepository)
@@ -54,6 +65,7 @@ describe('AuthService', () => {
     expect(service).toBeDefined()
     expect(jwtService).toBeDefined()
     expect(userRepository).toBeDefined()
+    expect(authTokenService).toBeDefined()
     expect(masterUserRepository).toBeDefined()
     expect(organizationRepository).toBeDefined()
   })
@@ -155,6 +167,13 @@ describe('AuthService', () => {
     const userMock = { id: 1, password: 'i_should_be_removed', lastLogin: new Date() } as any
 
     it('Changes the user lastLogin field when options.setLastLogin is not false', async () => {
+      const userMock = new User(createFakeUser(faker) as any)
+
+      jest.spyOn(authTokenService, 'createTokenForUser').mockImplementationOnce(() => ({
+        type: 'bearer',
+        value: 'asdasdasdasd'
+      }))
+
       jest.spyOn(userRepository, 'persistAndFlush')
       await service.login(userMock)
 
@@ -182,46 +201,30 @@ describe('AuthService', () => {
     const token = 'imatoken'
 
     it('Fails if token is invalid or expired', async () => {
-      jest.spyOn(jwtService, 'verifyAsync').mockRejectedValueOnce(new Error())
+      jest.spyOn(authTokenService, 'validateAndDecodeToken').mockRejectedValueOnce(new UnauthorizedException())
 
       await expect(service.loginWithToken(token)).rejects.toThrow(UnauthorizedException)
     })
 
     it('Fails if token subject is invalid', async () => {
-      jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
-      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: 1 })
-
-      await expect(service.loginWithToken(token)).rejects.toThrow(UnauthorizedException)
-    })
-
-    it('Fails if token is valid but has no subject', async () => {
-      jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
-      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: '' })
-
-      await expect(service.loginWithToken(token)).rejects.toThrow(UnauthorizedException)
-    })
-
-    it('Fails if token subject is not a existing user', async () => {
-      jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
-      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: 'user-9999' })
-      jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => null)
+      jest.spyOn(authTokenService, 'getUserFromTokenOrFail').mockRejectedValueOnce(new UnauthorizedException())
 
       await expect(service.loginWithToken(token)).rejects.toThrow(UnauthorizedException)
     })
 
     it('Returns a passwordless user and his new bearer token on success', async () => {
-      const userMock = { id: 1 }
-      const returnedTokenMock = 'imthenewtoken'
+      const usermock = new User(createFakeUser(faker) as any)
+      const newTokenMock = { type: 'bearer', value: 'asdasdasds' }
 
-      jest.spyOn(jwtService, 'sign').mockReturnValueOnce(returnedTokenMock)
-      jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
-      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: 'user-1' })
-      jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => userMock as any)
+      jest.spyOn(authTokenService, 'getUserFromTokenOrFail').mockImplementationOnce(async () => usermock)
+      jest.spyOn(authTokenService, 'createTokenForUser').mockImplementationOnce(() => newTokenMock)
 
       const { user, token: newToken } = await service.loginWithToken(token)
 
-      expect(user).toEqual(userMock)
-      expect(newToken).toEqual({ type: 'bearer', value: returnedTokenMock })
+      const { password, ...passwordLessUser } = usermock
+
+      expect(newToken).toEqual(newTokenMock)
+      expect(user).toEqual(passwordLessUser)
     })
   })
 })

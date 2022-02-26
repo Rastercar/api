@@ -1,5 +1,5 @@
-import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
+import { ConfigService } from '@nestjs/config'
 import { jwtConfig } from './jwt.config'
 
 it('Uses the ENV vars to setup the jwt options', async () => {
@@ -14,7 +14,10 @@ it('Uses the ENV vars to setup the jwt options', async () => {
   const config = await jwtConfig.useFactory(configService)
 
   expect(configService.get).toHaveBeenCalledTimes(2)
-  expect(config).toEqual({ secret: 'secret', signOptions: { expiresIn: 'ttl' } })
+  expect(config).toEqual({
+    secret: 'secret',
+    signOptions: { expiresIn: 'ttl', audience: ['https://rastercar.homolog.com:3000', 'https://rastercar.com:3000'] }
+  })
   expect(getSpy.mock.calls[0][0]).toBe('JWT_SECRET')
   expect(getSpy.mock.calls[1][0]).toBe('JWT_DEFAULT_TTL')
 })

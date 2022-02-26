@@ -1,9 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { ConfigService } from '@nestjs/config'
 import { GoogleStrategy } from './google.strategy'
+import { ConfigService } from '@nestjs/config'
 
 it('Uses the ENV vars to setup google oauth settings', async () => {
-  const module: TestingModule = await Test.createTestingModule({ imports: [ConfigService] }).compile()
+  const module: TestingModule = await Test.createTestingModule({
+    imports: [ConfigService]
+  }).compile()
 
   const configService = module.get(ConfigService)
 

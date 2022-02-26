@@ -7,11 +7,8 @@ import { AuthGuard } from '@nestjs/passport'
  */
 @Injectable()
 export class GoogleAuthGuard extends AuthGuard('google') {
-  constructor() {
-    super()
-  }
-
   handleRequest(error: any, user: any) {
+    // Return a wrapped error so nestJS returns the apropriate response
     if (error) throw new UnauthorizedException(error)
     return user
   }

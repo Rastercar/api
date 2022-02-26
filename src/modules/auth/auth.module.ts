@@ -3,6 +3,7 @@ import { Organization } from '../organization/entities/organization.entity'
 import { OrganizationModule } from '../organization/organization.module'
 import { AuthMailerService } from './services/auth-mailer.service'
 import { MasterUser } from '../user/entities/master-user.entity'
+import { AuthTokenService } from './services/auth-token.service'
 import { GoogleStrategy } from './strategies/google.strategy'
 import { LocalStrategy } from './strategies/local.strategy'
 import { JwtStrategy } from './strategies/jwt.strategy'
@@ -16,7 +17,6 @@ import { UserModule } from '../user/user.module'
 import { AuthResolver } from './auth.resolver'
 import { Module } from '@nestjs/common'
 import { JwtModule } from '@nestjs/jwt'
-import { JwtEmailStrategy } from './strategies/jwt-email.strategy'
 
 @Module({
   imports: [
@@ -27,7 +27,7 @@ import { JwtEmailStrategy } from './strategies/jwt-email.strategy'
     MikroOrmModule.forFeature({ entities: [User, UnregisteredUser, Organization, MasterUser] })
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthResolver, LocalStrategy, JwtStrategy, JwtEmailStrategy, GoogleStrategy, AuthMailerService],
-  exports: [AuthService, AuthResolver, LocalStrategy, JwtStrategy, JwtEmailStrategy, GoogleStrategy]
+  providers: [AuthService, AuthMailerService, AuthTokenService, AuthResolver, LocalStrategy, JwtStrategy, GoogleStrategy],
+  exports: [AuthService, AuthMailerService, AuthTokenService, AuthResolver, LocalStrategy, JwtStrategy, GoogleStrategy]
 })
 export class AuthModule {}

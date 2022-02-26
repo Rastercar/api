@@ -7,6 +7,7 @@ import { MasterUser } from '../../user/entities/master-user.entity'
 import { LoginResponse } from '../models/login-response.model'
 import { ERROR_CODES } from '../../../constants/error.codes'
 import { JwtService, JwtSignOptions } from '@nestjs/jwt'
+import { AuthTokenService } from './auth-token.service'
 import { User } from '../../user/entities/user.entity'
 import * as bcrypt from 'bcrypt'
 
@@ -30,15 +31,11 @@ export class AuthService {
   constructor(
     readonly jwtService: JwtService,
     readonly userRepository: UserRepository,
+    readonly authTokenService: AuthTokenService,
     readonly masterUserRepository: MasterUserRepository,
     readonly organizationRepository: OrganizationRepository,
     readonly unregisteredUserRepository: UnregisteredUserRepository
   ) {}
-
-  private createTokenForUser(user: User | MasterUser, options?: JwtSignOptions) {
-    const isMaster = user instanceof MasterUser
-    return { type: 'bearer', value: this.jwtService.sign({ sub: `${isMaster ? 'masteruser' : 'user'}-${user.id}` }, options) }
-  }
 
   private async loginForUser(user: User, options: LoginOptions) {
     const userCopy = { ...user }
@@ -48,7 +45,7 @@ export class AuthService {
       await this.userRepository.persistAndFlush(user)
     }
 
-    const token = this.createTokenForUser(user, options.tokenOptions)
+    const token = this.authTokenService.createTokenForUser(user, options.tokenOptions)
 
     if (userCopy.googleProfileId) {
       // There`s a chance the user`s old unregistered user was not deleted whenever he finished his registration, since the registration
@@ -72,7 +69,7 @@ export class AuthService {
       await this.userRepository.persistAndFlush(user)
     }
 
-    const token = this.createTokenForUser(user, options.tokenOptions)
+    const token = this.authTokenService.createTokenForUser(user, options.tokenOptions)
 
     delete userCopy.password
 
@@ -80,7 +77,7 @@ export class AuthService {
   }
 
   /**
-   * Checks if a password is valid agains a given hash
+   * Checks if a password is valid against a given hash
    */
   comparePasswords(password: string, hashedPassword: string) {
     return bcrypt.compare(password, hashedPassword)
@@ -97,27 +94,13 @@ export class AuthService {
    * Returns the given user and his new bearer JWT
    */
   async loginWithToken(token: string): Promise<LoginResponse> {
-    await this.jwtService.verifyAsync(token).catch(() => {
-      throw new UnauthorizedException('Invalid/expired token')
-    })
+    const jwtPayload = await this.authTokenService.validateAndDecodeToken(token, 'Could not create new token, original token invalid')
 
-    const decodeResult = this.jwtService.decode(token)
+    const user = await this.authTokenService.getUserFromTokenOrFail(jwtPayload)
 
-    if (typeof decodeResult !== 'object' || !decodeResult || typeof decodeResult.sub !== 'string') {
-      throw new UnauthorizedException('Invalid token')
-    }
+    const newToken = this.authTokenService.createTokenForUser(user)
 
-    const id = parseInt(decodeResult.sub.replace(/\D/g, ''), 10)
-
-    let user: MasterUser | User | null = await this.userRepository.findOne({ id })
-    if (!user) user = await this.masterUserRepository.findOne({ id })
-
-    if (!user) {
-      throw new UnauthorizedException(`User (id: ${decodeResult.sub}) in token non existent or deactivated`)
-    }
-
-    const newToken = this.createTokenForUser(user)
-
+    // Do not `delete` user.password as this would affect the ref on the identity map
     const { password, ...passwordLessUser } = user
 
     return { user: passwordLessUser, token: newToken }

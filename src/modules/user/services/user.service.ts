@@ -14,6 +14,16 @@ import { Profile } from 'passport-google-oauth20'
 import { User } from '../entities/user.entity'
 import * as bcrypt from 'bcrypt'
 
+/*
+ * Contains aditional fields that would be unreasonable
+ * to leave in the UpdateUserDTO as this DTO contains fields
+ * that require no aditional validation to be changed
+ */
+interface UpdateUserData extends UpdateUserDTO {
+  emailVerified?: boolean
+  googleProfileId?: string
+}
+
 @Injectable()
 export class UserService {
   constructor(
@@ -78,8 +88,16 @@ export class UserService {
     return getUserAndSetHimAsTheOrganizationOwner()
   }
 
-  async updateUser(userToUpdate: User, newData: UpdateUserDTO & { emailVerified?: boolean }): Promise<User> {
-    const { password: newPassword, email, username, removeGoogleProfileLink, oldPassword: oldPasswordVerification, emailVerified } = newData
+  async updateUser(userToUpdate: User, newData: UpdateUserData): Promise<User> {
+    const {
+      email,
+      username,
+      emailVerified,
+      googleProfileId,
+      password: newPassword,
+      removeGoogleProfileLink,
+      oldPassword: oldPasswordVerification
+    } = newData
 
     if (email && email !== userToUpdate.email) {
       await this.authService.checkEmailAddressInUse(email, { throwExceptionIfInUse: true })
@@ -105,6 +123,7 @@ export class UserService {
       userToUpdate.emailVerified = emailVerified
     }
 
+    if (googleProfileId) userToUpdate.googleProfileId = googleProfileId
     if (removeGoogleProfileLink) userToUpdate.googleProfileId = null
     if (username) userToUpdate.username = username
 

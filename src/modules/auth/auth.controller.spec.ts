@@ -1,11 +1,12 @@
+import { MasterUserService } from '../user/services/master-user.service'
 import { AuthMailerService } from './services/auth-mailer.service'
+import { AuthTokenService } from './services/auth-token.service'
 import { UserService } from '../user/services/user.service'
 import { Test, TestingModule } from '@nestjs/testing'
 import { AuthService } from './services/auth.service'
 import { AuthController } from './auth.controller'
 import { ConfigService } from '@nestjs/config'
 import { JwtModule } from '@nestjs/jwt'
-import { MasterUserService } from '../user/services/master-user.service'
 
 describe('AuthController', () => {
   let authMailerService: AuthMailerService
@@ -26,6 +27,10 @@ describe('AuthController', () => {
         },
         {
           provide: AuthMailerService,
+          useFactory: () => ({})
+        },
+        {
+          provide: AuthTokenService,
           useFactory: () => ({})
         },
         {
@@ -63,13 +68,13 @@ describe('AuthController', () => {
 
   it('[login] calls the service login function', () => {
     controller.login({} as any)
-    controller.redirectToGoogleLoginPage()
+    controller.authenticate()
 
     expect(authService.login).toHaveBeenCalledTimes(1)
     expect(authService.login).toHaveBeenLastCalledWith({})
   })
 
-  describe('[loginWithGoogleProfile]', () => {
+  describe('[handleGoogleOauthCallback]', () => {
     const res = { redirect: jest.fn() }
     const googleProfileMock = { id: 1, im: 'a google profile mock' }
 
@@ -78,7 +83,7 @@ describe('AuthController', () => {
     it('creates a unregistered user if there is no user for the profile', async () => {
       jest.spyOn(userService, 'createOrFindUnregisteredUserForGoogleProfile').mockImplementation(async () => unregisteredUserMock as any)
 
-      await controller.loginWithGoogleProfile(googleProfileMock as any, res as any)
+      await controller.handleGoogleOauthCallback(googleProfileMock as any, res as any, { query: '' } as any)
 
       expect(authService.getUserForGoogleProfile).toHaveBeenCalledTimes(1)
       expect(authService.getUserForGoogleProfile).toHaveBeenLastCalledWith(googleProfileMock.id)
@@ -89,7 +94,7 @@ describe('AuthController', () => {
       jest.spyOn(userService, 'createOrFindUnregisteredUserForGoogleProfile').mockImplementation(async () => unregisteredUserMock as any)
       res.redirect.mockClear()
 
-      await controller.loginWithGoogleProfile(googleProfileMock as any, res as any)
+      await controller.handleGoogleOauthCallback(googleProfileMock as any, res as any, { query: '' } as any)
 
       expect(res.redirect).toHaveBeenCalledTimes(1)
 
@@ -106,7 +111,7 @@ describe('AuthController', () => {
       jest.spyOn(authService, 'login').mockImplementation(async () => ({ token: tokenMock } as any))
       res.redirect.mockClear()
 
-      await controller.loginWithGoogleProfile(googleProfileMock as any, res as any)
+      await controller.handleGoogleOauthCallback(googleProfileMock as any, res as any, { query: '' } as any)
 
       expect(authService.login).toHaveBeenLastCalledWith(userMock, expect.anything())
       expect(res.redirect).toHaveBeenCalledTimes(1)
