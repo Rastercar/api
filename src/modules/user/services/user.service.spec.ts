@@ -176,6 +176,23 @@ describe('UserService', () => {
       expect(updatedUser.emailVerified).toBe(false)
     })
 
+    it('Changes the email verification of the org if its shared by the user and his owned org', async () => {
+      const user = createUserMock()
+
+      user.emailVerified = false
+
+      user.ownedOrganization = new Organization({
+        name: 'mockOrg',
+        billingEmail: user.email,
+        billingEmailVerified: false
+      })
+
+      const updatedUser = await service.updateUser(user, { emailVerified: true })
+
+      expect(updatedUser.emailVerified).toBe(true)
+      expect(updatedUser.ownedOrganization?.billingEmailVerified).toBe(true)
+    })
+
     it('Hashes the new password on password change', async () => {
       const user = createUserMock()
       const dto = createUpdateDTO({ oldPassword: 'oldPass', password: 'Newpassword123!' })
@@ -197,19 +214,24 @@ describe('UserService', () => {
         username: 'new_username',
         password: 'hahahah123!',
         oldPassword: 'oldPass',
+
         removeGoogleProfileLink: true
       })
 
       jest.spyOn(authService, 'comparePasswords').mockImplementationOnce(async () => true)
       jest.spyOn(bcrypt, 'hashSync').mockReturnValueOnce('newpasshashwow')
 
-      const updatedUser = await service.updateUser(user, dto)
+      let updatedUser = await service.updateUser(user, dto)
 
       expect(updatedUser.email).toBe(dto.email)
       expect(updatedUser.username).toBe(dto.username)
       expect(updatedUser.emailVerified).toBe(false)
       expect(updatedUser.googleProfileId).toBe(null)
       expect(updatedUser.password === dto.password).toBe(false)
+
+      updatedUser = await service.updateUser(user, { googleProfileId: 'newProfileId' })
+
+      expect(updatedUser.googleProfileId).toBe('newProfileId')
     })
   })
 

@@ -19,7 +19,7 @@ export class AuthTokenService {
     readonly masterUserRepository: MasterUserRepository
   ) {}
 
-  private async getUserOrMasterUserByEmail(email: string): Promise<User | MasterUser | null> {
+  async getUserOrMasterUserByEmail(email: string): Promise<User | MasterUser | null> {
     const masterUser = await this.masterUserRepository.findOne({ email })
     if (masterUser) return masterUser
 
@@ -59,7 +59,12 @@ export class AuthTokenService {
    */
   createTokenForUser(user: User | MasterUser, options?: JwtSignOptions) {
     const isMaster = user instanceof MasterUser
-    return { type: 'bearer', value: this.jwtService.sign({ sub: `${isMaster ? 'masteruser' : 'user'}-${user.id}` }, options) }
+    const sub = `${isMaster ? 'masteruser' : 'user'}-${user.id}`
+
+    return {
+      type: 'bearer',
+      value: this.jwtService.sign({ sub }, options)
+    }
   }
 
   /**

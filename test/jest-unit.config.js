@@ -22,7 +22,8 @@ module.exports = {
     'migrations',
     'node_modules',
     'src/bootstrap/setup-app.ts',
-    'src/config/validation.schema.ts'
+    'src/config/validation.schema.ts',
+    'src/modules/mail/mailer.config.ts'
   ],
   testEnvironment: 'node',
   setupFiles: ['../test/utils/setup.ts']

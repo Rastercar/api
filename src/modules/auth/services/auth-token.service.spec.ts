@@ -7,6 +7,11 @@ import { AuthTokenService } from './auth-token.service'
 import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
+import { User } from '../../user/entities/user.entity'
+import { createFakeUser } from '../../../database/seeders/user.seeder'
+import { faker } from '@mikro-orm/seeder'
+import { MasterUser } from '../../user/entities/master-user.entity'
+import { createFakeMasterUser } from '../../../database/seeders/master-user.seeder'
 
 describe('AuthTokenService', () => {
   let masterUserRepository: MasterUserRepository
@@ -22,7 +27,11 @@ describe('AuthTokenService', () => {
         ...createEmptyMocksFor([UserRepository, MasterUserRepository], createRepositoryMock),
         {
           provide: JwtService,
-          useFactory: () => ({ sign: jest.fn(), decode: jest.fn(), verifyAsync: jest.fn() })
+          useFactory: () => ({
+            sign: jest.fn(),
+            decode: jest.fn(),
+            verifyAsync: jest.fn()
+          })
         }
       ]
     }).compile()
@@ -40,50 +49,115 @@ describe('AuthTokenService', () => {
     expect(masterUserRepository).toBeDefined()
   })
 
+  it('[getUserOrMasterUserByEmail] finds the user or master user by the email address', async () => {
+    const email = 'some.mail@gmail.com'
+
+    jest.spyOn(masterUserRepository, 'findOne').mockResolvedValueOnce(new MasterUser(createFakeMasterUser(faker) as any))
+
+    await service.getUserOrMasterUserByEmail(email)
+
+    expect(masterUserRepository.findOne).toHaveBeenLastCalledWith({ email })
+    expect(userRepository.findOne).not.toHaveBeenCalled()
+
+    jest.spyOn(masterUserRepository, 'findOne').mockResolvedValueOnce(null)
+    jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(null)
+
+    const user = await service.getUserOrMasterUserByEmail(email)
+
+    expect(masterUserRepository.findOne).toHaveBeenLastCalledWith({ email })
+    expect(userRepository.findOne).toHaveBeenLastCalledWith({ email })
+
+    expect(user).toBe(null)
+  })
+
+  describe('[validateAndDecodeToken]', () => {
+    it('Throws UnauthorizedException on failure', async () => {
+      jest.spyOn(jwtService, 'verifyAsync').mockRejectedValue(new Error())
+
+      const error = await service.validateAndDecodeToken('').catch(e => e)
+
+      expect(error).toBeInstanceOf(UnauthorizedException)
+    })
+
+    it('Returns the decode token', async () => {
+      jest.spyOn(jwtService, 'verifyAsync').mockResolvedValue({})
+      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ something: 123 })
+
+      const decode = await service.validateAndDecodeToken('')
+      expect(decode).toEqual({ something: 123 })
+    })
+  })
+
+  it('[createTokenForUser]', () => {
+    const masterUserMock = new MasterUser(createFakeMasterUser(faker) as any)
+    masterUserMock.id = 666
+
+    const userMock = new User(createFakeUser(faker) as any)
+    userMock.id = 555
+
+    const tokenMock = 'asduihaisudaoijsdoisj'
+
+    jest.spyOn(jwtService, 'sign').mockImplementation(() => tokenMock)
+
+    let token = service.createTokenForUser(userMock)
+
+    expect(token).toStrictEqual({ type: 'bearer', value: tokenMock })
+    expect(jwtService.sign).toHaveBeenLastCalledWith({ sub: 'user-555' }, undefined)
+
+    token = service.createTokenForUser(masterUserMock)
+    expect(token).toStrictEqual({ type: 'bearer', value: tokenMock })
+    expect(jwtService.sign).toHaveBeenLastCalledWith({ sub: 'masteruser-666' }, undefined)
+  })
+
   describe('[getUserFromTokenOrFail]', () => {
-    const token = 'imatoken'
-
-    it('Fails if token is invalid or expired', async () => {
-      jest.spyOn(jwtService, 'verifyAsync').mockRejectedValueOnce(new Error())
-
-      await expect(service.getUserFromTokenOrFail(token)).rejects.toThrow(UnauthorizedException)
-    })
-
     it('Fails if token subject is invalid', async () => {
-      jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
-      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: 1 })
-
-      await expect(service.getUserFromTokenOrFail(token)).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromTokenOrFail({ sub: [] })).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromTokenOrFail({ sub: 1 })).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromTokenOrFail(null)).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromTokenOrFail([])).rejects.toThrow(UnauthorizedException)
     })
 
-    it('Fails if token is valid but has no subject', async () => {
-      jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
-      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: '' })
+    describe('On email subject', () => {
+      it('Finds the user by the email', async () => {
+        const email = 'mock.email@gmail.com'
+        const token = { sub: email }
 
-      await expect(service.getUserFromTokenOrFail(token)).rejects.toThrow(UnauthorizedException)
+        jest.spyOn(service, 'getUserOrMasterUserByEmail').mockImplementationOnce(async () => ({ id: 1 } as any))
+
+        const user = await service.getUserFromTokenOrFail(token)
+
+        expect(service.getUserOrMasterUserByEmail).toHaveBeenLastCalledWith(email)
+        expect(user).toBeDefined()
+      })
+
+      it('Throws UnauthorizedException if cant find the user by email', async () => {
+        jest.spyOn(service, 'getUserOrMasterUserByEmail').mockImplementationOnce(async () => null)
+        await expect(service.getUserFromTokenOrFail({ sub: 'mock.email@gmail.com' })).rejects.toThrow(UnauthorizedException)
+      })
     })
 
-    it('Fails if token subject is not a existing user', async () => {
-      jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
-      jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: 'user-9999' })
+    it('Fails if token subject is not a valid identifier', async () => {
+      await expect(service.getUserFromTokenOrFail({ sub: 'notauserid-1' })).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromTokenOrFail({ sub: '1' })).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromTokenOrFail({ sub: 1 })).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromTokenOrFail({ sub: [] })).rejects.toThrow(UnauthorizedException)
+    })
+
+    it('Finds the user type specified by the identifier', async () => {
+      jest.spyOn(userRepository, 'findOne').mockImplementationOnce(() => ({ id: 1 } as any))
+      await service.getUserFromTokenOrFail({ sub: 'user-1' })
+
+      expect(userRepository.findOne).toHaveBeenLastCalledWith({ id: 1 })
+
+      jest.spyOn(masterUserRepository, 'findOne').mockImplementationOnce(() => ({ id: 1 } as any))
+      await service.getUserFromTokenOrFail({ sub: 'masteruser-1' })
+
+      expect(masterUserRepository.findOne).toHaveBeenLastCalledWith({ id: 1 })
+    })
+
+    it('Throws UnauthorizedException if cant find the user id', async () => {
       jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => null)
-
-      await expect(service.getUserFromTokenOrFail(token)).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromTokenOrFail({ sub: 'user-1' })).rejects.toThrow(UnauthorizedException)
     })
-
-    // it('Returns a passwordless user and his new bearer token on success', async () => {
-    //   const userMock = { id: 1 }
-    //   const returnedTokenMock = 'imthenewtoken'
-
-    //   jest.spyOn(jwtService, 'sign').mockReturnValueOnce(returnedTokenMock)
-    //   jest.spyOn(jwtService, 'verifyAsync').mockImplementationOnce(async () => ({}))
-    //   jest.spyOn(jwtService, 'decode').mockReturnValueOnce({ sub: 'user-1' })
-    //   jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => userMock as any)
-
-    //   const { user } = await service.getUserFromTokenOrFail(token)
-
-    //   expect(user).toEqual(userMock)
-    //   expect(newToken).toEqual({ type: 'bearer', value: returnedTokenMock })
-    // })
   })
 })

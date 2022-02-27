@@ -1,10 +1,10 @@
 import { createPwaUrl, parseHandlebarsTemplate } from '../../mail/mailer.utils'
 import { Injectable, UnprocessableEntityException } from '@nestjs/common'
 import { SentMessageInfo } from 'nodemailer/lib/smtp-connection'
-import { MailerService } from '@nestjs-modules/mailer'
-import { resolve } from 'path'
-import { JwtService } from '@nestjs/jwt'
 import { PWA_ROUTE } from '../../../constants/pwa-routes'
+import { MailerService } from '@nestjs-modules/mailer'
+import { JwtService } from '@nestjs/jwt'
+import { resolve } from 'path'
 
 @Injectable()
 export class AuthMailerService {
@@ -13,7 +13,7 @@ export class AuthMailerService {
   /**
    * @throws {UnprocessableEntityException} On mail sending failure
    */
-  async sendEmailAdressConfirmationEmail(emailAdress: string): Promise<SentMessageInfo> {
+  async sendEmailAdressConfirmationEmail(emailAdress: string) {
     const templatePath = resolve(__dirname, '..', 'templates', 'confirm-email.hbs')
     const token = this.jwtService.sign({ sub: emailAdress }, { expiresIn: '10m' })
 

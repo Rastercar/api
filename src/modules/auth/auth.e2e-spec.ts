@@ -294,8 +294,6 @@ describe('e2e: AuthController / AuthResolver', () => {
         .post('/graphql')
         .send({ query: mutation, variables: { user: registerUserDto } })
 
-      console.log(res.body)
-
       expect(res.body?.data).toEqual({
         register: {
           token: {
