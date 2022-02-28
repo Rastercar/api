@@ -76,6 +76,14 @@ export class User extends BaseEntity {
   password?: string
 
   /**
+   * A JWT for reseting passwords, this token is stored here as a security measure to
+   * avoid any valid token to be able to permit a password redefinition, also the token
+   * should be short lived and replaced anytime a new one is generated
+   */
+  @Property({ type: String, nullable: true })
+  resetPasswordToken?: string | null
+
+  /**
    * ID of the google profile associated with the user,
    * that can be user to login using OAUTH
    */

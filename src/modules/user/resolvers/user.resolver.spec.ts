@@ -73,7 +73,7 @@ describe('UserResolver', () => {
 
       const masterUserMock = new MasterUser(createFakeMasterUser(faker) as any)
       masterUserMock.id = 2
-      const findMasterUserSpy = jest.spyOn(masterUserRepository, 'findOneOrFail').mockImplementation(async () => masterUserMock)
+      const findMasterUserSpy = jest.spyOn(masterUserRepository, 'findOneOrFail').mockImplementation(async () => masterUserMock as any)
 
       // organization should get filtered as it belongs only to regular users
       result = await resolver.me(masterUserMock, ['organization', 'masterAccessLevel'])

@@ -69,6 +69,14 @@ export class MasterUser extends BaseEntity {
   password?: string
 
   /**
+   * A JWT for reseting passwords, this token is stored here as a security measure to
+   * avoid any valid token to be able to permit a password redefinition, also the token
+   * should be short lived and replaced anytime a new one is generated
+   */
+  @Property({ type: String, nullable: true })
+  resetPasswordToken?: string | null
+
+  /**
    * Relationship: N...1
    *
    * The access level of the user in regards to edit other users, if null this

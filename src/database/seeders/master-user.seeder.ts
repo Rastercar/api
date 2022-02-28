@@ -37,6 +37,8 @@ export const createFakeMasterUser = (faker: Faker): Partial<MasterUser> => ({
   email: faker.internet.email(),
   emailVerified: Math.random() < 0.5,
 
+  resetPasswordToken: null,
+
   accessLevel: new AccessLevel({
     name: `access level ${faker.lorem.words(1)}`,
     description: faker.lorem.words(7),

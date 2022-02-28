@@ -53,8 +53,8 @@ describe('AuthMailerService', () => {
         text: expect.anything(),
         html: expect.anything()
       })
-      expect(typeof sent.confirmation.link).toBe('string')
-      expect(sent.confirmation.token).toBe(token)
+      expect(typeof sent.meta.link).toBe('string')
+      expect(sent.meta.token).toBe(token)
       expect(sent.emailSendingStatus).toBe(sentStatusMock)
     })
 

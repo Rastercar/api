@@ -74,7 +74,7 @@ export class AuthTokenService {
    *
    * @throws {UnauthorizedException} if the token is invalid or a user is not found
    */
-  async getUserFromTokenOrFail<T>(jwtPayload: T extends Promise<unknown> ? never : T): Promise<User | MasterUser> {
+  async getUserFromDecodedTokenOrFail<T>(jwtPayload: T extends Promise<unknown> ? never : T): Promise<User | MasterUser> {
     if (!isJwtPayloadWithStringSubject(jwtPayload)) {
       throw new UnauthorizedException('Invalid token content, subject not found')
     }

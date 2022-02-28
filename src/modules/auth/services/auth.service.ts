@@ -3,6 +3,7 @@ import { UnregisteredUserRepository } from '../../user/repositories/unregistered
 import { OrganizationRepository } from '../../organization/repositories/organization.repository'
 import { MasterUserRepository } from '../../user/repositories/master-user.repository'
 import { UserRepository } from '../../user/repositories/user.repository'
+import { ChangePasswordDTO } from '../../user/dtos/change-password.dto'
 import { MasterUser } from '../../user/entities/master-user.entity'
 import { LoginResponse } from '../models/login-response.model'
 import { ERROR_CODES } from '../../../constants/error.codes'
@@ -77,13 +78,6 @@ export class AuthService {
   }
 
   /**
-   * Checks if a password is valid against a given hash
-   */
-  comparePasswords(password: string, hashedPassword: string) {
-    return bcrypt.compare(password, hashedPassword)
-  }
-
-  /**
    * Returns the given user and his new bearer JWT
    */
   async login(user: User | MasterUser, options: LoginOptions = { setLastLogin: true }): Promise<LoginResponse> {
@@ -96,7 +90,7 @@ export class AuthService {
   async loginWithToken(token: string): Promise<LoginResponse> {
     const jwtPayload = await this.authTokenService.validateAndDecodeToken(token, 'Could not create new token, original token invalid')
 
-    const user = await this.authTokenService.getUserFromTokenOrFail(jwtPayload)
+    const user = await this.authTokenService.getUserFromDecodedTokenOrFail(jwtPayload)
 
     const newToken = this.authTokenService.createTokenForUser(user)
 
@@ -104,6 +98,13 @@ export class AuthService {
     const { password, ...passwordLessUser } = user
 
     return { user: passwordLessUser, token: newToken }
+  }
+
+  /**
+   * Checks if a password is valid against a given hash
+   */
+  comparePasswords(password: string, hashedPassword: string) {
+    return bcrypt.compare(password, hashedPassword)
   }
 
   /**
@@ -132,6 +133,49 @@ export class AuthService {
 
   getUserForGoogleProfile(googleProfileId: string): Promise<User | null> {
     return this.userRepository.findOne({ googleProfileId })
+  }
+
+  /**
+   * Generates and stores in the db a new one time reset password token for the user
+   *
+   * @returns the generated token
+   */
+  async setUserResetPasswordToken(user: User | MasterUser): Promise<string> {
+    const token = this.authTokenService.createTokenForUser(user, { expiresIn: '5m', audience: 'rastercar-api/auth/reset-password' })
+    user.resetPasswordToken = token.value
+
+    user instanceof User ? await this.userRepository.persistAndFlush(user) : await this.masterUserRepository.persistAndFlush(user)
+
+    return token.value
+  }
+
+  /**
+   * Sets a new password for the user in the resetPassword token, checking
+   * if the token is valid and is contained by the user
+   *
+   * @returns the user with the new password
+   */
+  async resetUserPasswordByToken({ password, passwordResetToken }: ChangePasswordDTO) {
+    const decodedToken = await this.authTokenService.validateAndDecodeToken(passwordResetToken)
+    const userToUpdate = await this.authTokenService.getUserFromDecodedTokenOrFail(decodedToken)
+
+    if (userToUpdate.resetPasswordToken !== passwordResetToken) {
+      const errorMsg =
+        userToUpdate.resetPasswordToken === null
+          ? 'Token was valid but user does not have a resetPasswordToken set'
+          : 'Token was valid but a new password reset token was generated'
+
+      throw new UnauthorizedException(errorMsg)
+    }
+
+    userToUpdate.password = bcrypt.hashSync(password, 10)
+    userToUpdate.resetPasswordToken = null
+
+    userToUpdate instanceof User
+      ? await this.userRepository.persistAndFlush(userToUpdate)
+      : await this.masterUserRepository.persistAndFlush(userToUpdate)
+
+    return userToUpdate
   }
 
   /**

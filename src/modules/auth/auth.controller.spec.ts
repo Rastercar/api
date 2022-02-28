@@ -44,7 +44,7 @@ describe('AuthController', () => {
           provide: AuthTokenService,
           useFactory: () => ({
             validateAndDecodeToken: jest.fn(),
-            getUserFromTokenOrFail: jest.fn()
+            getUserFromDecodedTokenOrFail: jest.fn()
           })
         },
         {
@@ -131,7 +131,7 @@ describe('AuthController', () => {
       const createUserMock = () => new User(createFakeUser(faker) as any)
 
       it('Fails if trying to link a master user account', async () => {
-        jest.spyOn(authTokenService, 'getUserFromTokenOrFail').mockImplementation(async () => masterUserMock)
+        jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementation(async () => masterUserMock)
 
         await expect(
           controller.handleGoogleOauthCallback(googleProfileMock as any, res as any, statefullRequestMock as any)
@@ -142,7 +142,7 @@ describe('AuthController', () => {
         const userMock = createUserMock()
         userMock.googleProfileId = 'someexistingprofile'
 
-        jest.spyOn(authTokenService, 'getUserFromTokenOrFail').mockImplementation(async () => userMock)
+        jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementation(async () => userMock)
 
         await expect(
           controller.handleGoogleOauthCallback(googleProfileMock as any, res as any, statefullRequestMock as any)
@@ -155,7 +155,7 @@ describe('AuthController', () => {
 
         const otherUserMock = createUserMock()
 
-        jest.spyOn(authTokenService, 'getUserFromTokenOrFail').mockImplementation(async () => otherUserMock)
+        jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementation(async () => otherUserMock)
         jest.spyOn(authService, 'getUserForGoogleProfile').mockImplementation(async () => existingUserWithGoogleProfile)
 
         await expect(
@@ -167,7 +167,7 @@ describe('AuthController', () => {
         const userMock = createUserMock()
         userMock.googleProfileId = null
 
-        jest.spyOn(authTokenService, 'getUserFromTokenOrFail').mockImplementation(async () => userMock)
+        jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementation(async () => userMock)
 
         await controller.handleGoogleOauthCallback(googleProfileMock as any, res as any, statefullRequestMock as any)
 

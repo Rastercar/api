@@ -41,7 +41,7 @@ describe('AuthService', () => {
           provide: AuthTokenService,
           useFactory: () => ({
             createTokenForUser: jest.fn(),
-            getUserFromTokenOrFail: jest.fn(),
+            getUserFromDecodedTokenOrFail: jest.fn(),
             validateAndDecodeToken: jest.fn()
           })
         },
@@ -207,7 +207,7 @@ describe('AuthService', () => {
     })
 
     it('Fails if token subject is invalid', async () => {
-      jest.spyOn(authTokenService, 'getUserFromTokenOrFail').mockRejectedValueOnce(new UnauthorizedException())
+      jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockRejectedValueOnce(new UnauthorizedException())
 
       await expect(service.loginWithToken(token)).rejects.toThrow(UnauthorizedException)
     })
@@ -216,7 +216,7 @@ describe('AuthService', () => {
       const usermock = new User(createFakeUser(faker) as any)
       const newTokenMock = { type: 'bearer', value: 'asdasdasds' }
 
-      jest.spyOn(authTokenService, 'getUserFromTokenOrFail').mockImplementationOnce(async () => usermock)
+      jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementationOnce(async () => usermock)
       jest.spyOn(authTokenService, 'createTokenForUser').mockImplementationOnce(() => newTokenMock)
 
       const { user, token: newToken } = await service.loginWithToken(token)

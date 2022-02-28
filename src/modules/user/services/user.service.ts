@@ -103,11 +103,11 @@ export class UserService {
       await this.authService.checkEmailAddressInUse(email, { throwExceptionIfInUse: true })
     }
 
-    if (newPassword && oldPasswordVerification) {
-      const { password: currentPassword } = userToUpdate
-
-      const oldPasswordIsValid = await this.authService.comparePasswords(oldPasswordVerification, currentPassword as string)
-      if (!oldPasswordIsValid) throw new BadRequestException(ERROR_CODES.OLD_PASSWORD_INVALID)
+    if (newPassword) {
+      if (oldPasswordVerification) {
+        const oldPasswordIsValid = await this.authService.comparePasswords(oldPasswordVerification, userToUpdate.password as string)
+        if (!oldPasswordIsValid) throw new BadRequestException(ERROR_CODES.OLD_PASSWORD_INVALID)
+      }
 
       userToUpdate.password = bcrypt.hashSync(newPassword, 10)
     }

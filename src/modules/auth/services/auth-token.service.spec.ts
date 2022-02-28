@@ -52,7 +52,7 @@ describe('AuthTokenService', () => {
   it('[getUserOrMasterUserByEmail] finds the user or master user by the email address', async () => {
     const email = 'some.mail@gmail.com'
 
-    jest.spyOn(masterUserRepository, 'findOne').mockResolvedValueOnce(new MasterUser(createFakeMasterUser(faker) as any))
+    jest.spyOn(masterUserRepository, 'findOne').mockResolvedValueOnce(new MasterUser(createFakeMasterUser(faker) as any) as any)
 
     await service.getUserOrMasterUserByEmail(email)
 
@@ -109,12 +109,12 @@ describe('AuthTokenService', () => {
     expect(jwtService.sign).toHaveBeenLastCalledWith({ sub: 'masteruser-666' }, undefined)
   })
 
-  describe('[getUserFromTokenOrFail]', () => {
+  describe('[getUserFromDecodedTokenOrFail]', () => {
     it('Fails if token subject is invalid', async () => {
-      await expect(service.getUserFromTokenOrFail({ sub: [] })).rejects.toThrow(UnauthorizedException)
-      await expect(service.getUserFromTokenOrFail({ sub: 1 })).rejects.toThrow(UnauthorizedException)
-      await expect(service.getUserFromTokenOrFail(null)).rejects.toThrow(UnauthorizedException)
-      await expect(service.getUserFromTokenOrFail([])).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromDecodedTokenOrFail({ sub: [] })).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromDecodedTokenOrFail({ sub: 1 })).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromDecodedTokenOrFail(null)).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromDecodedTokenOrFail([])).rejects.toThrow(UnauthorizedException)
     })
 
     describe('On email subject', () => {
@@ -124,7 +124,7 @@ describe('AuthTokenService', () => {
 
         jest.spyOn(service, 'getUserOrMasterUserByEmail').mockImplementationOnce(async () => ({ id: 1 } as any))
 
-        const user = await service.getUserFromTokenOrFail(token)
+        const user = await service.getUserFromDecodedTokenOrFail(token)
 
         expect(service.getUserOrMasterUserByEmail).toHaveBeenLastCalledWith(email)
         expect(user).toBeDefined()
@@ -132,32 +132,32 @@ describe('AuthTokenService', () => {
 
       it('Throws UnauthorizedException if cant find the user by email', async () => {
         jest.spyOn(service, 'getUserOrMasterUserByEmail').mockImplementationOnce(async () => null)
-        await expect(service.getUserFromTokenOrFail({ sub: 'mock.email@gmail.com' })).rejects.toThrow(UnauthorizedException)
+        await expect(service.getUserFromDecodedTokenOrFail({ sub: 'mock.email@gmail.com' })).rejects.toThrow(UnauthorizedException)
       })
     })
 
     it('Fails if token subject is not a valid identifier', async () => {
-      await expect(service.getUserFromTokenOrFail({ sub: 'notauserid-1' })).rejects.toThrow(UnauthorizedException)
-      await expect(service.getUserFromTokenOrFail({ sub: '1' })).rejects.toThrow(UnauthorizedException)
-      await expect(service.getUserFromTokenOrFail({ sub: 1 })).rejects.toThrow(UnauthorizedException)
-      await expect(service.getUserFromTokenOrFail({ sub: [] })).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromDecodedTokenOrFail({ sub: 'notauserid-1' })).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromDecodedTokenOrFail({ sub: '1' })).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromDecodedTokenOrFail({ sub: 1 })).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromDecodedTokenOrFail({ sub: [] })).rejects.toThrow(UnauthorizedException)
     })
 
     it('Finds the user type specified by the identifier', async () => {
       jest.spyOn(userRepository, 'findOne').mockImplementationOnce(() => ({ id: 1 } as any))
-      await service.getUserFromTokenOrFail({ sub: 'user-1' })
+      await service.getUserFromDecodedTokenOrFail({ sub: 'user-1' })
 
       expect(userRepository.findOne).toHaveBeenLastCalledWith({ id: 1 })
 
       jest.spyOn(masterUserRepository, 'findOne').mockImplementationOnce(() => ({ id: 1 } as any))
-      await service.getUserFromTokenOrFail({ sub: 'masteruser-1' })
+      await service.getUserFromDecodedTokenOrFail({ sub: 'masteruser-1' })
 
       expect(masterUserRepository.findOne).toHaveBeenLastCalledWith({ id: 1 })
     })
 
     it('Throws UnauthorizedException if cant find the user id', async () => {
       jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => null)
-      await expect(service.getUserFromTokenOrFail({ sub: 'user-1' })).rejects.toThrow(UnauthorizedException)
+      await expect(service.getUserFromDecodedTokenOrFail({ sub: 'user-1' })).rejects.toThrow(UnauthorizedException)
     })
   })
 })

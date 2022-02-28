@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common'
 import { ValidLoginRequestGuard } from './guards/valid-login-request.guard'
 import { MasterUserService } from '../user/services/master-user.service'
+import { ChangePasswordDTO } from '../user/dtos/change-password.dto'
 import { AuthMailerService } from './services/auth-mailer.service'
 import { RequestUser } from './decorators/request-user.decorator'
 import { MasterUser } from '../user/entities/master-user.entity'
 import { AuthTokenService } from './services/auth-token.service'
+import { ForgotPasswordDTO } from './dtos/forgot-password.dto'
 import { LoginResponse } from './models/login-response.model'
 import { GoogleAuthGuard } from './guards/google-auth.guard'
 import { CheckPasswordDTO } from './dtos/check-password.dto'
@@ -36,6 +38,28 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   sendEmailConfirmation(@RequestUser() user: User | MasterUser) {
     return this.authMailerService.sendEmailAdressConfirmationEmail(user.email)
+  }
+
+  /**
+   * Sends a `forgot pasword email` to the email address if it belongs to a user
+   */
+  @Post('send-forgot-password-email')
+  async sendForgotPasswordEmail(@Body() forgotPasswordDto: ForgotPasswordDTO) {
+    const user = await this.authTokenService.getUserOrMasterUserByEmail(forgotPasswordDto.email)
+    if (!user) throw new NotFoundException(`User not found with email ${forgotPasswordDto.email}`)
+
+    const token = await this.authService.setUserResetPasswordToken(user)
+
+    return this.authMailerService.sendForgotPasswordEmail(user, token)
+  }
+
+  /**
+   * Changes the password of the user in the dto token
+   */
+  @Post('reset-password')
+  async changeRequestUserPassword(@Body() dto: ChangePasswordDTO): Promise<string> {
+    await this.authService.resetUserPasswordByToken(dto)
+    return 'Password change successfull'
   }
 
   /**
@@ -83,8 +107,8 @@ export class AuthController {
   /**
    * Handles the redirection after a successfull authentification with google oauth2.
    *
-   * If the request contains a `forExistingUser` token then we try to link/associate
-   * the user in the token with the google profile
+   * If the request `query.state` contains a user token then we try to link/associate
+   * the user in it with the google profile
    *
    * Else if the google profile already is associated with a user then we just redirect
    * the request to the PWA auto-login page
@@ -101,7 +125,7 @@ export class AuthController {
 
     if (shouldLinkExistingUserAccount) {
       const tokenPayload = await this.authTokenService.validateAndDecodeToken(query.state as string)
-      const userToLinkAccountFor = await this.authTokenService.getUserFromTokenOrFail(tokenPayload)
+      const userToLinkAccountFor = await this.authTokenService.getUserFromDecodedTokenOrFail(tokenPayload)
 
       if (userToLinkAccountFor instanceof MasterUser) throw new UnauthorizedException('Master users cannot use oauth services')
 

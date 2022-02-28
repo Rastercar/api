@@ -1,7 +1,9 @@
 import { createPwaUrl, parseHandlebarsTemplate } from '../../mail/mailer.utils'
 import { Injectable, UnprocessableEntityException } from '@nestjs/common'
+import { MasterUser } from '../../user/entities/master-user.entity'
 import { SentMessageInfo } from 'nodemailer/lib/smtp-connection'
 import { PWA_ROUTE } from '../../../constants/pwa-routes'
+import { User } from '../../user/entities/user.entity'
 import { MailerService } from '@nestjs-modules/mailer'
 import { JwtService } from '@nestjs/jwt'
 import { resolve } from 'path'
@@ -10,9 +12,6 @@ import { resolve } from 'path'
 export class AuthMailerService {
   constructor(readonly mailerService: MailerService, readonly jwtService: JwtService) {}
 
-  /**
-   * @throws {UnprocessableEntityException} On mail sending failure
-   */
   async sendEmailAdressConfirmationEmail(emailAdress: string) {
     const templatePath = resolve(__dirname, '..', 'templates', 'confirm-email.hbs')
     const token = this.jwtService.sign({ sub: emailAdress }, { expiresIn: '10m' })
@@ -30,9 +29,25 @@ export class AuthMailerService {
       throw new UnprocessableEntityException(`Failed to send email to: ${emailAdress}`)
     }
 
-    return {
-      emailSendingStatus: sent,
-      confirmation: { link: confirmationLink, token }
+    return { emailSendingStatus: sent, meta: { link: confirmationLink, token } }
+  }
+
+  async sendForgotPasswordEmail(user: User | MasterUser, token: string) {
+    const templatePath = resolve(__dirname, '..', 'templates', 'reset-password.hbs')
+
+    const resetPasswordLink = createPwaUrl(PWA_ROUTE.FORGOT_PASSWORD, { token })
+
+    const sent: SentMessageInfo = await this.mailerService.sendMail({
+      to: user.email,
+      subject: 'Recuperação de senha',
+      text: 'Link e instruções para recuperação de senha na rastercar',
+      html: parseHandlebarsTemplate(templatePath, { resetPasswordLink, helpUrl: PWA_ROUTE.HELP, username: user.username })
+    })
+
+    if (sent.rejected.length > 0) {
+      throw new UnprocessableEntityException(`Failed to send email to: ${user.email}`)
     }
+
+    return { emailSendingStatus: sent, meta: { link: resetPasswordLink, token } }
   }
 }
