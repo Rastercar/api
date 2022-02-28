@@ -1,8 +1,8 @@
-import { Entity, EntityRepositoryType, ManyToOne, Property, Unique } from '@mikro-orm/core'
+import { Entity, EntityRepositoryType, ManyToOne } from '@mikro-orm/core'
 import { MasterAccessLevel } from '../../auth/entities/master-access-level.entity'
 import { MasterUserRepository } from '../repositories/master-user.repository'
 import { AccessLevel } from '../../auth/entities/access-level.entity'
-import { BaseEntity } from '../../../database/base/base-entity'
+import { BaseUser } from './base-user-entity'
 
 interface MasterUserArgs {
   username: string
@@ -16,7 +16,7 @@ interface MasterUserArgs {
 }
 
 @Entity({ customRepository: () => MasterUserRepository })
-export class MasterUser extends BaseEntity {
+export class MasterUser extends BaseUser {
   /**
    * A user representing a manager, the user has access to the tracked
    * dashboard and might have access to edit and manage the tracker clients
@@ -35,46 +35,6 @@ export class MasterUser extends BaseEntity {
   }
 
   [EntityRepositoryType]?: MasterUserRepository
-
-  /**
-   * The display name
-   */
-  @Property()
-  username!: string
-
-  /**
-   * Timestamp of the user last login
-   */
-  @Property({ nullable: true })
-  lastLogin!: Date
-
-  /**
-   * Unique email address
-   */
-  @Property()
-  @Unique()
-  email!: string
-
-  /**
-   * If the user has verified his email address
-   */
-  @Property({ default: false })
-  emailVerified!: boolean
-
-  /**
-   * Note: marked as optional for convenience, column is not nullable
-   * and will only be populated with `populate: true` or `populate: ['password']`
-   */
-  @Property({ lazy: true })
-  password?: string
-
-  /**
-   * A JWT for reseting passwords, this token is stored here as a security measure to
-   * avoid any valid token to be able to permit a password redefinition, also the token
-   * should be short lived and replaced anytime a new one is generated
-   */
-  @Property({ type: String, nullable: true })
-  resetPasswordToken?: string | null
 
   /**
    * Relationship: N...1
