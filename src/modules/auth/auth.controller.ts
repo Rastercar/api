@@ -119,7 +119,7 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   async handleGoogleOauthCallback(@RequestUser() googleProfile: Profile, @Res() res: Response, @Req() { query }: Request) {
-    const userWithGoogleProfile = await this.authService.getUserForGoogleProfile(googleProfile.id)
+    const userWithGoogleProfile = await this.userService.getUserForGoogleProfile(googleProfile.id)
 
     const shouldLinkExistingUserAccount = typeof query.state === 'string' && query.state
 
@@ -151,8 +151,12 @@ export class AuthController {
       return res.redirect(url)
     }
 
-    const { token } = await this.authService.login(userWithGoogleProfile, { tokenOptions: { expiresIn: '60s' } })
-    const url = createPwaUrl(PWA_ROUTE.AUTO_LOGIN, { token: token.value })
+    const token = await this.authService.setUserAutoLoginToken(userWithGoogleProfile)
+
+    // NOTE: Sice the autologin token is really short lived, only usable once,
+    // can only be used to in the autoLoginEndpoint and the authentification
+    // just was successfull there is no risk exposing it in the query
+    const url = createPwaUrl(PWA_ROUTE.AUTO_LOGIN, { token })
 
     return res.redirect(url)
   }

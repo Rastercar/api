@@ -50,6 +50,20 @@ export class User extends BaseUser {
   googleProfileId!: string | null
 
   /**
+   * A JWT for loggin in, this jwt is very short lived and does
+   * not grant access to protected resources, it also can only be
+   * used to authentificate through the auto login gql endpoint
+   *
+   * **NOTE:** The reason this exists even though we have a refresh
+   * token is that the refresh token is long lived and the autoLogin
+   * token is exposed after a successfull oauth flow, so it needs to
+   * be really short lived and unset after the using the autologin
+   * endpoint
+   */
+  @Property({ type: String, nullable: true, lazy: true, columnType: 'text' })
+  autoLoginToken?: string | null
+
+  /**
    * Relationship: N...1
    *
    * The organization which the user belongs to and might own.

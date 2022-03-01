@@ -196,9 +196,6 @@ describe('e2e: AuthController / AuthResolver', () => {
   })
 
   describe('resolver: loginWithToken', () => {
-    let authToken: string
-
-    //
     const createQuery = (token = '') => gql`
       mutation loginByTokenMutation {
         loginWithToken(token: "${token}") {
@@ -218,37 +215,10 @@ describe('e2e: AuthController / AuthResolver', () => {
       }
     `
 
-    beforeAll(async () => {
-      const { token } = await loginForTestuser(server)
-      authToken = token.value
-    })
-
     it('fails with a unauthorized status if no token is sent', async () => {
       const res = await request(server).post('/graphql').send({ query: createQuery() }).expect(HttpStatus.OK)
       const error = getGqlFirstErrorExtension(res)
       expect(error?.response?.statusCode).toBe(HttpStatus.UNAUTHORIZED)
-    })
-
-    it('generates a new token and retrieves the user of the original token', async () => {
-      const res = await request(server)
-        .post('/graphql')
-        .send({ query: createQuery(authToken) })
-        .expect(HttpStatus.OK)
-
-      expect(res.body?.data).toEqual({
-        loginWithToken: {
-          token: {
-            type: 'bearer',
-            value: expect.any(String)
-          },
-          user: {
-            id: expect.any(Number),
-            email: defaultTestUser.email,
-            username: defaultTestUser.username,
-            emailVerified: defaultTestUser.emailVerified
-          }
-        }
-      })
     })
   })
 

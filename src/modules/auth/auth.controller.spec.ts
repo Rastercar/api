@@ -31,7 +31,7 @@ describe('AuthController', () => {
           useFactory: () => ({
             login: jest.fn(),
             comparePasswords: jest.fn(),
-            getUserForGoogleProfile: jest.fn(),
+            setUserAutoLoginToken: jest.fn(),
             resetUserPasswordByToken: jest.fn(),
             setUserResetPasswordToken: jest.fn()
           })
@@ -61,6 +61,7 @@ describe('AuthController', () => {
           provide: UserService,
           useFactory: () => ({
             updateUser: jest.fn(),
+            getUserForGoogleProfile: jest.fn(),
             createOrFindUnregisteredUserForGoogleProfile: jest.fn()
           })
         },
@@ -197,7 +198,7 @@ describe('AuthController', () => {
         const otherUserMock = createUserMock()
 
         jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementation(async () => otherUserMock)
-        jest.spyOn(authService, 'getUserForGoogleProfile').mockImplementation(async () => existingUserWithGoogleProfile)
+        jest.spyOn(userService, 'getUserForGoogleProfile').mockImplementation(async () => existingUserWithGoogleProfile)
 
         await expect(
           controller.handleGoogleOauthCallback(googleProfileMock as any, res as any, statefullRequestMock as any)
@@ -221,8 +222,8 @@ describe('AuthController', () => {
 
       await controller.handleGoogleOauthCallback(googleProfileMock as any, res as any, { query: '' } as any)
 
-      expect(authService.getUserForGoogleProfile).toHaveBeenCalledTimes(1)
-      expect(authService.getUserForGoogleProfile).toHaveBeenLastCalledWith(googleProfileMock.id)
+      expect(userService.getUserForGoogleProfile).toHaveBeenCalledTimes(1)
+      expect(userService.getUserForGoogleProfile).toHaveBeenLastCalledWith(googleProfileMock.id)
       expect(userService.createOrFindUnregisteredUserForGoogleProfile).toHaveBeenLastCalledWith(googleProfileMock)
     })
 
@@ -240,22 +241,22 @@ describe('AuthController', () => {
     })
 
     it('logins and redirects to the auto login page if a user exists for the profile', async () => {
+      const tokenMock = 'im_a_jwt'
       const userMock = { id: 1 }
-      const tokenMock = { value: 'im_a_jwt' }
 
-      jest.spyOn(authService, 'getUserForGoogleProfile').mockImplementation(async () => userMock as any)
-      jest.spyOn(authService, 'login').mockImplementation(async () => ({ token: tokenMock } as any))
+      jest.spyOn(userService, 'getUserForGoogleProfile').mockImplementation(async () => userMock as any)
+      jest.spyOn(authService, 'setUserAutoLoginToken').mockImplementation(async () => tokenMock)
       res.redirect.mockClear()
 
       await controller.handleGoogleOauthCallback(googleProfileMock as any, res as any, { query: '' } as any)
 
-      expect(authService.login).toHaveBeenLastCalledWith(userMock, expect.anything())
+      expect(authService.setUserAutoLoginToken).toHaveBeenLastCalledWith(userMock)
       expect(res.redirect).toHaveBeenCalledTimes(1)
 
       const lastResRedirectArg = res.redirect.mock.calls[0][0]
       expect(typeof lastResRedirectArg === 'string').toBe(true)
 
-      expect((lastResRedirectArg as string).endsWith(`/auto-login?token=${tokenMock.value}`)).toBe(true)
+      expect((lastResRedirectArg as string).endsWith(`/auto-login?token=${tokenMock}`)).toBe(true)
     })
   })
 })

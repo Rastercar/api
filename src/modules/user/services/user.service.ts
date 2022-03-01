@@ -139,6 +139,10 @@ export class UserService {
     return userToUpdate
   }
 
+  getUserForGoogleProfile(googleProfileId: string): Promise<User | null> {
+    return this.userRepository.findOne({ googleProfileId })
+  }
+
   async createOrFindUnregisteredUserForGoogleProfile(googleProfile: Profile): Promise<UnregisteredUser> {
     const existingUrUser = await this.unregisteredUserRepository.findOne({ oauthProfileId: googleProfile.id, oauthProvider: 'google' })
 

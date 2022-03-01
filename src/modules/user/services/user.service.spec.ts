@@ -65,6 +65,13 @@ describe('UserService', () => {
     expect(unregisteredUserRepository).toBeDefined()
   })
 
+  it('[getUserForGoogleProfile] ensures google is the oauth provider when searching', async () => {
+    const googleProfileId = 'profileidmock'
+    await service.getUserForGoogleProfile(googleProfileId)
+
+    expect(repository.findOne).toHaveBeenLastCalledWith({ googleProfileId })
+  })
+
   describe('[registerUser]', () => {
     let registerDto!: RegisterUserDTO
 

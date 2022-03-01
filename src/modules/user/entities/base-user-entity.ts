@@ -37,7 +37,7 @@ export abstract class BaseUser extends BaseEntity {
   password?: string
 
   /*
-   * TODO: FINISH ME IF NECESSARY
+   * TODO: FINISH ME IF NECESSARY (lembrar de setar novo refresh token em login por creds ou oauth)
    *
    * A JWT for creating new accessTokens for the user, a refresh token has a long
    * expiration time and should be set only after a user successfully logs in.
@@ -75,6 +75,6 @@ export abstract class BaseUser extends BaseEntity {
    * avoid any valid token to be able to permit a password redefinition, also the token
    * should be short lived and replaced anytime a new one is generated
    */
-  @Property({ type: String, nullable: true, lazy: true })
+  @Property({ type: String, nullable: true, lazy: true, columnType: 'text' })
   resetPasswordToken?: string | null
 }

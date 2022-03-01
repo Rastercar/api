@@ -42,6 +42,7 @@ describe('AuthService', () => {
           useFactory: () => ({
             createTokenForUser: jest.fn(),
             validateAndDecodeToken: jest.fn(),
+            getUserIdFromAutoLoginToken: jest.fn(),
             getUserFromDecodedTokenOrFail: jest.fn()
           })
         },
@@ -68,13 +69,6 @@ describe('AuthService', () => {
     expect(authTokenService).toBeDefined()
     expect(masterUserRepository).toBeDefined()
     expect(organizationRepository).toBeDefined()
-  })
-
-  it('[getUserForGoogleProfile] ensures google is the oauth provider when searching', async () => {
-    const googleProfileId = 'profileidmock'
-    await service.getUserForGoogleProfile(googleProfileId)
-
-    expect(userRepository.findOne).toHaveBeenLastCalledWith({ googleProfileId })
   })
 
   it('[setUserResetPasswordToken] creates a short lived token and stores it int the user passwordResetTokenColumn', async () => {
@@ -241,13 +235,11 @@ describe('AuthService', () => {
 
     it('Fails if token is invalid or expired', async () => {
       jest.spyOn(authTokenService, 'validateAndDecodeToken').mockRejectedValueOnce(new UnauthorizedException())
-
       await expect(service.loginWithToken(token)).rejects.toThrow(UnauthorizedException)
     })
 
-    it('Fails if token subject is invalid', async () => {
-      jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockRejectedValueOnce(new UnauthorizedException())
-
+    it('Fails if no user is found with the token', async () => {
+      jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => null)
       await expect(service.loginWithToken(token)).rejects.toThrow(UnauthorizedException)
     })
 
@@ -255,15 +247,13 @@ describe('AuthService', () => {
       const usermock = new User(createFakeUser(faker) as any)
       const newTokenMock = { type: 'bearer', value: 'asdasdasds' }
 
-      jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementationOnce(async () => usermock)
+      jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => usermock as any)
       jest.spyOn(authTokenService, 'createTokenForUser').mockImplementationOnce(() => newTokenMock)
 
       const { user, token: newToken } = await service.loginWithToken(token)
 
-      const { password, ...passwordLessUser } = usermock
-
       expect(newToken).toEqual(newTokenMock)
-      expect(user).toEqual(passwordLessUser)
+      expect(user.password).toBeUndefined()
     })
   })
 })

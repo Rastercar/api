@@ -57,6 +57,29 @@ export class AuthTokenService {
    * Creates a token with a payload that specifies the user type and id, which is
    * expected in the JwtAuthGuard
    */
+  createAutoLoginTokenForUser(userId: number) {
+    const sub = `autologin-user-${userId}`
+    return { type: 'autologin', value: this.jwtService.sign({ sub, audience: 'rastercar-api/auth/reset-password', expiresIn: '2m' }) }
+  }
+
+  async getUserIdFromAutoLoginToken(autoLoginToken: string) {
+    const payload = await this.validateAndDecodeToken(autoLoginToken, 'Invalid autologin token')
+
+    if (!isJwtPayloadWithStringSubject(payload)) {
+      throw new UnauthorizedException('Invalid autologin token content, subject not found')
+    }
+
+    if (!payload.sub.startsWith('autologin-user-')) {
+      throw new UnauthorizedException(`autologin JWT subject does not start with 'autologin-user-' followed by its id`)
+    }
+
+    return parseInt(payload.sub.replace(/\D/g, ''), 10)
+  }
+
+  /**
+   * Creates a token with a payload that specifies the user type and id, which is
+   * expected in the JwtAuthGuard
+   */
   createTokenForUser(user: User | MasterUser, options?: JwtSignOptions) {
     const isMaster = user instanceof MasterUser
     const sub = `${isMaster ? 'masteruser' : 'user'}-${user.id}`
@@ -81,9 +104,7 @@ export class AuthTokenService {
 
     const { sub: emailOrIdentifier } = jwtPayload
 
-    const subjectIsEmailAdrress = isEmail(emailOrIdentifier)
-
-    if (subjectIsEmailAdrress) {
+    if (isEmail(emailOrIdentifier)) {
       const user = await this.getUserOrMasterUserByEmail(emailOrIdentifier)
       if (!user) throw new UnauthorizedException(`No user or master user found with email ${emailOrIdentifier}`)
 

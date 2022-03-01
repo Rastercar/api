@@ -39,8 +39,6 @@ export class AuthService {
   ) {}
 
   private async loginForUser(user: User, options: LoginOptions) {
-    const userCopy = { ...user }
-
     if (options?.setLastLogin) {
       user.lastLogin = new Date()
       await this.userRepository.persistAndFlush(user)
@@ -48,23 +46,17 @@ export class AuthService {
 
     const token = this.authTokenService.createTokenForUser(user, options.tokenOptions)
 
-    if (userCopy.googleProfileId) {
-      // There`s a chance the user`s old unregistered user was not deleted whenever he finished his registration, since the registration
-      // endpoint cannot certify the user being registered had a unregisteredUser record, so we ensure the deletion whenever logging in
-      await this.unregisteredUserRepository.nativeDelete({
-        oauthProvider: 'google',
-        oauthProfileId: userCopy.googleProfileId
-      })
+    if (user.googleProfileId) {
+      // There`s a chance the user`s old unregistered user was not deleted whenever he finished his
+      // registration, since the registration endpoint cannot certify the user being registered had
+      // a unregisteredUser record, so we ensure the deletion whenever logging in
+      await this.unregisteredUserRepository.nativeDelete({ oauthProvider: 'google', oauthProfileId: user.googleProfileId })
     }
 
-    delete userCopy.password
-
-    return { user: userCopy, token }
+    return { user, token }
   }
 
   private async loginForMasterUser(user: MasterUser, options: LoginOptions) {
-    const userCopy = { ...user }
-
     if (options?.setLastLogin) {
       user.lastLogin = new Date()
       await this.userRepository.persistAndFlush(user)
@@ -72,34 +64,46 @@ export class AuthService {
 
     const token = this.authTokenService.createTokenForUser(user, options.tokenOptions)
 
-    delete userCopy.password
-
-    return { user: userCopy, token }
+    return { user, token }
   }
 
   /**
    * Returns the given user and his new bearer JWT
    */
-  async login(user: User | MasterUser, options: LoginOptions = { setLastLogin: true }): Promise<LoginResponse> {
-    console.log(user)
+  async login(userToLogin: User | MasterUser, options: LoginOptions = { setLastLogin: true }): Promise<LoginResponse> {
+    const { user, token } =
+      userToLogin instanceof User ? await this.loginForUser(userToLogin, options) : await this.loginForMasterUser(userToLogin, options)
 
-    return user instanceof User ? this.loginForUser(user, options) : this.loginForMasterUser(user, options)
+    delete user.password
+    delete user.resetPasswordToken
+
+    return { user, token }
   }
 
   /**
    * Returns the given user and his new bearer JWT
+   *
+   * @param autoLoginToken A token refering to the user loginWithTokenColumn
    */
-  async loginWithToken(token: string): Promise<LoginResponse> {
-    const jwtPayload = await this.authTokenService.validateAndDecodeToken(token, 'Could not create new token, original token invalid')
+  async loginWithToken(autoLoginToken: string) {
+    const userId = await this.authTokenService.getUserIdFromAutoLoginToken(autoLoginToken)
 
-    const user = await this.authTokenService.getUserFromDecodedTokenOrFail(jwtPayload)
+    // The id conditional might seem redundant but with it we can be sure the token was meant for him
+    const user = await this.userRepository.findOne({ autoLoginToken, id: userId }, { populate: ['autoLoginToken'] })
 
-    const newToken = this.authTokenService.createTokenForUser(user)
+    if (!user) throw new UnauthorizedException('No user found with this autologin token')
 
-    // Do not `delete` user.password as this would affect the ref on the identity map
-    const { password, ...passwordLessUser } = user
+    // prettier-ignore
+    const newToken = this.authTokenService.createTokenForUser(user);
 
-    return { user: passwordLessUser, token: newToken }
+    // prettier-ignore
+    (user as User).autoLoginToken = null
+    await this.userRepository.persistAndFlush(user)
+
+    delete user.password
+    delete user.resetPasswordToken
+
+    return { user, token: newToken }
   }
 
   /**
@@ -133,8 +137,18 @@ export class AuthService {
     return finalUser
   }
 
-  getUserForGoogleProfile(googleProfileId: string): Promise<User | null> {
-    return this.userRepository.findOne({ googleProfileId })
+  /**
+   * Generates and stores in the db a new one time auto login token for the user
+   *
+   * @returns the generated token
+   */
+  async setUserAutoLoginToken(user: User): Promise<string> {
+    const token = this.authTokenService.createAutoLoginTokenForUser(user.id)
+    user.autoLoginToken = token.value
+
+    await this.userRepository.persistAndFlush(user)
+
+    return token.value
   }
 
   /**
