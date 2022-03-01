@@ -12,7 +12,7 @@ import { AuthController } from './auth.controller'
 import { ConfigService } from '@nestjs/config'
 import { faker } from '@mikro-orm/seeder'
 import { JwtModule } from '@nestjs/jwt'
-import { UnauthorizedException } from '@nestjs/common'
+import { NotFoundException, UnauthorizedException } from '@nestjs/common'
 
 describe('AuthController', () => {
   let authMailerService: AuthMailerService
@@ -31,12 +31,15 @@ describe('AuthController', () => {
           useFactory: () => ({
             login: jest.fn(),
             comparePasswords: jest.fn(),
-            getUserForGoogleProfile: jest.fn()
+            getUserForGoogleProfile: jest.fn(),
+            resetUserPasswordByToken: jest.fn(),
+            setUserResetPasswordToken: jest.fn()
           })
         },
         {
           provide: AuthMailerService,
           useFactory: () => ({
+            sendForgotPasswordEmail: jest.fn(),
             sendEmailAdressConfirmationEmail: jest.fn()
           })
         },
@@ -44,6 +47,7 @@ describe('AuthController', () => {
           provide: AuthTokenService,
           useFactory: () => ({
             validateAndDecodeToken: jest.fn(),
+            getUserOrMasterUserByEmail: jest.fn(),
             getUserFromDecodedTokenOrFail: jest.fn()
           })
         },
@@ -91,6 +95,43 @@ describe('AuthController', () => {
 
     expect(authService.login).toHaveBeenCalledTimes(1)
     expect(authService.login).toHaveBeenLastCalledWith({})
+  })
+
+  it('[reset-password] resets the user password', async () => {
+    const dto = { password: 'newPass123!', passwordResetToken: 'iodasjdoiashjidas' }
+
+    await controller.changeRequestUserPassword(dto)
+
+    expect(authService.resetUserPasswordByToken).toHaveBeenCalledTimes(1)
+    expect(authService.resetUserPasswordByToken).toHaveBeenLastCalledWith(dto)
+  })
+
+  describe('[sendForgotPasswordEmail]', () => {
+    it('Fails with not FoundException if theres no user with the email', () => {
+      return expect(controller.sendForgotPasswordEmail({ email: 'nonmail' })).rejects.toBeInstanceOf(NotFoundException)
+    })
+
+    it('Sets a new passwordResetToken for the user', async () => {
+      const userMock = { id: 1 }
+      jest.spyOn(authTokenService, 'getUserOrMasterUserByEmail').mockImplementationOnce(async () => userMock as any)
+
+      await controller.sendForgotPasswordEmail({ email: 'potato@gmail.com' })
+
+      expect(authService.setUserResetPasswordToken).toHaveBeenLastCalledWith(userMock)
+    })
+
+    it('Sends the email with the new token to the user email address', async () => {
+      const userMock = { id: 1, email: 'user.mail@gmail.com' }
+      const tokenMock = 'asjdoiajsoidasid'
+
+      jest.spyOn(authTokenService, 'getUserOrMasterUserByEmail').mockImplementationOnce(async () => userMock as any)
+      jest.spyOn(authService, 'setUserResetPasswordToken').mockImplementationOnce(async () => tokenMock)
+
+      await controller.sendForgotPasswordEmail({ email: userMock.email })
+
+      expect(authService.setUserResetPasswordToken).toHaveBeenLastCalledWith(userMock)
+      expect(authMailerService.sendForgotPasswordEmail).toHaveBeenLastCalledWith(userMock, tokenMock)
+    })
   })
 
   it('[checkPassword] compares the current user password and the provided password with the authservice', () => {

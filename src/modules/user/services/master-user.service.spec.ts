@@ -32,7 +32,7 @@ describe('MasterUserService', () => {
 
     it('updates the master user', async () => {
       masterUserMock.emailVerified = true
-      const updatedUser = await service.updateMasterUser(masterUserMock, { emailVerified: false })
+      const updatedUser = await service.updateMasterUser(masterUserMock, { emailVerified: false, password: 'newpass123!' })
 
       expect(updatedUser.emailVerified).toBe(false)
     })

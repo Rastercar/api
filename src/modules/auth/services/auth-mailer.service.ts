@@ -35,7 +35,7 @@ export class AuthMailerService {
   async sendForgotPasswordEmail(user: User | MasterUser, token: string) {
     const templatePath = resolve(__dirname, '..', 'templates', 'reset-password.hbs')
 
-    const resetPasswordLink = createPwaUrl(PWA_ROUTE.FORGOT_PASSWORD, { token })
+    const resetPasswordLink = createPwaUrl(PWA_ROUTE.REDEFINE_PASSWORD, { token })
 
     const sent: SentMessageInfo = await this.mailerService.sendMail({
       to: user.email,

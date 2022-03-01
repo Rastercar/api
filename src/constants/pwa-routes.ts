@@ -3,7 +3,7 @@
  */
 export enum PWA_ROUTE {
   SUCESSO_OAUTH = 'oauth/link-sucesso',
-  FORGOT_PASSWORD = 'esqueceu-senha',
+  REDEFINE_PASSWORD = 'redefinir-senha',
   CONFIRM_EMAIL = 'confirmar-email',
   AUTO_LOGIN = 'auto-login',
   REGISTER = 'register',

@@ -1,8 +1,11 @@
+import { createFakeUser } from '../../../database/seeders/user.seeder'
+import { UnprocessableEntityException } from '@nestjs/common'
 import { AuthMailerService } from './auth-mailer.service'
 import { MailerService } from '@nestjs-modules/mailer'
+import { User } from '../../user/entities/user.entity'
 import { Test, TestingModule } from '@nestjs/testing'
 import { JwtService } from '@nestjs/jwt'
-import { UnprocessableEntityException } from '@nestjs/common'
+import { faker } from '@mikro-orm/seeder'
 
 describe('AuthMailerService', () => {
   let authMailerService: AuthMailerService
@@ -36,9 +39,8 @@ describe('AuthMailerService', () => {
   })
 
   describe('[sendEmailAdressConfirmationEmail]', () => {
-    const token = 'imatoken'
-
     it('sends the email to the provided adress with the correct template', async () => {
+      const token = 'imatoken'
       const sentStatusMock = { accepted: [], rejected: [] }
       const email = 'some.email@gmail.com'
 
@@ -49,9 +51,9 @@ describe('AuthMailerService', () => {
 
       expect(mailerService.sendMail).toHaveBeenLastCalledWith({
         to: email,
-        subject: expect.anything(),
         text: expect.anything(),
-        html: expect.anything()
+        html: expect.anything(),
+        subject: expect.anything()
       })
       expect(typeof sent.meta.link).toBe('string')
       expect(sent.meta.token).toBe(token)
@@ -65,6 +67,35 @@ describe('AuthMailerService', () => {
       jest.spyOn(mailerService, 'sendMail').mockImplementationOnce(async () => sentStatusMock)
 
       await expect(authMailerService.sendEmailAdressConfirmationEmail(email)).rejects.toThrow(UnprocessableEntityException)
+    })
+  })
+
+  describe('[sendForgotPasswordEmail]', () => {
+    const userMock = new User(createFakeUser(faker) as any)
+
+    it('sends the email to the provided adress with the correct template', async () => {
+      const sentStatusMock = { accepted: [], rejected: [] }
+      const token = 'abcdefghijklmnopqrstuvwxyz'
+
+      jest.spyOn(mailerService, 'sendMail').mockImplementationOnce(async () => sentStatusMock)
+
+      const sent = await authMailerService.sendForgotPasswordEmail(userMock, token)
+
+      expect(mailerService.sendMail).toHaveBeenLastCalledWith({
+        to: userMock.email,
+        text: expect.anything(),
+        html: expect.anything(),
+        subject: expect.anything()
+      })
+
+      expect(sent.meta.token).toBe(token)
+      expect(typeof sent.meta.link).toBe('string')
+      expect(sent.emailSendingStatus).toBe(sentStatusMock)
+    })
+
+    it('Fails with UnprocessableEntityException on email sending failure', async () => {
+      jest.spyOn(mailerService, 'sendMail').mockImplementationOnce(async () => ({ accepted: [], rejected: ['some.email@gmail.com'] }))
+      await expect(authMailerService.sendForgotPasswordEmail(userMock, 'someToken')).rejects.toThrow(UnprocessableEntityException)
     })
   })
 })

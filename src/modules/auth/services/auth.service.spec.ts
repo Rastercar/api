@@ -41,8 +41,8 @@ describe('AuthService', () => {
           provide: AuthTokenService,
           useFactory: () => ({
             createTokenForUser: jest.fn(),
-            getUserFromDecodedTokenOrFail: jest.fn(),
-            validateAndDecodeToken: jest.fn()
+            validateAndDecodeToken: jest.fn(),
+            getUserFromDecodedTokenOrFail: jest.fn()
           })
         },
         {
@@ -75,6 +75,45 @@ describe('AuthService', () => {
     await service.getUserForGoogleProfile(googleProfileId)
 
     expect(userRepository.findOne).toHaveBeenLastCalledWith({ googleProfileId })
+  })
+
+  it('[setUserResetPasswordToken] creates a short lived token and stores it int the user passwordResetTokenColumn', async () => {
+    const userMock = new User(createFakeUser(faker) as any)
+
+    jest.spyOn(authTokenService, 'createTokenForUser').mockImplementationOnce(() => ({ value: 'dasoidjasoidjoas', type: 'bearer' }))
+
+    await service.setUserResetPasswordToken(userMock)
+
+    expect(authTokenService.createTokenForUser).toHaveBeenLastCalledWith(userMock, { expiresIn: '5m', audience: expect.any(String) })
+  })
+
+  describe('[resetUserPasswordByToken]', () => {
+    it('Fails with UnauthorizedException if the user represented by the token resetPasswordToken is not the same', async () => {
+      const userMock = new User(createFakeUser(faker) as any)
+      userMock.resetPasswordToken = 'othertoken'
+
+      jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementationOnce(() => userMock as any)
+
+      const dto = { password: '', passwordResetToken: '' }
+
+      expect(service.resetUserPasswordByToken(dto)).rejects.toBeInstanceOf(UnauthorizedException)
+    })
+
+    it('Sets a new password for the user and nullifies his resetPasswordToken', async () => {
+      const userMock = new User(createFakeUser(faker) as any)
+      userMock.resetPasswordToken = 'validtoken'
+      userMock.password = 'somepass'
+
+      jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementationOnce(() => userMock as any)
+      jest.spyOn(bcrypt, 'hashSync').mockReturnValue('newhashedpass')
+
+      const dto = { password: '', passwordResetToken: 'validtoken' }
+
+      const updatedUser = await service.resetUserPasswordByToken(dto)
+
+      expect(updatedUser.resetPasswordToken).toBeNull()
+      expect(updatedUser.password).toBe('newhashedpass')
+    })
   })
 
   describe('[validateUserByCredentials]', () => {

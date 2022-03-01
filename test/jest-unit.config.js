@@ -23,6 +23,7 @@ module.exports = {
     'node_modules',
     'src/bootstrap/setup-app.ts',
     'src/config/validation.schema.ts',
+    'src/database/mikro-orm.config.ts',
     'src/modules/mail/mailer.config.ts'
   ],
   testEnvironment: 'node',
