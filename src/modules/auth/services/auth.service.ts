@@ -81,6 +81,8 @@ export class AuthService {
    * Returns the given user and his new bearer JWT
    */
   async login(user: User | MasterUser, options: LoginOptions = { setLastLogin: true }): Promise<LoginResponse> {
+    console.log(user)
+
     return user instanceof User ? this.loginForUser(user, options) : this.loginForMasterUser(user, options)
   }
 
@@ -158,6 +160,10 @@ export class AuthService {
   async resetUserPasswordByToken({ password, passwordResetToken }: ChangePasswordDTO) {
     const decodedToken = await this.authTokenService.validateAndDecodeToken(passwordResetToken)
     const userToUpdate = await this.authTokenService.getUserFromDecodedTokenOrFail(decodedToken)
+
+    userToUpdate instanceof User
+      ? await this.userRepository.populate(userToUpdate, ['resetPasswordToken'])
+      : await this.masterUserRepository.populate(userToUpdate, ['resetPasswordToken'])
 
     if (userToUpdate.resetPasswordToken !== passwordResetToken) {
       const errorMsg =
