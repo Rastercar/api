@@ -36,40 +36,6 @@ export abstract class BaseUser extends BaseEntity {
   @Property({ lazy: true })
   password?: string
 
-  /*
-   * TODO: FINISH ME IF NECESSARY (lembrar de setar novo refresh token em login por creds ou oauth)
-   *
-   * A JWT for creating new accessTokens for the user, a refresh token has a long
-   * expiration time and should be set only after a user successfully logs in.
-   *
-   * Why?: Since we do not want stolen tokens to allow access to protected resources
-   * forever access tokens have a expiration time
-   *
-   *  +--------+                                           +---------------+
-   *  |        |--(A)------- Authorization Grant --------->|               |
-   *  |        |                                           |               |
-   *  |        |<-(B)----------- Access Token -------------|               |
-   *  |        |               & Refresh Token             |               |
-   *  |        |                                           |               |
-   *  |        |                            +----------+   |               |
-   *  |        |--(C)---- Access Token ---->|          |   |               |
-   *  |        |                            |          |   |               |
-   *  |        |<-(D)- Protected Resource --| Resource |   | Authorization |
-   *  | Client |                            |  Server  |   |     Server    |
-   *  |        |--(E)---- Access Token ---->|          |   |               |
-   *  |        |                            |          |   |               |
-   *  |        |<-(F)- Invalid Token Error -|          |   |               |
-   *  |        |                            +----------+   |               |
-   *  |        |                                           |               |
-   *  |        |--(G)----------- Refresh Token ----------->|               |
-   *  |        |                                           |               |
-   *  |        |<-(H)----------- Access Token -------------|               |
-   *  +--------+                                           +---------------+
-   *
-   */
-  // @Property({ type: String, nullable: true })
-  // refreshToken?: string | null
-
   /**
    * A JWT for reseting passwords, this token is stored here as a security measure to
    * avoid any valid token to be able to permit a password redefinition, also the token
