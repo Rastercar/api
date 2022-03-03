@@ -1,8 +1,8 @@
 import { Organization } from '../../modules/organization/entities/organization.entity'
 import { AccessLevel } from '../../modules/auth/entities/access-level.entity'
 import { User } from '../../modules/user/entities/user.entity'
+import { Factory, faker, Faker } from '@mikro-orm/seeder'
 import type { EntityManager } from '@mikro-orm/core'
-import { Factory, Faker } from '@mikro-orm/seeder'
 import { Seeder } from '@mikro-orm/seeder'
 import * as bcrypt from 'bcrypt'
 
@@ -35,20 +35,20 @@ export const defaultTestUser: Partial<User> = {
   })
 }
 
-export const createFakeUser = (faker: Faker): Partial<User> => {
-  const orgname = faker.company.companyName()
+export const createFakeUser = (fkr = faker): Partial<User> => {
+  const orgname = fkr.company.companyName()
 
   const org = new Organization({
     name: orgname,
-    billingEmail: faker.internet.email(),
+    billingEmail: fkr.internet.email(),
     billingEmailVerified: true
   })
 
   return {
-    username: faker.internet.userName(),
-    password: bcrypt.hashSync(faker.internet.password(), 1),
+    username: fkr.internet.userName(),
+    password: bcrypt.hashSync(fkr.internet.password(), 1),
 
-    email: faker.internet.email(),
+    email: fkr.internet.email(),
     emailVerified: Math.random() < 0.5,
 
     googleProfileId: null,
@@ -58,7 +58,7 @@ export const createFakeUser = (faker: Faker): Partial<User> => {
     accessLevel: new AccessLevel({
       isFixed: true,
       name: `${orgname} access level`,
-      description: faker.lorem.words(7),
+      description: fkr.lorem.words(7),
       organization: org,
       permissions: []
     })

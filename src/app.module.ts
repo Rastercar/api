@@ -1,5 +1,6 @@
 import { OrganizationModule } from './modules/organization/organization.module'
 import { HealthcheckModule } from './modules/healthcheck/healthcheck.module'
+import { VehicleModule } from './modules/vehicle/vehicles.module'
 import { MailerModule } from './modules/mail/mailer.module'
 import { GraphqlModule } from './graphql/graphql.module'
 import { AuthModule } from './modules/auth/auth.module'
@@ -8,6 +9,6 @@ import { OrmModule } from './database/orm.module'
 import { Module } from '@nestjs/common'
 
 @Module({
-  imports: [OrmModule, MailerModule, ConfigModule, AuthModule, GraphqlModule, OrganizationModule, HealthcheckModule]
+  imports: [OrmModule, MailerModule, ConfigModule, AuthModule, GraphqlModule, OrganizationModule, HealthcheckModule, VehicleModule]
 })
 export class AppModule {}

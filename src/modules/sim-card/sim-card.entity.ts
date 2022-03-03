@@ -1,13 +1,15 @@
-import { Entity, EntityRepositoryType, Property, Unique } from '@mikro-orm/core'
+import { Entity, EntityRepositoryType, ManyToOne, Property, Unique } from '@mikro-orm/core'
 import { BaseEntity } from '../../database/base/base-entity'
+import { Organization } from '../organization/entities/organization.entity'
+import { Tracker } from '../tracker/tracker.entity'
 import { SimCardRepository } from './sim-card.repository'
 
 interface SimCardArgs {
-  phoneNumber: string
   ssn: string
-  apnAddress: string
   apnUser: string
+  apnAddress: string
   apnPassword: string
+  phoneNumber: string
 }
 
 @Entity({ customRepository: () => SimCardRepository })
@@ -18,12 +20,11 @@ export class SimCard extends BaseEntity {
   constructor(data: SimCardArgs) {
     super()
 
-    this.phoneNumber = data.phoneNumber
     this.ssn = data.ssn
-
-    this.apnPassword = data.apnPassword
-    this.apnAddress = data.apnAddress
     this.apnUser = data.apnUser
+    this.apnAddress = data.apnAddress
+    this.apnPassword = data.apnPassword
+    this.phoneNumber = data.phoneNumber
   }
 
   [EntityRepositoryType]?: SimCardRepository
@@ -50,4 +51,20 @@ export class SimCard extends BaseEntity {
 
   @Property()
   apnPassword!: string
+
+  /**
+   * Relationship: N - 1
+   *
+   * The organization that owns this sim card
+   */
+  @ManyToOne(() => Organization)
+  organization!: Organization
+
+  /**
+   * Relationship: N - 0...1
+   *
+   * The tracker the simCard is suposedly installed on
+   */
+  @ManyToOne(() => Tracker, { nullable: true })
+  tracker!: Tracker | null
 }

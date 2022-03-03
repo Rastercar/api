@@ -1,8 +1,8 @@
 import { MasterAccessLevel } from '../../modules/auth/entities/master-access-level.entity'
 import { AccessLevel } from '../../modules/auth/entities/access-level.entity'
 import { MasterUser } from '../../modules/user/entities/master-user.entity'
+import { Factory, faker, Faker } from '@mikro-orm/seeder'
 import type { EntityManager } from '@mikro-orm/core'
-import { Factory, Faker } from '@mikro-orm/seeder'
 import { Seeder } from '@mikro-orm/seeder'
 import * as bcrypt from 'bcrypt'
 
@@ -30,24 +30,24 @@ export const defaultMasterUser = new MasterUser({
   })
 })
 
-export const createFakeMasterUser = (faker: Faker): Partial<MasterUser> => ({
-  username: faker.internet.userName(),
-  password: bcrypt.hashSync(faker.internet.password(), 1),
+export const createFakeMasterUser = (fkr = faker): Partial<MasterUser> => ({
+  username: fkr.internet.userName(),
+  password: bcrypt.hashSync(fkr.internet.password(), 1),
 
-  email: faker.internet.email(),
+  email: fkr.internet.email(),
   emailVerified: Math.random() < 0.5,
 
   resetPasswordToken: null,
 
   accessLevel: new AccessLevel({
-    name: `access level ${faker.lorem.words(1)}`,
-    description: faker.lorem.words(7),
+    name: `access level ${fkr.lorem.words(1)}`,
+    description: fkr.lorem.words(7),
     permissions: []
   }),
 
   masterAccessLevel: new MasterAccessLevel({
-    name: `master access level ${faker.lorem.words(1)}`,
-    description: faker.lorem.words(7),
+    name: `master access level ${fkr.lorem.words(1)}`,
+    description: fkr.lorem.words(7),
     permissions: []
   })
 })
