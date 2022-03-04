@@ -1,9 +1,9 @@
-import { setupAppGlobals } from '../../src/bootstrap/setup-app'
+import { addMikroOrmRequestContextMiddleware, setupAppGlobals } from '../../src/bootstrap/setup-app'
 import { clearDatabase } from '../database/clear-database'
-import { MikroORM, RequestContext } from '@mikro-orm/core'
 import { seedDatabase } from '../database/seed-database'
 import { Test, TestingModule } from '@nestjs/testing'
 import { AppModule } from '../../src/app.module'
+import { MikroORM } from '@mikro-orm/core'
 
 interface Options {
   init?: boolean
@@ -27,13 +27,10 @@ export const createAppTestingModule = async (opts: Options = {}) => {
 
   setupAppGlobals(app)
 
-  const orm = app.get(MikroORM)
+  // IMPORTANT: MUST BE AFTER SETUP APP GLOBALS
+  addMikroOrmRequestContextMiddleware(app)
 
-  // see: https://mikro-orm.io/docs/usage-with-nestjs/
-  app.use((req: Express.Request, res: Express.Response, next: () => void) => {
-    // storage.run(orm.em.fork({ useContext: true }), next)
-    RequestContext.create(orm.em, next)
-  })
+  const orm = app.get(MikroORM)
 
   const defailtOptions = { init: true, clearDatabase: true, loadFixture: true }
   const options = { ...defailtOptions, ...opts }

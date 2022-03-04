@@ -1,17 +1,14 @@
-import { createFakeMasterUser } from '../../../database/seeders/master-user.seeder'
+import { createFakeMasterUser } from '../../../database/factories/master-user.factory'
 import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
 import { MasterUserRepository } from '../repositories/master-user.repository'
-import { createFakeUser } from '../../../database/seeders/user.seeder'
+import { createFakeUser } from '../../../database/factories/user.factory'
 import { createEmptyMocksFor } from '../../../../test/utils/mocking'
 import { MasterUserService } from '../services/master-user.service'
 import { UserRepository } from '../repositories/user.repository'
-import { MasterUser } from '../entities/master-user.entity'
 import { UpdateUserDTO } from '../dtos/update-user.dto'
 import { UserService } from '../services/user.service'
 import { Test, TestingModule } from '@nestjs/testing'
 import { UserResolver } from './user.resolver'
-import { User } from '../entities/user.entity'
-import { faker } from '@mikro-orm/seeder'
 
 describe('UserResolver', () => {
   let masterUserRepository: MasterUserRepository
@@ -55,14 +52,14 @@ describe('UserResolver', () => {
 
   describe('[me]', () => {
     it('just returns the user extracted by the CurrentUser guard', async () => {
-      const userMock = new User(createFakeUser(faker) as any)
+      const userMock = createFakeUser(true)
 
       let result = await resolver.me(userMock, [])
       expect(result).toBe(userMock)
     })
 
     it('only queries the field correponding to the user type returned by the CurrentUser guard', async () => {
-      const userMock = new User(createFakeUser(faker) as any)
+      const userMock = createFakeUser(true)
       userMock.id = 1
       const findUserSpy = jest.spyOn(userRepository, 'findOneOrFail').mockImplementation(async () => userMock as any)
 
@@ -71,7 +68,7 @@ describe('UserResolver', () => {
       expect(result).toBe(userMock)
       expect(findUserSpy).toHaveBeenLastCalledWith({ id: userMock.id }, { populate: ['accessLevel'] })
 
-      const masterUserMock = new MasterUser(createFakeMasterUser(faker) as any)
+      const masterUserMock = createFakeMasterUser(true)
       masterUserMock.id = 2
       const findMasterUserSpy = jest.spyOn(masterUserRepository, 'findOneOrFail').mockImplementation(async () => masterUserMock as any)
 
@@ -84,7 +81,7 @@ describe('UserResolver', () => {
 
   describe('[user]', () => {
     it('finds the user by id', async () => {
-      const userMock = new User(createFakeUser(faker) as any)
+      const userMock = createFakeUser(true) as any
       const id = 123
 
       const findOneSpy = jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => userMock as any)
@@ -99,7 +96,7 @@ describe('UserResolver', () => {
 
   describe('[updateMyProfile]', () => {
     it('updates the profile with userService', async () => {
-      const userMock = new User(createFakeUser(faker) as any)
+      const userMock = createFakeUser(true) as any
 
       const dto = new UpdateUserDTO()
       dto.email = 'new.email@gmail.com'

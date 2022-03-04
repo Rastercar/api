@@ -1,11 +1,11 @@
 import { UnregisteredUserRepository } from '../../user/repositories/unregistered-user.repository'
 import { OrganizationRepository } from '../../organization/repositories/organization.repository'
 import { BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common'
+import { createFakeMasterUser } from '../../../database/factories/master-user.factory'
 import { MasterUserRepository } from '../../user/repositories/master-user.repository'
-import { createFakeMasterUser } from '../../../database/seeders/master-user.seeder'
 import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
+import { createFakeUser } from '../../../database/factories/user.factory'
 import { UserRepository } from '../../user/repositories/user.repository'
-import { createFakeUser } from '../../../database/seeders/user.seeder'
 import { createEmptyMocksFor } from '../../../../test/utils/mocking'
 import { MasterUser } from '../../user/entities/master-user.entity'
 import { ERROR_CODES } from '../../../constants/error.codes'
@@ -14,7 +14,6 @@ import { User } from '../../user/entities/user.entity'
 import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { AuthService } from './auth.service'
-import { faker } from '@mikro-orm/seeder'
 import { Loaded } from '@mikro-orm/core'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
@@ -72,7 +71,7 @@ describe('AuthService', () => {
   })
 
   it('[setUserResetPasswordToken] creates a short lived token and stores it int the user passwordResetTokenColumn', async () => {
-    const userMock = new User(createFakeUser(faker) as any)
+    const userMock = createFakeUser(true) as any
 
     jest.spyOn(authTokenService, 'createTokenForUser').mockImplementationOnce(() => ({ value: 'dasoidjasoidjoas', type: 'bearer' }))
 
@@ -83,7 +82,7 @@ describe('AuthService', () => {
 
   describe('[resetUserPasswordByToken]', () => {
     it('Fails with UnauthorizedException if the user represented by the token resetPasswordToken is not the same', async () => {
-      const userMock = new User(createFakeUser(faker) as any)
+      const userMock = createFakeUser(true)
       userMock.resetPasswordToken = 'othertoken'
 
       jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementationOnce(() => userMock as any)
@@ -94,7 +93,7 @@ describe('AuthService', () => {
     })
 
     it('Sets a new password for the user and nullifies his resetPasswordToken', async () => {
-      const userMock = new User(createFakeUser(faker) as any)
+      const userMock = createFakeUser(true)
       userMock.resetPasswordToken = 'validtoken'
       userMock.password = 'somepass'
 
@@ -111,7 +110,7 @@ describe('AuthService', () => {
   })
 
   describe('[validateUserByCredentials]', () => {
-    const userMock = createFakeUser(faker) as Loaded<User, string>
+    const userMock = createFakeUser(true) as Loaded<User, string>
     userMock.password = '$imahashedpass'
     userMock.id = 1
 
@@ -129,7 +128,7 @@ describe('AuthService', () => {
     })
 
     it('Attempts to find a master user with the email when a regular user is no found', async () => {
-      const masterUserMock = new MasterUser(createFakeMasterUser(faker) as any)
+      const masterUserMock = createFakeMasterUser(true)
 
       jest.spyOn(masterUserRepository, 'findOne').mockImplementationOnce(async () => masterUserMock as any)
       jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => null)
@@ -200,7 +199,7 @@ describe('AuthService', () => {
     const userMock = { id: 1, password: 'i_should_be_removed', lastLogin: new Date() } as any
 
     it('Changes the user lastLogin field when options.setLastLogin is not false', async () => {
-      const userMock = new User(createFakeUser(faker) as any)
+      const userMock = createFakeUser(true)
 
       jest.spyOn(authTokenService, 'createTokenForUser').mockImplementationOnce(() => ({
         type: 'bearer',
@@ -244,7 +243,7 @@ describe('AuthService', () => {
     })
 
     it('Returns a passwordless user and his new bearer token on success', async () => {
-      const usermock = new User(createFakeUser(faker) as any)
+      const usermock = createFakeUser(true)
       const newTokenMock = { type: 'bearer', value: 'asdasdasds' }
 
       jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => usermock as any)

@@ -2,18 +2,16 @@ import { OrganizationRepository } from '../../organization/repositories/organiza
 import { UnregisteredUserRepository } from '../repositories/unregistered-user.repository'
 import { Organization } from '../../organization/entities/organization.entity'
 import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
+import { createFakeUser } from '../../../database/factories/user.factory'
 import { UnregisteredUser } from '../entities/unregistered-user.entity'
-import { createFakeUser } from '../../../database/seeders/user.seeder'
 import { createEmptyMocksFor } from '../../../../test/utils/mocking'
 import { RegisterUserDTO } from '../../auth/dtos/register-user.dto'
 import { UserRepository } from '../repositories/user.repository'
+import { AuthService } from '../../auth/services/auth.service'
 import { UpdateUserDTO } from '../dtos/update-user.dto'
 import { UserService } from '../services/user.service'
 import { Test, TestingModule } from '@nestjs/testing'
-import { AuthService } from '../../auth/services/auth.service'
 import { Profile } from 'passport-google-oauth20'
-import { User } from '../entities/user.entity'
-import { faker } from '@mikro-orm/seeder'
 import * as bcrypt from 'bcrypt'
 
 describe('UserService', () => {
@@ -142,10 +140,8 @@ describe('UserService', () => {
       return dto
     }
 
-    const createUserMock = () => new User(createFakeUser(faker) as any)
-
     it('Doesnt verify if the email is in use if it didnt change and vice versa', async () => {
-      const user = createUserMock()
+      const user = createFakeUser(true)
 
       const dtoWithSameEmail = createUpdateDTO({ email: user.email })
       const dtoWithoutNewEmail = createUpdateDTO({ username: 'newUsername' })
@@ -164,7 +160,7 @@ describe('UserService', () => {
     })
 
     it('Checks if the old password is valid if a new password is being set', async () => {
-      const user = createUserMock()
+      const user = createFakeUser(true)
       const dto = createUpdateDTO({ oldPassword: 'oldPass', password: 'Newpassword123!' })
 
       const comparePasswordsSpy = jest.spyOn(authService, 'comparePasswords')
@@ -175,7 +171,7 @@ describe('UserService', () => {
     })
 
     it('Changes email verified to false on email change', async () => {
-      const user = createUserMock()
+      const user = createFakeUser(true)
       const dto = createUpdateDTO({ email: 'new_email@gmail.com' })
 
       const updatedUser = await service.updateUser(user, dto)
@@ -184,7 +180,7 @@ describe('UserService', () => {
     })
 
     it('Changes the email verification of the org if its shared by the user and his owned org', async () => {
-      const user = createUserMock()
+      const user = createFakeUser(true)
 
       user.emailVerified = false
 
@@ -201,7 +197,7 @@ describe('UserService', () => {
     })
 
     it('Hashes the new password on password change', async () => {
-      const user = createUserMock()
+      const user = createFakeUser(true)
       const dto = createUpdateDTO({ oldPassword: 'oldPass', password: 'Newpassword123!' })
 
       jest.spyOn(authService, 'comparePasswords').mockImplementationOnce(async () => true)
@@ -213,7 +209,7 @@ describe('UserService', () => {
     })
 
     it('Updates the user', async () => {
-      const user = createUserMock()
+      const user = createFakeUser(true)
       user.googleProfileId = 'i_should_change_to_null'
 
       const dto = createUpdateDTO({

@@ -1,15 +1,11 @@
-import { createFakeMasterUser } from '../../../database/seeders/master-user.seeder'
+import { createFakeMasterUser } from '../../../database/factories/master-user.factory'
 import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
 import { MasterUserRepository } from '../repositories/master-user.repository'
 import { createEmptyMocksFor } from '../../../../test/utils/mocking'
-import { MasterUser } from '../entities/master-user.entity'
 import { MasterUserService } from './master-user.service'
 import { Test, TestingModule } from '@nestjs/testing'
-import { faker } from '@mikro-orm/seeder'
 
 describe('MasterUserService', () => {
-  const createMasterUserMock = () => new MasterUser(createFakeMasterUser(faker) as any)
-
   let repository: MasterUserRepository
   let service: MasterUserService
 
@@ -28,7 +24,7 @@ describe('MasterUserService', () => {
   })
 
   describe('updateMasterUser', () => {
-    const masterUserMock = createMasterUserMock()
+    const masterUserMock = createFakeMasterUser(true)
 
     it('updates the master user', async () => {
       masterUserMock.emailVerified = true

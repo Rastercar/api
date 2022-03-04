@@ -1,7 +1,7 @@
 import { Organization } from '../../modules/organization/entities/organization.entity'
 import { AccessLevel } from '../../modules/auth/entities/access-level.entity'
 import { User } from '../../modules/user/entities/user.entity'
-import { Factory, faker, Faker } from '@mikro-orm/seeder'
+import { UserFactory } from '../factories/user.factory'
 import type { EntityManager } from '@mikro-orm/core'
 import { Seeder } from '@mikro-orm/seeder'
 import * as bcrypt from 'bcrypt'
@@ -35,49 +35,10 @@ export const defaultTestUser: Partial<User> = {
   })
 }
 
-export const createFakeUser = (fkr = faker): Partial<User> => {
-  const orgname = fkr.company.companyName()
-
-  const org = new Organization({
-    name: orgname,
-    billingEmail: fkr.internet.email(),
-    billingEmailVerified: true
-  })
-
-  return {
-    username: fkr.internet.userName(),
-    password: bcrypt.hashSync(fkr.internet.password(), 1),
-
-    email: fkr.internet.email(),
-    emailVerified: Math.random() < 0.5,
-
-    googleProfileId: null,
-
-    organization: org,
-
-    accessLevel: new AccessLevel({
-      isFixed: true,
-      name: `${orgname} access level`,
-      description: fkr.lorem.words(7),
-      organization: org,
-      permissions: []
-    })
-  }
-}
-
-export class UserFactory extends Factory<User> {
-  model = User as any
-
-  definition(faker: Faker): Partial<User> {
-    return createFakeUser(faker)
-  }
-}
-
 export class UserSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
     const factory = new UserFactory(em)
     await factory.createOne(defaultTestUser)
-
     await factory.create(5)
   }
 }

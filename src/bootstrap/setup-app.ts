@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from '../app.module'
 import * as express from 'express'
+import { MikroORM, RequestContext } from '@mikro-orm/core'
 
 export const createApp = () => {
   return NestFactory.create(AppModule, { bodyParser: false })
@@ -22,6 +23,14 @@ export const setupAppGlobals = (app: INestApplication) => {
   app.useGlobalFilters(new HttpExceptionFilter())
 
   app.useGlobalPipes(new ValidationPipe({ forbidUnknownValues: true }))
+}
+
+export const addMikroOrmRequestContextMiddleware = (app: INestApplication) => {
+  const orm = app.get(MikroORM)
+
+  app.use((req: Express.Request, res: Express.Response, next: () => void) => {
+    RequestContext.create(orm.em, next)
+  })
 }
 
 /**

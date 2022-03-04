@@ -1,11 +1,9 @@
-import { createFakeUser } from '../../../database/seeders/user.seeder'
+import { createFakeUser } from '../../../database/factories/user.factory'
 import { UnprocessableEntityException } from '@nestjs/common'
 import { AuthMailerService } from './auth-mailer.service'
 import { MailerService } from '@nestjs-modules/mailer'
-import { User } from '../../user/entities/user.entity'
 import { Test, TestingModule } from '@nestjs/testing'
 import { JwtService } from '@nestjs/jwt'
-import { faker } from '@mikro-orm/seeder'
 
 describe('AuthMailerService', () => {
   let authMailerService: AuthMailerService
@@ -71,7 +69,7 @@ describe('AuthMailerService', () => {
   })
 
   describe('[sendForgotPasswordEmail]', () => {
-    const userMock = new User(createFakeUser(faker) as any)
+    const userMock = createFakeUser(true)
 
     it('sends the email to the provided adress with the correct template', async () => {
       const sentStatusMock = { accepted: [], rejected: [] }

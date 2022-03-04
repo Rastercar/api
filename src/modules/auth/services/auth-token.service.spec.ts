@@ -1,17 +1,14 @@
+import { createFakeMasterUser } from '../../../database/factories/master-user.factory'
 import { MasterUserRepository } from '../../user/repositories/master-user.repository'
 import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
+import { createFakeUser } from '../../../database/factories/user.factory'
 import { UserRepository } from '../../user/repositories/user.repository'
 import { createEmptyMocksFor } from '../../../../test/utils/mocking'
-import { UnauthorizedException } from '@nestjs/common'
 import { AuthTokenService } from './auth-token.service'
+import { UnauthorizedException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
-import { User } from '../../user/entities/user.entity'
-import { createFakeUser } from '../../../database/seeders/user.seeder'
-import { faker } from '@mikro-orm/seeder'
-import { MasterUser } from '../../user/entities/master-user.entity'
-import { createFakeMasterUser } from '../../../database/seeders/master-user.seeder'
 
 describe('AuthTokenService', () => {
   let masterUserRepository: MasterUserRepository
@@ -52,7 +49,7 @@ describe('AuthTokenService', () => {
   it('[getUserOrMasterUserByEmail] finds the user or master user by the email address', async () => {
     const email = 'some.mail@gmail.com'
 
-    jest.spyOn(masterUserRepository, 'findOne').mockResolvedValueOnce(new MasterUser(createFakeMasterUser(faker) as any) as any)
+    jest.spyOn(masterUserRepository, 'findOne').mockResolvedValueOnce(createFakeMasterUser(true) as any)
 
     await service.getUserOrMasterUserByEmail(email)
 
@@ -89,10 +86,10 @@ describe('AuthTokenService', () => {
   })
 
   it('[createTokenForUser]', () => {
-    const masterUserMock = new MasterUser(createFakeMasterUser(faker) as any)
+    const masterUserMock = createFakeMasterUser(true) as any
     masterUserMock.id = 666
 
-    const userMock = new User(createFakeUser(faker) as any)
+    const userMock = createFakeUser(true)
     userMock.id = 555
 
     const tokenMock = 'asduihaisudaoijsdoisj'

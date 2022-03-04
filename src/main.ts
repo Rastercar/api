@@ -1,14 +1,4 @@
-import { createApp, initApp, setupAppGlobals } from './bootstrap/setup-app'
-import { MikroORM, RequestContext } from '@mikro-orm/core'
-import { INestApplication } from '@nestjs/common'
-
-const addMikroOrmContextMiddleware = (app: INestApplication) => {
-  const orm = app.get(MikroORM)
-
-  app.use((req, res, next) => {
-    RequestContext.create(orm.em, next)
-  })
-}
+import { addMikroOrmRequestContextMiddleware, createApp, initApp, setupAppGlobals } from './bootstrap/setup-app'
 
 async function bootstrap() {
   const app = await createApp()
@@ -16,7 +6,7 @@ async function bootstrap() {
   setupAppGlobals(app)
 
   // IMPORTANT: MUST BE AFTER SETUP APP GLOBALS
-  addMikroOrmContextMiddleware(app)
+  addMikroOrmRequestContextMiddleware(app)
 
   initApp(app)
 }

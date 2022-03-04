@@ -1,7 +1,7 @@
 import { MasterAccessLevel } from '../../modules/auth/entities/master-access-level.entity'
 import { AccessLevel } from '../../modules/auth/entities/access-level.entity'
 import { MasterUser } from '../../modules/user/entities/master-user.entity'
-import { Factory, faker, Faker } from '@mikro-orm/seeder'
+import { MasterUserFactory } from '../factories/master-user.factory'
 import type { EntityManager } from '@mikro-orm/core'
 import { Seeder } from '@mikro-orm/seeder'
 import * as bcrypt from 'bcrypt'
@@ -29,36 +29,6 @@ export const defaultMasterUser = new MasterUser({
     permissions: []
   })
 })
-
-export const createFakeMasterUser = (fkr = faker): Partial<MasterUser> => ({
-  username: fkr.internet.userName(),
-  password: bcrypt.hashSync(fkr.internet.password(), 1),
-
-  email: fkr.internet.email(),
-  emailVerified: Math.random() < 0.5,
-
-  resetPasswordToken: null,
-
-  accessLevel: new AccessLevel({
-    name: `access level ${fkr.lorem.words(1)}`,
-    description: fkr.lorem.words(7),
-    permissions: []
-  }),
-
-  masterAccessLevel: new MasterAccessLevel({
-    name: `master access level ${fkr.lorem.words(1)}`,
-    description: fkr.lorem.words(7),
-    permissions: []
-  })
-})
-
-export class MasterUserFactory extends Factory<MasterUser> {
-  model = MasterUser as any
-
-  definition(faker: Faker): Partial<MasterUser> {
-    return createFakeMasterUser(faker)
-  }
-}
 
 export class MasterUserSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {

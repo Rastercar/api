@@ -1,18 +1,15 @@
-import { createFakeMasterUser } from '../../database/seeders/master-user.seeder'
+import { createFakeMasterUser } from '../../database/factories/master-user.factory'
+import { NotFoundException, UnauthorizedException } from '@nestjs/common'
 import { MasterUserService } from '../user/services/master-user.service'
-import { createFakeUser } from '../../database/seeders/user.seeder'
+import { createFakeUser } from '../../database/factories/user.factory'
 import { AuthMailerService } from './services/auth-mailer.service'
 import { AuthTokenService } from './services/auth-token.service'
-import { MasterUser } from '../user/entities/master-user.entity'
 import { UserService } from '../user/services/user.service'
 import { Test, TestingModule } from '@nestjs/testing'
 import { AuthService } from './services/auth.service'
-import { User } from '../user/entities/user.entity'
 import { AuthController } from './auth.controller'
 import { ConfigService } from '@nestjs/config'
-import { faker } from '@mikro-orm/seeder'
 import { JwtModule } from '@nestjs/jwt'
-import { NotFoundException, UnauthorizedException } from '@nestjs/common'
 
 describe('AuthController', () => {
   let authMailerService: AuthMailerService
@@ -141,8 +138,8 @@ describe('AuthController', () => {
   })
 
   it('[confirmEmailAddress] confirms the email adress according to the user type', async () => {
-    const masterUserMock = new MasterUser(createFakeMasterUser(faker) as any)
-    const userMock = new User(createFakeUser(faker) as any)
+    const masterUserMock = createFakeMasterUser(true)
+    const userMock = createFakeUser(true)
 
     let res = await controller.confirmEmailAddress(userMock)
     expect(typeof res === 'string').toBe(true)
@@ -169,8 +166,7 @@ describe('AuthController', () => {
 
     describe('On attempt to link existing account to google profile', () => {
       const statefullRequestMock = { query: { state: 'sometoken' } } as any
-      const masterUserMock = new MasterUser(createFakeMasterUser(faker) as any)
-      const createUserMock = () => new User(createFakeUser(faker) as any)
+      const masterUserMock = createFakeMasterUser(true)
 
       it('Fails if trying to link a master user account', async () => {
         jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementation(async () => masterUserMock)
@@ -181,7 +177,7 @@ describe('AuthController', () => {
       })
 
       it('Fails if the existing user already has a google profile', async () => {
-        const userMock = createUserMock()
+        const userMock = createFakeUser(true)
         userMock.googleProfileId = 'someexistingprofile'
 
         jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementation(async () => userMock)
@@ -192,10 +188,10 @@ describe('AuthController', () => {
       })
 
       it('Fails if the google profile is in use by another user', async () => {
-        const existingUserWithGoogleProfile = createUserMock()
+        const existingUserWithGoogleProfile = createFakeUser(true)
         existingUserWithGoogleProfile.googleProfileId = 'someexistingprofile'
 
-        const otherUserMock = createUserMock()
+        const otherUserMock = createFakeUser(true)
 
         jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementation(async () => otherUserMock)
         jest.spyOn(userService, 'getUserForGoogleProfile').mockImplementation(async () => existingUserWithGoogleProfile)
@@ -206,7 +202,7 @@ describe('AuthController', () => {
       })
 
       it('Updates the user to contain the new googleProfileId', async () => {
-        const userMock = createUserMock()
+        const userMock = createFakeUser(true)
         userMock.googleProfileId = null
 
         jest.spyOn(authTokenService, 'getUserFromDecodedTokenOrFail').mockImplementation(async () => userMock)
