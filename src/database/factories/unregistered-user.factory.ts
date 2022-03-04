@@ -18,15 +18,7 @@ export function createFakeUnregisteredUser(instantiate?: true): UnregisteredUser
 export class UnregisteredUserFactory extends Factory<UnregisteredUser> {
   model = UnregisteredUser as any
 
-  definition(): Partial<UnregisteredUser> {
-    const oauthProfileId = Math.random() < 0.5 ? faker.random.word() : undefined
-
-    return {
-      username: faker.internet.userName(),
-      email: faker.internet.email(),
-      emailVerified: Math.random() < 0.5,
-      oauthProfileId,
-      oauthProvider: oauthProfileId ? undefined : 'google'
-    }
+  definition() {
+    return createFakeUnregisteredUser()
   }
 }

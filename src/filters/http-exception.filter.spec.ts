@@ -1,5 +1,5 @@
-import { HttpExceptionFilter } from './http-exception.filter'
 import { HttpException, InternalServerErrorException } from '@nestjs/common'
+import { HttpExceptionFilter } from './http-exception.filter'
 import { Test, TestingModule } from '@nestjs/testing'
 
 describe('HTTP Exception filter', () => {

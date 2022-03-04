@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing'
 import { UserService } from '../user/services/user.service'
-import { AuthResolver } from './auth.resolver'
-import { AuthService } from './services/auth.service'
-import { LoginInput } from './dtos/login.dto'
 import { RegisterUserDTO } from './dtos/register-user.dto'
+import { Test, TestingModule } from '@nestjs/testing'
+import { AuthService } from './services/auth.service'
+import { AuthResolver } from './auth.resolver'
+import { LoginInput } from './dtos/login.dto'
 
 describe('AuthResolver', () => {
   let userService: UserService

@@ -38,7 +38,18 @@ export const defaultTestUser: Partial<User> = {
 export class UserSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
     const factory = new UserFactory(em)
-    await factory.createOne(defaultTestUser)
-    await factory.create(5)
+    const users = await factory.create(5)
+    const defTestUser = await factory.createOne(defaultTestUser)
+
+    users.push(defTestUser)
+
+    // Since orgs cannot have owners when they are being created, since the user would
+    // also need a org (the one we are creating) the solution is to update every created
+    // user org to have the created user as the owner
+    users.map(user => {
+      user.organization.owner = user
+    })
+
+    await em.flush()
   }
 }

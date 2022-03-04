@@ -1,9 +1,9 @@
 import { Collection, Entity, EntityRepositoryType, ManyToOne, OneToMany, Property } from '@mikro-orm/core'
-import { BaseEntity } from '../../database/base/base-entity'
 import { Organization } from '../organization/entities/organization.entity'
+import { BaseEntity } from '../../database/base/base-entity'
+import { TrackerRepository } from './tracker.repository'
 import { SimCard } from '../sim-card/sim-card.entity'
 import { Vehicle } from '../vehicle/vehicle.entity'
-import { TrackerRepository } from './tracker.repository'
 
 type trackerModel = 'maxtrack'
 

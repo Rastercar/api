@@ -35,7 +35,7 @@ export default {
 
   seeder: {
     path: './src/database/seeders',
-    defaultSeeder: 'UserSeeder'
+    defaultSeeder: 'DatabaseSeeder'
   },
 
   allowGlobalContext: false,

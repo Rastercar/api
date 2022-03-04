@@ -3,6 +3,9 @@ import { SoftDeletable } from '../../../database/filters/soft-deletable.decorato
 import { OrganizationRepository } from '../repositories/organization.repository'
 import { BaseEntity } from '../../../database/base/base-entity'
 import { User } from '../../user/entities/user.entity'
+import { Tracker } from '../../tracker/tracker.entity'
+import { SimCard } from '../../sim-card/sim-card.entity'
+import { Vehicle } from '../../vehicle/vehicle.entity'
 
 interface OrgArgs {
   name: string
@@ -59,12 +62,6 @@ export class Organization extends BaseEntity {
   billingEmailVerified!: boolean
 
   /**
-   * The users that belong to the organization
-   */
-  @OneToMany({ entity: () => User, mappedBy: user => user.organization })
-  users = new Collection<User>(this)
-
-  /**
    * Relationship: 1...1
    *
    * A user which owns the organization, a user owns one or zero orgs and a org is owned by a user
@@ -78,4 +75,36 @@ export class Organization extends BaseEntity {
    */
   @OneToOne({ entity: () => User, nullable: true })
   owner!: User | null
+
+  /**
+   * Relationship 1 - 1...N
+   *
+   * Users that belong to the organization
+   */
+  @OneToMany({ entity: () => User, mappedBy: user => user.organization })
+  users = new Collection<User>(this)
+
+  /**
+   * Relationship 1 - 0...N
+   *
+   * Trackers that belong to the organization
+   */
+  @OneToMany({ entity: () => Tracker, mappedBy: tracker => tracker.organization })
+  trackers = new Collection<Tracker>(this)
+
+  /**
+   * Relationship 1 - 0...N
+   *
+   * Sim Cards that belong to the organization
+   */
+  @OneToMany({ entity: () => SimCard, mappedBy: simCard => simCard.organization })
+  simCards = new Collection<SimCard>(this)
+
+  /**
+   * Relationship 1 - 0...N
+   *
+   * Vehicles that belong to the organization
+   */
+  @OneToMany({ entity: () => Vehicle, mappedBy: vehicle => vehicle.organization })
+  vehicles = new Collection<Vehicle>(this)
 }

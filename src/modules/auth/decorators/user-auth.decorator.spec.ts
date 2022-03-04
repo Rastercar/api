@@ -1,6 +1,6 @@
 import { userAuthFactory, UserAuth } from './user-auth.decorator'
-import { Controller, Get } from '@nestjs/common'
 import { JwtAuthGuard } from '../guards/jwt-auth.guard'
+import { Controller, Get } from '@nestjs/common'
 
 @Controller()
 class DummyController {
