@@ -2,10 +2,10 @@ import { OrganizationRepository } from './repositories/organization.repository'
 import { Parent, ResolveField, Resolver } from '@nestjs/graphql'
 import { OrganizationModel } from './models/organization.model'
 import { Organization } from './entities/organization.entity'
-import { VehicleModel } from '../vehicle/vehicle.model'
-import { of } from '../../utils/coverage-helpers'
-import { UserModel } from '../user/models/user.model'
 import { TrackerModel } from '../tracker/tracker.model'
+import { VehicleModel } from '../vehicle/vehicle.model'
+import { UserModel } from '../user/models/user.model'
+import { of } from '../../utils/coverage-helpers'
 
 @Resolver(of(OrganizationModel))
 export class OrganizationResolver {

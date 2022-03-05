@@ -79,6 +79,7 @@ input RegisterUserDTO {
 type TrackerModel {
   id: Int!
   model: String!
+  vehicle: VehicleModel!
 }
 
 """unregistered user"""

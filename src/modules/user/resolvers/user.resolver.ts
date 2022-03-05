@@ -27,6 +27,7 @@ const _USER_FIELD = [
   'accessLevel',
   'organization',
   'organization.trackers',
+  // 'organization.trackers.vehicle',
   'organization.simCards',
   'organization.vehicles',
   'organization.vehicles.trackers',
