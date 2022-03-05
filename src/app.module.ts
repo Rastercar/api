@@ -1,5 +1,6 @@
 import { OrganizationModule } from './modules/organization/organization.module'
 import { HealthcheckModule } from './modules/healthcheck/healthcheck.module'
+import { SimCardModule } from './modules/sim-card/sim-card.module'
 import { VehicleModule } from './modules/vehicle/vehicles.module'
 import { TrackerModule } from './modules/tracker/tracker.module'
 import { MailerModule } from './modules/mail/mailer.module'
@@ -19,7 +20,8 @@ import { Module } from '@nestjs/common'
     OrganizationModule,
     HealthcheckModule,
     VehicleModule,
-    TrackerModule
+    TrackerModule,
+    SimCardModule
   ]
 })
 export class AppModule {}

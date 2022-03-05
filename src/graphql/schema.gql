@@ -26,11 +26,25 @@ type LoginResponse {
   user: UserOrMasterUser!
 }
 
+enum MASTER_PERMISSION {
+  EDIT_OTHER_USERS
+}
+
+"""The access level to the tracker dashboard"""
+type MasterAccessLevelModel {
+  description: String!
+  id: Int!
+  name: String!
+  permissions: [MASTER_PERMISSION!]!
+}
+
 """master user (a user with access to the main panel"""
 type MasterUserModel {
+  accessLevel: AccessLevelModel!
   email: String!
   emailVerified: Boolean!
   id: Int!
+  masterAccessLevel: MasterAccessLevelModel!
   username: String!
 }
 
@@ -60,6 +74,7 @@ enum PERMISSION {
 type Query {
   isEmailInUse(email: String!): Boolean!
   me: UserOrMasterUser!
+  organizations: [OrganizationModel!]
   unregisteredUser(uuid: String!): UnregisteredUserModel
   user(id: Int!): UserModel
 }
@@ -75,10 +90,22 @@ input RegisterUserDTO {
   username: String!
 }
 
+"""sim card"""
+type SimCardModel {
+  apnAddress: String!
+  apnPassword: String!
+  apnUser: String!
+  id: Int!
+  phoneNumber: String!
+  ssn: String!
+  tracker: TrackerModel
+}
+
 """tracker"""
 type TrackerModel {
   id: Int!
   model: String!
+  simCards: [SimCardModel!]!
   vehicle: VehicleModel!
 }
 
