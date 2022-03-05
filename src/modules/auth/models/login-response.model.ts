@@ -7,10 +7,10 @@ import { JwtModel } from './jwt.model'
 export const UserOrMasterUser = createUnionType({
   name: 'UserOrMasterUser',
   resolveType: userOrMasterUser => {
-    const userFields: (keyof UserModel)[] = ['organization', 'googleProfileId']
+    const userFields: (keyof UserModel | 'organization')[] = ['organization', 'googleProfileId']
     if (userFields.some(userField => userOrMasterUser[userField])) return UserModel
 
-    const masterUserFields: (keyof MasterUserModel)[] = ['masterAccessLevel']
+    const masterUserFields: (keyof MasterUserModel | 'masterAccessLevel')[] = ['masterAccessLevel']
     if (masterUserFields.some(masterUserField => userOrMasterUser[masterUserField])) return MasterUserModel
 
     return null

@@ -1,5 +1,3 @@
-import { MasterAccessLevelModel } from '../../auth/models/master-access-level.model'
-import { AccessLevelModel } from '../../auth/models/access-level.model'
 import { Field, Int, ObjectType } from '@nestjs/graphql'
 import { is } from '../../../utils/coverage-helpers'
 
@@ -16,10 +14,4 @@ export class MasterUserModel {
 
   @Field()
   emailVerified!: boolean
-
-  @Field(is(AccessLevelModel))
-  accessLevel!: AccessLevelModel
-
-  @Field(is(MasterAccessLevelModel))
-  masterAccessLevel!: MasterAccessLevelModel
 }

@@ -26,25 +26,11 @@ type LoginResponse {
   user: UserOrMasterUser!
 }
 
-enum MASTER_PERMISSION {
-  EDIT_OTHER_USERS
-}
-
-"""The access level to the tracker dashboard"""
-type MasterAccessLevelModel {
-  description: String!
-  id: Int!
-  name: String!
-  permissions: [MASTER_PERMISSION!]!
-}
-
 """master user (a user with access to the main panel"""
 type MasterUserModel {
-  accessLevel: AccessLevelModel!
   email: String!
   emailVerified: Boolean!
   id: Int!
-  masterAccessLevel: MasterAccessLevelModel!
   username: String!
 }
 
@@ -62,6 +48,9 @@ type OrganizationModel {
   blocked: Boolean!
   id: Int!
   name: String!
+  trackers: [TrackerModel!]!
+  users: [UserModel!]!
+  vehicles: [VehicleModel!]!
 }
 
 enum PERMISSION {
@@ -84,6 +73,12 @@ input RegisterUserDTO {
   """
   refersToUnregisteredUser: String
   username: String!
+}
+
+"""tracker"""
+type TrackerModel {
+  id: Int!
+  model: String!
 }
 
 """unregistered user"""
@@ -118,3 +113,17 @@ type UserModel {
 }
 
 union UserOrMasterUser = MasterUserModel | UserModel
+
+"""vehicle"""
+type VehicleModel {
+  brand: String
+  chassisNumber: String
+  color: String
+  fabricationYear: Float
+  id: Int!
+  model: String
+  modelYear: Float
+  plate: String!
+  renavam: String
+  trackers: [TrackerModel!]!
+}

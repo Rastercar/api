@@ -5,7 +5,7 @@ import { TrackerRepository } from './tracker.repository'
 import { SimCard } from '../sim-card/sim-card.entity'
 import { Vehicle } from '../vehicle/vehicle.entity'
 
-type trackerModel = 'maxtrack'
+export type trackerModel = 'maxtrack' | 'suntech' | 'gtk'
 
 interface TrackerArgs {
   model: trackerModel
