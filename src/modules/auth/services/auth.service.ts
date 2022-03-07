@@ -1,16 +1,13 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common'
-import { UnregisteredUserRepository } from '../../user/repositories/unregistered-user.repository'
-import { OrganizationRepository } from '../../organization/repositories/organization.repository'
-import { MasterUserRepository } from '../../user/repositories/master-user.repository'
-import { UserRepository } from '../../user/repositories/user.repository'
-import { ChangePasswordDTO } from '../../user/dtos/change-password.dto'
-import { MasterUser } from '../../user/entities/master-user.entity'
-import { LoginResponse } from '../models/login-response.model'
-import { ERROR_CODES } from '../../../constants/error.codes'
-import { JwtService, JwtSignOptions } from '@nestjs/jwt'
 import { AuthTokenService } from './auth-token.service'
-import { User } from '../../user/entities/user.entity'
+import { JwtService, JwtSignOptions } from '@nestjs/jwt'
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common'
+import { master_user, user } from '@prisma/client'
+import { PrismaService } from '../../../database/prisma.service'
+import { LoginResponse } from '../models/login-response.model'
 import * as bcrypt from 'bcrypt'
+import { ChangePasswordDTO } from '../../user/dtos/change-password.dto'
+import { ERROR_CODES } from '../../../constants/error.codes'
+import { isMasterUser } from '../../user/user.utils'
 
 interface LoginOptions {
   /**
@@ -29,37 +26,39 @@ interface CheckEmailInUseOptions {
 
 @Injectable()
 export class AuthService {
-  constructor(
-    readonly jwtService: JwtService,
-    readonly userRepository: UserRepository,
-    readonly authTokenService: AuthTokenService,
-    readonly masterUserRepository: MasterUserRepository,
-    readonly organizationRepository: OrganizationRepository,
-    readonly unregisteredUserRepository: UnregisteredUserRepository
-  ) {}
+  constructor(readonly prisma: PrismaService, readonly jwtService: JwtService, readonly authTokenService: AuthTokenService) {}
 
-  private async loginForUser(user: User, options: LoginOptions) {
+  private async loginForUser(user: user, options: LoginOptions) {
     if (options?.setLastLogin) {
-      user.lastLogin = new Date()
-      await this.userRepository.persistAndFlush(user)
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { last_login: new Date() }
+      })
     }
 
     const token = this.authTokenService.createTokenForUser(user, options.tokenOptions)
 
-    if (user.googleProfileId) {
+    if (user.google_profile_id) {
       // There`s a chance the user`s old unregistered user was not deleted whenever he finished his
       // registration, since the registration endpoint cannot certify the user being registered had
       // a unregisteredUser record, so we ensure the deletion whenever logging in
-      await this.unregisteredUserRepository.nativeDelete({ oauthProvider: 'google', oauthProfileId: user.googleProfileId })
+      await this.prisma.unregistered_user.deleteMany({
+        where: {
+          oauth_provider: 'google',
+          oauth_profile_id: user.google_profile_id
+        }
+      })
     }
 
     return { user, token }
   }
 
-  private async loginForMasterUser(user: MasterUser, options: LoginOptions) {
+  private async loginForMasterUser(user: master_user, options: LoginOptions) {
     if (options?.setLastLogin) {
-      user.lastLogin = new Date()
-      await this.userRepository.persistAndFlush(user)
+      await this.prisma.master_user.update({
+        where: { id: user.id },
+        data: { last_login: new Date() }
+      })
     }
 
     const token = this.authTokenService.createTokenForUser(user, options.tokenOptions)
@@ -70,12 +69,17 @@ export class AuthService {
   /**
    * Returns the given user and his new bearer JWT
    */
-  async login(userToLogin: User | MasterUser, options: LoginOptions = { setLastLogin: true }): Promise<LoginResponse> {
-    const { user, token } =
-      userToLogin instanceof User ? await this.loginForUser(userToLogin, options) : await this.loginForMasterUser(userToLogin, options)
+  async login(userToLogin: user | master_user, options: LoginOptions = { setLastLogin: true }): Promise<LoginResponse> {
+    const isMaster = !!(userToLogin as master_user).master_access_level_id
 
-    delete user.password
-    delete user.resetPasswordToken
+    const { user, token } = isMaster
+      ? await this.loginForUser(userToLogin as user, options)
+      : await this.loginForMasterUser(userToLogin as master_user, options)
+
+    // TODO: CHECK IM NOT LEAKING PASSWORDS !
+    // https://github.com/prisma/prisma/issues/7380
+    // delete user.password
+    // delete user.resetPasswordToken
 
     return { user, token }
   }
@@ -89,19 +93,23 @@ export class AuthService {
     const userId = await this.authTokenService.getUserIdFromAutoLoginToken(autoLoginToken)
 
     // The id conditional might seem redundant but with it we can be sure the token was meant for him
-    const user = await this.userRepository.findOne({ autoLoginToken, id: userId }, { populate: ['autoLoginToken'] })
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, auto_login_token: autoLoginToken }
+    })
 
     if (!user) throw new UnauthorizedException('No user found with this autologin token')
 
-    // prettier-ignore
-    const newToken = this.authTokenService.createTokenForUser(user);
+    const newToken = this.authTokenService.createTokenForUser(user)
 
-    // prettier-ignore
-    (user as User).autoLoginToken = null
-    await this.userRepository.persistAndFlush(user)
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { auto_login_token: null }
+    })
 
-    delete user.password
-    delete user.resetPasswordToken
+    // TODO: CHECK IM NOT LEAKING PASSWORDS !
+    // https://github.com/prisma/prisma/issues/7380
+    // delete user.password
+    // delete user.resetPasswordToken
 
     return { user, token: newToken }
   }
@@ -119,15 +127,23 @@ export class AuthService {
    * @throws {NotFoundException} If there is no user with the informed username
    * @throws {UnauthorizedException} If the password is invalid
    */
-  async validateUserByCredentials(credentials: { email: string; password: string }): Promise<User | MasterUser> {
+  async validateUserByCredentials(credentials: { email: string; password: string }): Promise<user | master_user> {
     const { email, password } = credentials
 
     // Note: if populating organization.users implement a solution to delete their passwords
-    const mUser = await this.masterUserRepository.findOne({ email }, { populate: ['accessLevel', 'password', 'masterAccessLevel'] })
-    const user = await this.userRepository.findOne({ email }, { populate: ['password', 'accessLevel', 'organization'] })
+    const master_user = await this.prisma.master_user.findUnique({
+      where: { email },
+      include: { access_level: true, master_access_level: true }
+    })
+
+    // TODO better me
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: { access_level: true, organization: true }
+    })
 
     // since emails are unique between the 2 tables, only one of the records should be non null
-    const finalUser = user || mUser
+    const finalUser = user || master_user
 
     if (!finalUser) throw new NotFoundException('User with provided email not found')
 
@@ -142,11 +158,13 @@ export class AuthService {
    *
    * @returns the generated token
    */
-  async setUserAutoLoginToken(user: User): Promise<string> {
+  async setUserAutoLoginToken(user: user): Promise<string> {
     const token = this.authTokenService.createAutoLoginTokenForUser(user.id)
-    user.autoLoginToken = token.value
 
-    await this.userRepository.persistAndFlush(user)
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { auto_login_token: token.value }
+    })
 
     return token.value
   }
@@ -156,11 +174,15 @@ export class AuthService {
    *
    * @returns the generated token
    */
-  async setUserResetPasswordToken(user: User | MasterUser): Promise<string> {
+  async setUserResetPasswordToken(user: user | master_user): Promise<string> {
     const token = this.authTokenService.createTokenForUser(user, { expiresIn: '5m', audience: 'rastercar-api/auth/reset-password' })
-    user.resetPasswordToken = token.value
 
-    user instanceof User ? await this.userRepository.persistAndFlush(user) : await this.masterUserRepository.persistAndFlush(user)
+    const args = {
+      where: { id: user.id },
+      data: { reset_password_token: token.value }
+    }
+
+    isMasterUser(user) ? await this.prisma.master_user.update(args) : await this.prisma.user.update(args)
 
     return token.value
   }
@@ -175,25 +197,20 @@ export class AuthService {
     const decodedToken = await this.authTokenService.validateAndDecodeToken(passwordResetToken)
     const userToUpdate = await this.authTokenService.getUserFromDecodedTokenOrFail(decodedToken)
 
-    userToUpdate instanceof User
-      ? await this.userRepository.populate(userToUpdate, ['resetPasswordToken'])
-      : await this.masterUserRepository.populate(userToUpdate, ['resetPasswordToken'])
+    const isMaster = !!(userToUpdate as master_user).master_access_level_id
 
-    if (userToUpdate.resetPasswordToken !== passwordResetToken) {
+    if (userToUpdate.reset_password_token !== passwordResetToken) {
       const errorMsg =
-        userToUpdate.resetPasswordToken === null
+        userToUpdate.reset_password_token === null
           ? 'Token was valid but user does not have a resetPasswordToken set'
           : 'Token was valid but a new password reset token was generated'
 
       throw new UnauthorizedException(errorMsg)
     }
 
-    userToUpdate.password = bcrypt.hashSync(password, 10)
-    userToUpdate.resetPasswordToken = null
+    const args = { where: { id: userToUpdate.id }, data: { password: bcrypt.hashSync(password, 10), reset_password_token: null } }
 
-    userToUpdate instanceof User
-      ? await this.userRepository.persistAndFlush(userToUpdate)
-      : await this.masterUserRepository.persistAndFlush(userToUpdate)
+    isMaster ? await this.prisma.master_user.update(args) : await this.prisma.user.update(args)
 
     return userToUpdate
   }
@@ -203,9 +220,9 @@ export class AuthService {
    */
   async checkEmailAddressInUse(email: string, options?: CheckEmailInUseOptions): Promise<boolean> {
     const [org, masterUser, user] = await Promise.all([
-      this.organizationRepository.findOne({ billingEmail: email }, { fields: ['id'] }),
-      this.masterUserRepository.findOne({ email }, { fields: ['id'] }),
-      this.userRepository.findOne({ email }, { fields: ['id'] })
+      this.prisma.organization.findUnique({ where: { billing_email: email }, select: { id: true } }),
+      this.prisma.master_user.findUnique({ where: { email }, select: { id: true } }),
+      this.prisma.user.findUnique({ where: { email }, select: { id: true } })
     ])
 
     const inUse = !!(user || org || masterUser)

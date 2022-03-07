@@ -1,6 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common'
 import { checkRequestUserIsOfType } from './master-user-only-route.guard'
-import { User } from '../entities/user.entity'
+// import { checkRequestUserIsOfType } from './master-user-only-route.guard'
 
 /**
  * Validates if the request user is of User type (not MasterUser)
@@ -10,6 +10,6 @@ import { User } from '../entities/user.entity'
 @Injectable()
 export class UserOnlyGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    return checkRequestUserIsOfType(context, User)
+    return checkRequestUserIsOfType(context, 'user')
   }
 }

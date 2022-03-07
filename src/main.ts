@@ -1,14 +1,17 @@
-import { addMikroOrmRequestContextMiddleware, createApp, initApp, setupAppGlobals } from './bootstrap/setup-app'
+import { setupAppGlobals } from './bootstrap/setup-app'
+import { NestFactory } from '@nestjs/core'
+import { AppModule } from './app.module'
+import { ConfigService } from '@nestjs/config'
 
 async function bootstrap() {
-  const app = await createApp()
+  const app = await NestFactory.create(AppModule)
 
   setupAppGlobals(app)
 
-  // IMPORTANT: MUST BE AFTER SETUP APP GLOBALS
-  addMikroOrmRequestContextMiddleware(app)
+  const configService = app.get(ConfigService)
+  const port = configService.get('API_PORT', 3000)
 
-  initApp(app)
+  await app.listen(port)
 }
 
 bootstrap()

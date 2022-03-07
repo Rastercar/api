@@ -1,10 +1,10 @@
-import { MikroOrmModule } from '@mikro-orm/nestjs'
-import ormConfig from './mikro-orm.config'
-import { Module } from '@nestjs/common'
-import { entities } from './entities'
+import { PrismaService } from './prisma.service'
+import { Global, Module } from '@nestjs/common'
 
+@Global()
 @Module({
-  imports: [MikroOrmModule.forRoot(ormConfig), MikroOrmModule.forFeature({ entities })],
-  exports: [MikroOrmModule]
+  imports: [PrismaService],
+  exports: [PrismaService],
+  providers: [PrismaService]
 })
 export class OrmModule {}

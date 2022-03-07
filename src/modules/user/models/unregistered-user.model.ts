@@ -8,9 +8,9 @@ export class UnregisteredUserModel {
   @Field(() => String, { nullable: true })
   username!: string | null
 
-  @Field()
-  email!: string
+  @Field(() => String, { nullable: true })
+  email!: string | null
 
   @Field()
-  emailVerified!: boolean
+  email_verified!: boolean
 }

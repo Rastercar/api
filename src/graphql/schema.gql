@@ -29,7 +29,7 @@ type LoginResponse {
 """master user (a user with access to the main panel"""
 type MasterUserModel {
   email: String!
-  emailVerified: Boolean!
+  email_verified: Boolean!
   id: Int!
   username: String!
 }
@@ -43,8 +43,8 @@ type Mutation {
 
 """organization"""
 type OrganizationModel {
-  billingEmail: String!
-  billingEmailVerified: Boolean!
+  billing_email: String!
+  billing_email_verified: Boolean!
   blocked: Boolean!
   id: Int!
   name: String!
@@ -83,8 +83,8 @@ type TrackerModel {
 
 """unregistered user"""
 type UnregisteredUserModel {
-  email: String!
-  emailVerified: Boolean!
+  email: String
+  email_verified: Boolean!
   username: String
   uuid: String!
 }
@@ -105,8 +105,8 @@ input UpdateUserDTO {
 type UserModel {
   accessLevel: AccessLevelModel!
   email: String!
-  emailVerified: Boolean!
-  googleProfileId: String
+  email_verified: Boolean!
+  google_profile_id: String
   id: Int!
   organization: OrganizationModel!
   username: String!

@@ -13,8 +13,8 @@ export class UserModel {
   email!: string
 
   @Field()
-  emailVerified!: boolean
+  email_verified!: boolean
 
   @Field(() => String, { nullable: true })
-  googleProfileId!: string | null
+  google_profile_id!: string | null
 }

@@ -1,24 +1,24 @@
 import { Body, Controller, Get, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common'
-import { ValidLoginRequestGuard } from './guards/valid-login-request.guard'
-import { MasterUserService } from '../user/services/master-user.service'
-import { ChangePasswordDTO } from '../user/dtos/change-password.dto'
-import { AuthMailerService } from './services/auth-mailer.service'
-import { RequestUser } from './decorators/request-user.decorator'
-import { MasterUser } from '../user/entities/master-user.entity'
-import { AuthTokenService } from './services/auth-token.service'
-import { ForgotPasswordDTO } from './dtos/forgot-password.dto'
-import { LoginResponse } from './models/login-response.model'
-import { GoogleAuthGuard } from './guards/google-auth.guard'
-import { CheckPasswordDTO } from './dtos/check-password.dto'
-import { UserService } from '../user/services/user.service'
-import { LocalAuthGuard } from './guards/local-auth.guard'
-import { JwtAuthGuard } from './guards/jwt-auth.guard'
-import { PWA_ROUTE } from '../../constants/pwa-routes'
-import { AuthService } from './services/auth.service'
-import { createPwaUrl } from '../mail/mailer.utils'
-import { User } from '../user/entities/user.entity'
-import { Profile } from 'passport-google-oauth20'
+import { master_user, user } from '@prisma/client'
 import { Request, Response } from 'express'
+import { Profile } from 'passport-google-oauth20'
+import { PWA_ROUTE } from '../../constants/pwa-routes'
+import { createPwaUrl } from '../mail/mailer.utils'
+import { ChangePasswordDTO } from '../user/dtos/change-password.dto'
+import { MasterUserService } from '../user/services/master-user.service'
+import { UserService } from '../user/services/user.service'
+import { isMasterUser } from '../user/user.utils'
+import { RequestUser } from './decorators/request-user.decorator'
+import { CheckPasswordDTO } from './dtos/check-password.dto'
+import { ForgotPasswordDTO } from './dtos/forgot-password.dto'
+import { GoogleAuthGuard } from './guards/google-auth.guard'
+import { JwtAuthGuard } from './guards/jwt-auth.guard'
+import { LocalAuthGuard } from './guards/local-auth.guard'
+import { ValidLoginRequestGuard } from './guards/valid-login-request.guard'
+import { LoginResponse } from './models/login-response.model'
+import { AuthMailerService } from './services/auth-mailer.service'
+import { AuthTokenService } from './services/auth-token.service'
+import { AuthService } from './services/auth.service'
 
 @Controller('auth')
 export class AuthController {
@@ -36,7 +36,7 @@ export class AuthController {
    */
   @Get('send-email-address-confirmation-email')
   @UseGuards(JwtAuthGuard)
-  sendEmailConfirmation(@RequestUser() user: User | MasterUser) {
+  sendEmailConfirmation(@RequestUser() user: user | master_user) {
     return this.authMailerService.sendEmailAdressConfirmationEmail(user.email)
   }
 
@@ -67,9 +67,10 @@ export class AuthController {
    */
   @Get('confirm-email-address')
   @UseGuards(JwtAuthGuard)
-  async confirmEmailAddress(@RequestUser() user: User | MasterUser) {
-    const isRegularUser = user instanceof User
+  async confirmEmailAddress(@RequestUser() user: user | master_user) {
+    const isRegularUser = !isMasterUser(user)
 
+    // TODO create type guard for diffing users and master_users
     isRegularUser
       ? await this.userService.updateUser(user, { emailVerified: true })
       : await this.masterUserService.updateMasterUser(user, { emailVerified: true })
@@ -82,7 +83,7 @@ export class AuthController {
    */
   @Post('login')
   @UseGuards(ValidLoginRequestGuard, LocalAuthGuard)
-  login(@RequestUser() user: User): Promise<LoginResponse> {
+  login(@RequestUser() user: user): Promise<LoginResponse> {
     return this.authService.login(user)
   }
 
@@ -127,9 +128,9 @@ export class AuthController {
       const tokenPayload = await this.authTokenService.validateAndDecodeToken(query.state as string)
       const userToLinkAccountFor = await this.authTokenService.getUserFromDecodedTokenOrFail(tokenPayload)
 
-      if (userToLinkAccountFor instanceof MasterUser) throw new UnauthorizedException('Master users cannot use oauth services')
+      if (isMasterUser(userToLinkAccountFor)) throw new UnauthorizedException('Master users cannot use oauth services')
 
-      if (userToLinkAccountFor.googleProfileId) {
+      if (userToLinkAccountFor.google_profile_id) {
         throw new UnauthorizedException(`User ${userToLinkAccountFor.id} already linked to a google account, unlink it first`)
       }
 

@@ -1,11 +1,10 @@
-import { MasterUserRepository } from '../../user/repositories/master-user.repository'
-import { UserRepository } from '../../user/repositories/user.repository'
-import { MasterUser } from '../../user/entities/master-user.entity'
+import { JwtPayload } from '../strategies/jwt.strategy'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService, JwtSignOptions } from '@nestjs/jwt'
-import { JwtPayload } from '../strategies/jwt.strategy'
-import { User } from '../../user/entities/user.entity'
+import { master_user, user } from '@prisma/client'
+import { PrismaService } from '../../../database/prisma.service'
 import { isEmail } from 'class-validator'
+import { isMasterUser } from '../../user/user.utils'
 
 const isJwtPayloadWithStringSubject = (payload: unknown): payload is JwtPayload => {
   return !!payload && typeof payload === 'object' && !Array.isArray(payload) && typeof (payload as JwtPayload).sub === 'string'
@@ -13,17 +12,14 @@ const isJwtPayloadWithStringSubject = (payload: unknown): payload is JwtPayload 
 
 @Injectable()
 export class AuthTokenService {
-  constructor(
-    readonly jwtService: JwtService,
-    readonly userRepository: UserRepository,
-    readonly masterUserRepository: MasterUserRepository
-  ) {}
+  constructor(readonly prisma: PrismaService, readonly jwtService: JwtService) {}
 
-  async getUserOrMasterUserByEmail(email: string): Promise<User | MasterUser | null> {
-    const masterUser = await this.masterUserRepository.findOne({ email })
-    if (masterUser) return masterUser
+  async getUserOrMasterUserByEmail(email: string): Promise<user | master_user | null> {
+    const master_user = await this.prisma.master_user.findUnique({ where: { email } })
 
-    return this.userRepository.findOne({ email })
+    if (master_user) return master_user
+
+    return this.prisma.user.findUnique({ where: { email } })
   }
 
   async validateAndDecodeToken(token: string, errorMessage = 'Invalid/expired token') {
@@ -80,9 +76,8 @@ export class AuthTokenService {
    * Creates a token with a payload that specifies the user type and id, which is
    * expected in the JwtAuthGuard
    */
-  createTokenForUser(user: User | MasterUser, options?: JwtSignOptions) {
-    const isMaster = user instanceof MasterUser
-    const sub = `${isMaster ? 'masteruser' : 'user'}-${user.id}`
+  createTokenForUser(user: user | master_user, options?: JwtSignOptions) {
+    const sub = `${isMasterUser(user) ? 'masteruser' : 'user'}-${user.id}`
 
     return {
       type: 'bearer',
@@ -97,7 +92,7 @@ export class AuthTokenService {
    *
    * @throws {UnauthorizedException} if the token is invalid or a user is not found
    */
-  async getUserFromDecodedTokenOrFail<T>(jwtPayload: T extends Promise<unknown> ? never : T): Promise<User | MasterUser> {
+  async getUserFromDecodedTokenOrFail<T>(jwtPayload: T extends Promise<unknown> ? never : T): Promise<user | master_user> {
     if (!isJwtPayloadWithStringSubject(jwtPayload)) {
       throw new UnauthorizedException('Invalid token content, subject not found')
     }
@@ -113,7 +108,10 @@ export class AuthTokenService {
 
     const { id, idRefersTo } = this.checkSubjectIsValidUserIdentifier(emailOrIdentifier)
 
-    const user = idRefersTo === 'user' ? await this.userRepository.findOne({ id }) : await this.masterUserRepository.findOne({ id })
+    const user =
+      idRefersTo === 'user'
+        ? await this.prisma.user.findUnique({ where: { id } })
+        : await this.prisma.master_user.findUnique({ where: { id } })
 
     if (!user) throw new UnauthorizedException(`No ${idRefersTo} found with id`)
 

@@ -1,18 +1,13 @@
-import { OrganizationRepository } from '../../organization/repositories/organization.repository'
-import { UnregisteredUserRepository } from '../repositories/unregistered-user.repository'
-import { Organization } from '../../organization/entities/organization.entity'
-import { UnregisteredUser } from '../entities/unregistered-user.entity'
-import { AccessLevel } from '../../auth/entities/access-level.entity'
 import { RegisterUserDTO } from '../../auth/dtos/register-user.dto'
-import { UserRepository } from '../repositories/user.repository'
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { PrismaService } from '../../../database/prisma.service'
 import { AuthService } from '../../auth/services/auth.service'
 import { PERMISSION } from '../../auth/constants/permissions'
-import { ERROR_CODES } from '../../../constants/error.codes'
 import { UpdateUserDTO } from '../dtos/update-user.dto'
-import { Profile } from 'passport-google-oauth20'
-import { User } from '../entities/user.entity'
+import { BadRequestException, Injectable } from '@nestjs/common'
+import { Prisma, unregistered_user, user } from '@prisma/client'
 import * as bcrypt from 'bcrypt'
+import { ERROR_CODES } from '../../../constants/error.codes'
+import { Profile } from 'passport-google-oauth20'
 
 /*
  * Contains aditional fields that would be unreasonable
@@ -26,69 +21,75 @@ interface UpdateUserData extends UpdateUserDTO {
 
 @Injectable()
 export class UserService {
-  constructor(
-    readonly authService: AuthService,
-    readonly userRepository: UserRepository,
-    readonly organizationRepository: OrganizationRepository,
-    readonly unregisteredUserRepository: UnregisteredUserRepository
-  ) {}
+  constructor(readonly prisma: PrismaService, readonly authService: AuthService) {}
 
   /**
    * Creates a new user and his organization, if the new user being registered refers to
    * a previously unregistered user the unregistered user data is used to fill the new user
    * oauth columns and the unregistered user row is deleted
    */
-  async registerUser(user: RegisterUserDTO): Promise<User> {
-    await this.authService.checkEmailAddressInUse(user.email, { throwExceptionIfInUse: true })
+  async registerUser(dto: RegisterUserDTO): Promise<user> {
+    await this.authService.checkEmailAddressInUse(dto.email, { throwExceptionIfInUse: true })
 
-    const urUserOrNull = user.refersToUnregisteredUser
-      ? await this.unregisteredUserRepository.findOne({ uuid: user.refersToUnregisteredUser })
+    const urUserOrNull = dto.refersToUnregisteredUser
+      ? await this.prisma.unregistered_user.findUnique({ where: { uuid: dto.refersToUnregisteredUser } })
       : null
 
-    const emailVerified = urUserOrNull ? urUserOrNull.emailVerified : false
+    const emailVerified = urUserOrNull ? urUserOrNull.email_verified : false
 
-    const organizationToRegister = new Organization({
-      name: user.username,
-      billingEmail: user.email,
-      billingEmailVerified: emailVerified
-    })
-
-    const userToRegister = new User({
-      email: user.email,
-      username: user.username,
-      password: bcrypt.hashSync(user.password, 10),
-      emailVerified,
-      googleProfileId: urUserOrNull?.oauthProfileId && urUserOrNull.oauthProvider === 'google' ? urUserOrNull.oauthProfileId : null,
-      organization: organizationToRegister,
-      accessLevel: new AccessLevel({
-        name: 'admin',
-        isFixed: true,
-        description: '',
-        organization: organizationToRegister,
-        permissions: Object.values(PERMISSION)
+    const { user, organization } = await this.prisma.$transaction(async prisma => {
+      const organization = await prisma.organization.create({
+        data: {
+          blocked: false,
+          name: dto.username,
+          billing_email: dto.email,
+          billing_email_verified: emailVerified
+        }
       })
+
+      const google_profile_id =
+        urUserOrNull?.oauth_profile_id && urUserOrNull.oauth_provider === 'google' ? urUserOrNull.oauth_profile_id : null
+
+      const user = await prisma.user.create({
+        data: {
+          email: dto.email,
+          username: dto.username,
+          password: bcrypt.hashSync(dto.password, 10),
+          email_verified: emailVerified,
+          google_profile_id,
+          organization: {
+            connect: { id: organization.id }
+          },
+          access_level: {
+            create: {
+              name: 'admin',
+              is_fixed: true,
+              description: '',
+              permissions: Object.values(PERMISSION)
+            }
+          }
+        }
+      })
+
+      if (urUserOrNull !== null) {
+        prisma.unregistered_user.delete({ where: { uuid: urUserOrNull.uuid } })
+      }
+
+      return { user, organization }
     })
 
-    if (urUserOrNull !== null) {
-      this.unregisteredUserRepository.remove(urUserOrNull)
-    }
+    // Set the user as the his organization owner
+    await this.prisma.organization.update({
+      where: { id: organization.id },
+      data: {
+        owner: { connect: { id: user.id } }
+      }
+    })
 
-    await this.userRepository.persistAndFlush(userToRegister)
-
-    const getUserAndSetHimAsTheOrganizationOwner = async () => {
-      const createdUser = await this.userRepository.findOneOrFail({ email: userToRegister.email }, { populate: ['organization'] })
-
-      createdUser.organization.owner = createdUser
-
-      await this.organizationRepository.persistAndFlush(createdUser.organization)
-
-      return createdUser
-    }
-
-    return getUserAndSetHimAsTheOrganizationOwner()
+    return user
   }
 
-  async updateUser(userToUpdate: User, newData: UpdateUserData): Promise<User> {
+  async updateUser(userToUpdate: user, newData: UpdateUserData): Promise<user> {
     const {
       email,
       username,
@@ -99,68 +100,81 @@ export class UserService {
       oldPassword: oldPasswordVerification
     } = newData
 
+    const data: Prisma.userUpdateInput = {}
+
     if (email && email !== userToUpdate.email) {
       await this.authService.checkEmailAddressInUse(email, { throwExceptionIfInUse: true })
     }
 
     if (newPassword) {
       if (oldPasswordVerification) {
-        await this.userRepository.populate(userToUpdate, ['password'])
         const oldPasswordIsValid = await this.authService.comparePasswords(oldPasswordVerification, userToUpdate.password as string)
         if (!oldPasswordIsValid) throw new BadRequestException(ERROR_CODES.OLD_PASSWORD_INVALID)
       }
 
-      userToUpdate.password = bcrypt.hashSync(newPassword, 10)
+      data.password = bcrypt.hashSync(newPassword, 10)
     }
 
     if (typeof emailVerified === 'boolean') {
+      const org = await this.prisma.user.findUnique({ where: { id: userToUpdate.organization_id } }).owned_organization()
+
       // If the user owns a organization with the same email address
       // and were updating the emailVerifiedStatus we can set the org
       // billingEmailVerified to the same value
-      if (userToUpdate.ownedOrganization?.billingEmail === userToUpdate.email) {
-        userToUpdate.ownedOrganization.billingEmailVerified = emailVerified
+      if (org?.billing_email === userToUpdate.email) {
+        org.billing_email_verified = emailVerified
+        await this.prisma.organization.update({
+          where: { id: org.id },
+          data: { billing_email_verified: emailVerified }
+        })
       }
 
-      userToUpdate.emailVerified = emailVerified
+      data.email_verified = emailVerified
     }
 
-    if (googleProfileId) userToUpdate.googleProfileId = googleProfileId
-    if (removeGoogleProfileLink) userToUpdate.googleProfileId = null
-    if (username) userToUpdate.username = username
+    if (googleProfileId) data.google_profile_id = googleProfileId
+    if (removeGoogleProfileLink) data.google_profile_id = null
+    if (username) data.username = username
 
     if (email) {
       // If were changing the email we assume its unverified unless told otherwise
-      userToUpdate.emailVerified = emailVerified ?? false
-      userToUpdate.email = email
+      data.email_verified = emailVerified ?? false
+      data.email = email
     }
 
-    await this.userRepository.persistAndFlush(userToUpdate)
+    const user = await this.prisma.user.update({
+      where: { id: userToUpdate.id },
+      data
+    })
 
-    return userToUpdate
+    return user
   }
 
-  getUserForGoogleProfile(googleProfileId: string): Promise<User | null> {
-    return this.userRepository.findOne({ googleProfileId })
+  getUserForGoogleProfile(googleProfileId: string): Promise<user | null> {
+    return this.prisma.user.findUnique({ where: { google_profile_id: googleProfileId } })
   }
 
-  async createOrFindUnregisteredUserForGoogleProfile(googleProfile: Profile): Promise<UnregisteredUser> {
-    const existingUrUser = await this.unregisteredUserRepository.findOne({ oauthProfileId: googleProfile.id, oauthProvider: 'google' })
+  async createOrFindUnregisteredUserForGoogleProfile(googleProfile: Profile): Promise<unregistered_user> {
+    const existingUrUser = await this.prisma.unregistered_user.findFirst({
+      where: {
+        oauth_provider: 'google',
+        oauth_profile_id: googleProfile.id
+      }
+    })
 
     if (existingUrUser) return existingUrUser
 
     const profileEmail = googleProfile.emails?.[0] ?? { value: undefined, verified: 'false' }
 
-    const unregisteredUser = new UnregisteredUser({
-      username: googleProfile.username,
-      email: profileEmail.value,
-      // Sometimes the verified prop comes as boolean despite the typing
-      emailVerified: profileEmail.verified === 'true' || (profileEmail.verified as unknown as boolean) === true,
-      oauthProfileId: googleProfile.id,
-      oauthProvider: 'google'
+    return this.prisma.unregistered_user.create({
+      data: {
+        username: googleProfile.username,
+        email: profileEmail.value,
+        // Sometimes the verified prop comes as boolean despite the typing
+        email_verified: profileEmail.verified === 'true' || (profileEmail.verified as unknown as boolean) === true,
+        oauth_profile_id: googleProfile.id,
+        oauth_provider: 'google'
+      }
     })
-
-    await this.unregisteredUserRepository.persistAndFlush(unregisteredUser)
-
-    return unregisteredUser
   }
 }

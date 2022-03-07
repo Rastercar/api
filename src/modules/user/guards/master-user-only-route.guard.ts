@@ -1,14 +1,15 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common'
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql'
-import { MasterUser } from '../entities/master-user.entity'
-import { User } from '../entities/user.entity'
+import { isMasterUser } from '../user.utils'
 
-export const checkRequestUserIsOfType = (context: ExecutionContext, type: typeof User | typeof MasterUser) => {
+export const checkRequestUserIsOfType = (context: ExecutionContext, type: 'user' | 'master_user') => {
   const isGraphqlContext = context.getType<GqlContextType>() === 'graphql'
   const { user } = isGraphqlContext ? GqlExecutionContext.create(context).getContext().req : context.switchToHttp().getRequest()
 
-  if (!(user instanceof type)) {
-    throw new UnauthorizedException(`Route only accesible for ${type === User ? 'Users' : 'MasterUsers'}`)
+  const userType = isMasterUser(user) ? 'master_user' : 'user'
+
+  if (userType !== type) {
+    throw new UnauthorizedException(`Route only accesible for ${type === 'user' ? 'Users' : 'MasterUsers'}`)
   }
 
   return true
@@ -22,6 +23,6 @@ export const checkRequestUserIsOfType = (context: ExecutionContext, type: typeof
 @Injectable()
 export class MasterUserOnlyGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    return checkRequestUserIsOfType(context, MasterUser)
+    return checkRequestUserIsOfType(context, 'master_user')
   }
 }

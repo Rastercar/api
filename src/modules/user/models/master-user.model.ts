@@ -13,5 +13,5 @@ export class MasterUserModel {
   email!: string
 
   @Field()
-  emailVerified!: boolean
+  email_verified!: boolean
 }

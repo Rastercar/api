@@ -1,20 +1,26 @@
-import { MasterUserRepository } from '../repositories/master-user.repository'
-import { MasterUser } from '../entities/master-user.entity'
+import { PrismaService } from '../../../database/prisma.service'
+import { master_user, Prisma } from '@prisma/client'
 import { Injectable } from '@nestjs/common'
 import * as bcrypt from 'bcrypt'
 
 @Injectable()
 export class MasterUserService {
-  constructor(readonly masterUserRepository: MasterUserRepository) {}
+  constructor(readonly prisma: PrismaService) {}
 
-  async updateMasterUser(userToUpdate: MasterUser, newData: { emailVerified?: boolean; password?: string }): Promise<MasterUser> {
+  async updateMasterUser(user: master_user, newData: { emailVerified?: boolean; password?: string }): Promise<master_user> {
     const { emailVerified, password: newPassword } = newData
 
-    if (typeof emailVerified === 'boolean') userToUpdate.emailVerified = emailVerified
-    if (newPassword) userToUpdate.password = bcrypt.hashSync(newPassword, 10)
+    const shouldUpdate = Object.values(newData).some(value => value !== undefined)
+    if (!shouldUpdate) return user
 
-    await this.masterUserRepository.persistAndFlush(userToUpdate)
+    const data: Prisma.master_userUpdateInput = {
+      email_verified: emailVerified
+    }
 
-    return userToUpdate
+    if (newPassword) data.password = bcrypt.hashSync(newPassword, 10)
+
+    await this.prisma.master_user.update({ where: { id: user.id }, data })
+
+    return user
   }
 }

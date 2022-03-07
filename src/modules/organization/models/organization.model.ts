@@ -12,8 +12,8 @@ export class OrganizationModel {
   blocked!: boolean
 
   @Field()
-  billingEmail!: string
+  billing_email!: string
 
   @Field()
-  billingEmailVerified!: boolean
+  billing_email_verified!: boolean
 }

@@ -1,14 +1,14 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql'
-import { LoginResponse } from './models/login-response.model'
-import { UserService } from '../user/services/user.service'
-import { RegisterUserDTO } from './dtos/register-user.dto'
 import { is, returns } from '../../utils/coverage-helpers'
+import { UserService } from '../user/services/user.service'
 import { LoginInput } from './dtos/login.dto'
+import { RegisterUserDTO } from './dtos/register-user.dto'
+import { LoginResponse } from './models/login-response.model'
 import { AuthService } from './services/auth.service'
 
 @Resolver()
 export class AuthResolver {
-  constructor(private readonly authService: AuthService, private readonly userService: UserService) {}
+  constructor(readonly authService: AuthService, readonly userService: UserService) {}
 
   @Query(returns(Boolean))
   isEmailInUse(@Args('email', { type: is(String) }) email: string) {

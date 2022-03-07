@@ -1,6 +1,4 @@
-import { OrganizationRepository } from './repositories/organization.repository'
 import { OrganizationService } from '../organization/organization.service'
-import { createEmptyMocksFor } from '../../../test/utils/mocking'
 import { Test, TestingModule } from '@nestjs/testing'
 
 describe('OrganizationService', () => {
@@ -8,7 +6,7 @@ describe('OrganizationService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [OrganizationService, ...createEmptyMocksFor([OrganizationRepository])]
+      providers: [OrganizationService]
     }).compile()
 
     service = module.get(OrganizationService)
