@@ -12,6 +12,6 @@ export class SimCardResolver {
   @ResolveField('tracker', () => TrackerModel, { nullable: true })
   async tracker(@Parent() simCard: SimCard) {
     if (!simCard.tracker?.id) return null
-    return this.trackerLoader.loader.load(simCard.tracker.id)
+    return this.trackerLoader.byId.load(simCard.tracker.id)
   }
 }

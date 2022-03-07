@@ -1,11 +1,9 @@
 import * as DataLoader from 'dataloader'
 
 /**
- * Creates a generic dataLoader that will
- *
- * TODO: fix-typing
+ * Creates a data loader to load entities by id
  */
-export function createDataLoader(repository: any) {
+export function createByIdLoader(repository: any) {
   return new DataLoader(async (ids: readonly number[]) => {
     const entities = await repository.find({ id: { $in: ids as number[] } } as any)
     const vehiclesMap = new Map(entities.map(entity => [(entity as any).id, entity]))

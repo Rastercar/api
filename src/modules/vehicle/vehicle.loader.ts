@@ -1,4 +1,4 @@
-import { createDataLoader } from '../../graphql/data-loader.utils'
+import { createByIdLoader } from '../../graphql/data-loader.utils'
 import { VehicleRepository } from './vehicle.repository'
 import { Injectable, Scope } from '@nestjs/common'
 
@@ -6,5 +6,5 @@ import { Injectable, Scope } from '@nestjs/common'
 export default class VehicleLoader {
   constructor(readonly vehicleRepository: VehicleRepository) {}
 
-  loader = createDataLoader(this.vehicleRepository)
+  byId = createByIdLoader(this.vehicleRepository)
 }
