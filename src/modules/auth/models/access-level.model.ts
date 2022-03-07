@@ -1,6 +1,7 @@
 import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql'
-import { PERMISSION } from '../constants/permissions'
+
 import { is } from '../../../utils/coverage-helpers'
+import { PERMISSION } from '../constants/permissions'
 
 registerEnumType(PERMISSION, { name: 'PERMISSION' })
 

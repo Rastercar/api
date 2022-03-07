@@ -2,8 +2,6 @@ import { Controller, Get, UnauthorizedException } from '@nestjs/common'
 
 @Controller()
 export class HealthcheckController {
-  constructor() {}
-
   @Get('healthcheck')
   getHealthcheck() {
     return 'ok'

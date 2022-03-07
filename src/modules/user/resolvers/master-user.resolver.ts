@@ -1,30 +1,31 @@
-import { MasterAccessLevelModel } from '../../auth/models/master-access-level.model'
-import { AccessLevelModel } from '../../auth/models/access-level.model'
-import { PrismaService } from '../../../database/prisma.service'
 import { Parent, ResolveField, Resolver } from '@nestjs/graphql'
-import { MasterUserModel } from '../models/master-user.model'
+import { MasterUser } from '@prisma/client'
+
+import { PrismaService } from '../../../database/prisma.service'
 import { of } from '../../../utils/coverage-helpers'
-import { master_user } from '@prisma/client'
+import { AccessLevelModel } from '../../auth/models/access-level.model'
+import { MasterAccessLevelModel } from '../../auth/models/master-access-level.model'
+import { MasterUserModel } from '../models/master-user.model'
 
 @Resolver(of(MasterUserModel))
 export class MasterUserResolver {
   constructor(readonly prisma: PrismaService) {}
 
   @ResolveField('accessLevel', () => AccessLevelModel)
-  async accessLevel(@Parent() master_user: master_user) {
-    return this.prisma.master_user
+  async accessLevel(@Parent() masterUser: MasterUser) {
+    return this.prisma.masterUser
       .findUnique({
-        where: { id: master_user.id }
+        where: { id: masterUser.id }
       })
-      .access_level()
+      .accessLevel()
   }
 
   @ResolveField('masterAccessLevel', () => MasterAccessLevelModel)
-  async masterAccessLevel(@Parent() master_user: master_user) {
-    return this.prisma.master_user
+  async masterAccessLevel(@Parent() masterUser: MasterUser) {
+    return this.prisma.masterUser
       .findUnique({
-        where: { id: master_user.id }
+        where: { id: masterUser.id }
       })
-      .master_access_level()
+      .masterAccessLevel()
   }
 }

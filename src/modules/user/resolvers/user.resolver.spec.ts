@@ -1,19 +1,11 @@
-import { createFakeMasterUser } from '../../../database/factories/master-user.factory'
-import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
-import { MasterUserRepository } from '../repositories/master-user.repository'
-import { createFakeUser } from '../../../database/factories/user.factory'
-import { createEmptyMocksFor } from '../../../../test/utils/mocking'
 import { MasterUserService } from '../services/master-user.service'
-import { UserRepository } from '../repositories/user.repository'
 import { UpdateUserDTO } from '../dtos/update-user.dto'
 import { UserService } from '../services/user.service'
 import { Test, TestingModule } from '@nestjs/testing'
 import { UserResolver } from './user.resolver'
 
 describe('UserResolver', () => {
-  let masterUserRepository: MasterUserRepository
   let masterUserService: MasterUserService
-  let userRepository: UserRepository
   let userService: UserService
   let resolver: UserResolver
 
@@ -21,7 +13,6 @@ describe('UserResolver', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserResolver,
-        ...createEmptyMocksFor([UserRepository, MasterUserRepository], createRepositoryMock),
         {
           provide: UserService,
           useFactory: () => ({
@@ -37,24 +28,20 @@ describe('UserResolver', () => {
 
     resolver = module.get(UserResolver)
     userService = module.get(UserService)
-    userRepository = module.get(UserRepository)
     masterUserService = module.get(MasterUserService)
-    masterUserRepository = module.get(MasterUserRepository)
   })
 
   it('should be defined', () => {
     expect(resolver).toBeDefined()
     expect(userService).toBeDefined()
-    expect(userRepository).toBeDefined()
     expect(masterUserService).toBeDefined()
-    expect(masterUserRepository).toBeDefined()
   })
 
   describe('[me]', () => {
     it('just returns the user extracted by the CurrentUser guard', async () => {
       const userMock = createFakeUser(true)
 
-      let result = await resolver.me(userMock, [])
+      const result = await resolver.me(userMock, [])
       expect(result).toBe(userMock)
     })
 

@@ -1,6 +1,7 @@
-import { setupAppGlobals } from '../../src/bootstrap/setup-app'
 import { Test, TestingModule } from '@nestjs/testing'
+
 import { AppModule } from '../../src/app.module'
+import { setupAppGlobals } from '../../src/bootstrap/setup-app'
 
 interface Options {
   init?: boolean

@@ -16,5 +16,5 @@
     "noUnusedParameters": false,
     "skipLibCheck": true
   },
-  "include": ["src", "test", "jest.config.js"]
+  "include": ["src", "test", "prisma", "jest.config.js"]
 }

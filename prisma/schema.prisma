@@ -8,80 +8,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model access_level {
-  id              Int           @id @default(autoincrement())
-  created_at      DateTime      @default(now())
-  updated_at      DateTime?     @updatedAt
-  name            String        @db.VarChar(255)
-  description     String        @db.VarChar(255)
-  is_fixed        Boolean
-  permissions     String[]
-  organization_id Int?
-  organization    organization? @relation(fields: [organization_id], references: [id], map: "access_level_organization_id_foreign")
-  master_user     master_user[]
-  user            user[]
-}
-
-model master_access_level {
-  id          Int           @id @default(autoincrement())
-  created_at  DateTime      @default(now())
-  updated_at  DateTime?     @updatedAt
-  name        String        @db.VarChar(255)
-  description String        @db.VarChar(255)
-  is_fixed    Boolean
-  permissions String[]
-  master_user master_user[]
-}
-
-model master_user {
-  id                     Int                 @id @default(autoincrement())
-  created_at             DateTime            @default(now())
-  updated_at             DateTime?           @updatedAt
-  username               String              @db.VarChar(255)
-  last_login             DateTime?           @db.Timestamptz(0)
-  email                  String              @unique(map: "master_user_email_unique") @db.VarChar(255)
-  email_verified         Boolean             @default(false)
-  password               String              @db.VarChar(255)
-  reset_password_token   String?
-  access_level_id        Int?
-  master_access_level_id Int
-  access_level           access_level?       @relation(fields: [access_level_id], references: [id], map: "master_user_access_level_id_foreign")
-  master_access_level    master_access_level @relation(fields: [master_access_level_id], references: [id], onDelete: NoAction, map: "master_user_master_access_level_id_foreign")
-}
-
-model organization {
-  id                     Int            @id @default(autoincrement())
-  created_at             DateTime       @default(now())
-  updated_at             DateTime?      @updatedAt
-  name                   String         @db.VarChar(255)
-  deleted_at             DateTime?      @db.Timestamptz(0)
-  blocked                Boolean
-  billing_email          String         @unique(map: "organization_billing_email_unique") @db.VarChar(255)
-  billing_email_verified Boolean        @default(false)
-  owner_id               Int?           @unique(map: "organization_owner_id_unique")
-  owner                  user?          @relation("organization_user_owner", fields: [owner_id], references: [id], map: "organization_owner_id_foreign")
-  access_level           access_level[]
-  sim_card               sim_card[]
-  tracker                tracker[]
-  users                  user[]
-  vehicle                vehicle[]
-}
-
-model sim_card {
-  id              Int          @id @default(autoincrement())
-  created_at      DateTime     @default(now())
-  updated_at      DateTime?    @updatedAt
-  phone_number    String       @unique(map: "sim_card_phone_number_unique") @db.VarChar(255)
-  ssn             String       @unique(map: "sim_card_ssn_unique") @db.VarChar(255)
-  apn_address     String       @db.VarChar(255)
-  apn_user        String       @db.VarChar(255)
-  apn_password    String       @db.VarChar(255)
-  organization_id Int
-  tracker_id      Int?
-  organization    organization @relation(fields: [organization_id], references: [id], onDelete: NoAction, map: "sim_card_organization_id_foreign")
-  tracker         tracker?     @relation(fields: [tracker_id], references: [id], map: "sim_card_tracker_id_foreign")
-}
-
+// do not touch
 model spatial_ref_sys {
   srid      Int     @id
   auth_name String? @db.VarChar(256)
@@ -90,61 +17,135 @@ model spatial_ref_sys {
   proj4text String? @db.VarChar(2048)
 }
 
-model tracker {
-  id              Int          @id @default(autoincrement())
-  created_at      DateTime     @default(now())
-  updated_at      DateTime?    @updatedAt
-  model           String       @db.VarChar(255)
-  organization_id Int
-  vehicle_id      Int?
-  organization    organization @relation(fields: [organization_id], references: [id], onDelete: NoAction, map: "tracker_organization_id_foreign")
-  vehicle         vehicle?     @relation(fields: [vehicle_id], references: [id], map: "tracker_vehicle_id_foreign")
-  sim_card        sim_card[]
+model AccessLevel {
+  id             Int           @id @default(autoincrement())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime?     @updatedAt
+  name           String        @db.VarChar(255)
+  description    String        @db.VarChar(255)
+  isFixed        Boolean
+  permissions    String[]
+  organizationId Int?
+  organization   Organization? @relation(fields: [organizationId], references: [id], map: "access_level_organization_id_foreign")
+  masterUser     MasterUser[]
+  user           User[]
 }
 
-model unregistered_user {
-  uuid             String   @id @default(uuid())
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
-  username         String?  @db.VarChar(255)
-  email            String?  @db.VarChar(255)
-  email_verified   Boolean  @default(false)
-  oauth_provider   String   @db.VarChar(255)
-  oauth_profile_id String   @db.VarChar(255)
+model MasterAccessLevel {
+  id          Int          @id @default(autoincrement())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime?    @updatedAt
+  name        String       @db.VarChar(255)
+  description String       @db.VarChar(255)
+  isFixed     Boolean
+  permissions String[]
+  masterUser  MasterUser[]
 }
 
-model user {
+model MasterUser {
+  id                  Int               @id @default(autoincrement())
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime?         @updatedAt
+  username            String            @db.VarChar(255)
+  lastLogin           DateTime?         @db.Timestamptz(0)
+  email               String            @unique(map: "master_user_email_unique") @db.VarChar(255)
+  emailVerified       Boolean           @default(false)
+  password            String            @db.VarChar(255)
+  resetPasswordToken  String?
+  accessLevelId       Int?
+  masterAccessLevelId Int
+  accessLevel         AccessLevel?      @relation(fields: [accessLevelId], references: [id], map: "master_user_access_level_id_foreign")
+  masterAccessLevel   MasterAccessLevel @relation(fields: [masterAccessLevelId], references: [id], onDelete: NoAction, map: "master_user_master_access_level_id_foreign")
+}
+
+model Organization {
   id                   Int           @id @default(autoincrement())
-  created_at           DateTime      @default(now())
-  updated_at           DateTime?     @updatedAt
-  username             String        @db.VarChar(255)
-  last_login           DateTime?     @db.Timestamptz(0)
-  email                String        @unique(map: "user_email_unique") @db.VarChar(255)
-  email_verified       Boolean       @default(false)
-  password             String        @db.VarChar(255)
-  reset_password_token String?
-  google_profile_id    String?       @unique(map: "user_google_profile_id_unique") @db.VarChar(255)
-  auto_login_token     String?
-  organization_id      Int
-  access_level_id      Int
-  owned_organization   organization? @relation("organization_user_owner")
-  access_level         access_level  @relation(fields: [access_level_id], references: [id], onDelete: NoAction, map: "user_access_level_id_foreign")
-  organization         organization  @relation(fields: [organization_id], references: [id], onDelete: NoAction, map: "user_organization_id_foreign")
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime?     @updatedAt
+  name                 String        @db.VarChar(255)
+  deletedAt            DateTime?     @db.Timestamptz(0)
+  blocked              Boolean
+  billingEmail         String        @unique(map: "organization_billing_email_unique") @db.VarChar(255)
+  billingEmailVerified Boolean       @default(false)
+  ownerId              Int?          @unique(map: "organization_owner_id_unique")
+  owner                User?         @relation("organization_user_owner", fields: [ownerId], references: [id], map: "organization_owner_id_foreign")
+  accessLevel          AccessLevel[]
+  simCard              SimCard[]
+  tracker              Tracker[]
+  users                User[]
+  vehicle              Vehicle[]
 }
 
-model vehicle {
-  id               Int          @id @default(autoincrement())
-  created_at       DateTime     @default(now())
-  updated_at       DateTime?    @updatedAt
-  plate            String       @unique(map: "vehicle_plate_unique") @db.VarChar(255)
-  model_year       Int?         @db.SmallInt
-  fabrication_year Int?         @db.SmallInt
-  chassis_number   String?      @db.VarChar(255)
-  brand            String?      @db.VarChar(255)
-  model            String?      @db.VarChar(255)
-  renavam          String?      @db.VarChar(255)
-  color            String?      @db.VarChar(255)
-  organization_id  Int
-  organization     organization @relation(fields: [organization_id], references: [id], onDelete: NoAction, map: "vehicle_organization_id_foreign")
-  tracker          tracker[]
+model SimCard {
+  id             Int          @id @default(autoincrement())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime?    @updatedAt
+  phoneNumber    String       @unique(map: "sim_card_phone_number_unique") @db.VarChar(255)
+  ssn            String       @unique(map: "sim_card_ssn_unique") @db.VarChar(255)
+  apnAddress     String       @db.VarChar(255)
+  apnUser        String       @db.VarChar(255)
+  apnPassword    String       @db.VarChar(255)
+  organizationId Int
+  trackerId      Int?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: NoAction, map: "sim_card_organization_id_foreign")
+  tracker        Tracker?     @relation(fields: [trackerId], references: [id], map: "sim_card_tracker_id_foreign")
+}
+
+model Tracker {
+  id             Int          @id @default(autoincrement())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime?    @updatedAt
+  model          String       @db.VarChar(255)
+  organizationId Int
+  vehicleId      Int?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: NoAction, map: "tracker_organization_id_foreign")
+  vehicle        Vehicle?     @relation(fields: [vehicleId], references: [id], map: "tracker_vehicle_id_foreign")
+  simCard        SimCard[]
+}
+
+model UnregisteredUser {
+  uuid           String   @id @default(uuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  username       String?  @db.VarChar(255)
+  email          String?  @db.VarChar(255)
+  emailVerified  Boolean  @default(false)
+  oauthProvider  String   @db.VarChar(255)
+  oauthProfileId String   @db.VarChar(255)
+}
+
+model User {
+  id                 Int           @id @default(autoincrement())
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime?     @updatedAt
+  username           String        @db.VarChar(255)
+  lastLogin          DateTime?     @db.Timestamptz(0)
+  email              String        @unique(map: "user_email_unique") @db.VarChar(255)
+  emailVerified      Boolean       @default(false)
+  password           String        @db.VarChar(255)
+  resetPasswordToken String?
+  googleProfileId    String?       @unique(map: "user_google_profile_id_unique") @db.VarChar(255)
+  autoLoginToken     String?
+  organizationId     Int
+  accessLevelId      Int
+  ownedOrganization  Organization? @relation("organization_user_owner")
+  accessLevel        AccessLevel   @relation(fields: [accessLevelId], references: [id], onDelete: NoAction, map: "user_access_level_id_foreign")
+  organization       Organization  @relation(fields: [organizationId], references: [id], onDelete: NoAction, map: "user_organization_id_foreign")
+}
+
+model Vehicle {
+  id              Int          @id @default(autoincrement())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime?    @updatedAt
+  plate           String       @unique(map: "vehicle_plate_unique") @db.VarChar(255)
+  modelYear       Int?         @db.SmallInt
+  fabricationYear Int?         @db.SmallInt
+  chassisNumber   String?      @db.VarChar(255)
+  brand           String?      @db.VarChar(255)
+  model           String?      @db.VarChar(255)
+  renavam         String?      @db.VarChar(255)
+  color           String?      @db.VarChar(255)
+  organizationId  Int
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: NoAction, map: "vehicle_organization_id_foreign")
+  trackers        Tracker[]
 }

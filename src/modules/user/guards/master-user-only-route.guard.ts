@@ -1,5 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common'
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql'
+
 import { isMasterUser } from '../user.utils'
 
 export const checkRequestUserIsOfType = (context: ExecutionContext, type: 'user' | 'master_user') => {

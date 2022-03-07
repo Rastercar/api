@@ -1,6 +1,6 @@
-import { master_user, user } from '@prisma/client'
+import { MasterUser, User } from '@prisma/client'
 
-export const isMasterUser = (u: user | master_user): u is master_user => {
-  const mu = u as master_user
-  return !!mu.master_access_level_id || !mu.access_level_id
+export const isMasterUser = (u: User | MasterUser): u is MasterUser => {
+  const mu = u as MasterUser
+  return !!mu.masterAccessLevelId || !mu.accessLevelId
 }

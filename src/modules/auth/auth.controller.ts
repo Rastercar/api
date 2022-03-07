@@ -1,7 +1,8 @@
 import { Body, Controller, Get, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common'
-import { master_user, user } from '@prisma/client'
+import { MasterUser, User } from '@prisma/client'
 import { Request, Response } from 'express'
 import { Profile } from 'passport-google-oauth20'
+
 import { PWA_ROUTE } from '../../constants/pwa-routes'
 import { createPwaUrl } from '../mail/mailer.utils'
 import { ChangePasswordDTO } from '../user/dtos/change-password.dto'
@@ -36,7 +37,7 @@ export class AuthController {
    */
   @Get('send-email-address-confirmation-email')
   @UseGuards(JwtAuthGuard)
-  sendEmailConfirmation(@RequestUser() user: user | master_user) {
+  sendEmailConfirmation(@RequestUser() user: User | MasterUser) {
     return this.authMailerService.sendEmailAdressConfirmationEmail(user.email)
   }
 
@@ -67,7 +68,7 @@ export class AuthController {
    */
   @Get('confirm-email-address')
   @UseGuards(JwtAuthGuard)
-  async confirmEmailAddress(@RequestUser() user: user | master_user) {
+  async confirmEmailAddress(@RequestUser() user: User | MasterUser) {
     const isRegularUser = !isMasterUser(user)
 
     // TODO create type guard for diffing users and master_users
@@ -83,7 +84,7 @@ export class AuthController {
    */
   @Post('login')
   @UseGuards(ValidLoginRequestGuard, LocalAuthGuard)
-  login(@RequestUser() user: user): Promise<LoginResponse> {
+  login(@RequestUser() user: User): Promise<LoginResponse> {
     return this.authService.login(user)
   }
 
@@ -103,7 +104,9 @@ export class AuthController {
    */
   @Get('google/authenticate')
   @UseGuards(GoogleAuthGuard)
-  authenticate() {}
+  authenticate() {
+    //
+  }
 
   /**
    * Handles the redirection after a successfull authentification with google oauth2.
@@ -130,7 +133,7 @@ export class AuthController {
 
       if (isMasterUser(userToLinkAccountFor)) throw new UnauthorizedException('Master users cannot use oauth services')
 
-      if (userToLinkAccountFor.google_profile_id) {
+      if (userToLinkAccountFor.googleProfileId) {
         throw new UnauthorizedException(`User ${userToLinkAccountFor.id} already linked to a google account, unlink it first`)
       }
 

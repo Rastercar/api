@@ -1,7 +1,8 @@
-import { ConfigModule as NestConfigModule } from '@nestjs/config'
-import { validationSchema } from './validation.schema'
 import { Module } from '@nestjs/common'
+import { ConfigModule as NestConfigModule } from '@nestjs/config'
 import { resolve } from 'path'
+
+import { validationSchema } from './validation.schema'
 
 const envFilePathDict = {
   test: resolve('env', '.test.env'),

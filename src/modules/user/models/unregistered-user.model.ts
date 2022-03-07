@@ -12,5 +12,5 @@ export class UnregisteredUserModel {
   email!: string | null
 
   @Field()
-  email_verified!: boolean
+  emailVerified!: boolean
 }

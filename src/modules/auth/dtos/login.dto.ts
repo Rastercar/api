@@ -1,5 +1,5 @@
-import { IsEmail, IsString, Length, MinLength } from 'class-validator'
 import { Field, InputType } from '@nestjs/graphql'
+import { IsEmail, IsString, Length, MinLength } from 'class-validator'
 
 export class LoginDTO {
   @IsEmail()

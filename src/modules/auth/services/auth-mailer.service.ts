@@ -1,11 +1,12 @@
-import { createPwaUrl, parseHandlebarsTemplate } from '../../mail/mailer.utils'
-import { Injectable, UnprocessableEntityException } from '@nestjs/common'
-import { PWA_ROUTE } from '../../../constants/pwa-routes'
 import { MailerService } from '@nestjs-modules/mailer'
-import { master_user, user } from '@prisma/client'
-import { SentMessageInfo } from 'nodemailer'
+import { Injectable, UnprocessableEntityException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
+import { MasterUser, User } from '@prisma/client'
+import { SentMessageInfo } from 'nodemailer'
 import { resolve } from 'path'
+
+import { PWA_ROUTE } from '../../../constants/pwa-routes'
+import { createPwaUrl, parseHandlebarsTemplate } from '../../mail/mailer.utils'
 
 @Injectable()
 export class AuthMailerService {
@@ -31,7 +32,7 @@ export class AuthMailerService {
     return { emailSendingStatus: sent, meta: { link: confirmationLink, token } }
   }
 
-  async sendForgotPasswordEmail(user: user | master_user, token: string) {
+  async sendForgotPasswordEmail(user: User | MasterUser, token: string) {
     const templatePath = resolve(__dirname, '..', 'templates', 'reset-password.hbs')
 
     const resetPasswordLink = createPwaUrl(PWA_ROUTE.REDEFINE_PASSWORD, { token })

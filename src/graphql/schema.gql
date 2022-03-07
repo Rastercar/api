@@ -26,11 +26,25 @@ type LoginResponse {
   user: UserOrMasterUser!
 }
 
+enum MASTER_PERMISSION {
+  EDIT_OTHER_USERS
+}
+
+"""The access level to the tracker dashboard"""
+type MasterAccessLevelModel {
+  description: String!
+  id: Int!
+  name: String!
+  permissions: [MASTER_PERMISSION!]!
+}
+
 """master user (a user with access to the main panel"""
 type MasterUserModel {
+  accessLevel: AccessLevelModel!
   email: String!
-  email_verified: Boolean!
+  emailVerified: Boolean!
   id: Int!
+  masterAccessLevel: MasterAccessLevelModel!
   username: String!
 }
 
@@ -43,8 +57,8 @@ type Mutation {
 
 """organization"""
 type OrganizationModel {
-  billing_email: String!
-  billing_email_verified: Boolean!
+  billingEmail: String!
+  billingEmailVerified: Boolean!
   blocked: Boolean!
   id: Int!
   name: String!
@@ -84,7 +98,7 @@ type TrackerModel {
 """unregistered user"""
 type UnregisteredUserModel {
   email: String
-  email_verified: Boolean!
+  emailVerified: Boolean!
   username: String
   uuid: String!
 }
@@ -105,8 +119,8 @@ input UpdateUserDTO {
 type UserModel {
   accessLevel: AccessLevelModel!
   email: String!
-  email_verified: Boolean!
-  google_profile_id: String
+  emailVerified: Boolean!
+  googleProfileId: String
   id: Int!
   organization: OrganizationModel!
   username: String!

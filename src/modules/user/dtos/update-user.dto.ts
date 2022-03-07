@@ -1,5 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql'
 import { IsBoolean, IsEmail, IsOptional, MaxLength, MinLength } from 'class-validator'
+
 import { RequiredProps } from '../../../validators/require-other-prop.validator'
 
 @InputType()

@@ -1,5 +1,6 @@
-import { HttpExceptionFilter } from '../filters/http-exception.filter'
 import { INestApplication, ValidationPipe } from '@nestjs/common'
+
+import { HttpExceptionFilter } from '../filters/http-exception.filter'
 
 /**
  * Setups the nest aplication global middlewares, settings, pipes, etc.

@@ -1,6 +1,6 @@
 import { InternalServerErrorException } from '@nestjs/common'
-import { compile } from 'handlebars'
 import { readFileSync } from 'fs'
+import { compile } from 'handlebars'
 
 /**
  * @throws {InternalServerErrorException} if the file does not exist

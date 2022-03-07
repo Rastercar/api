@@ -1,8 +1,9 @@
-import { LoginResponse } from '../../src/modules/auth/models/login-response.model'
-import { defaultTestUser } from '../../src/database/seeders/user.seeder'
+import { Server } from 'http'
 import { Response } from 'supertest'
 import * as request from 'supertest'
-import { Server } from 'http'
+
+import { defaultTestUser } from '../../src/database/seeders/user.seeder'
+import { LoginResponse } from '../../src/modules/auth/models/login-response.model'
 
 /**
  * Attempts to get the first error extension from a graphql request

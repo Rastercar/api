@@ -1,4 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql'
+
 import { is } from '../../../utils/coverage-helpers'
 
 @ObjectType({ description: 'user' })
@@ -13,8 +14,8 @@ export class UserModel {
   email!: string
 
   @Field()
-  email_verified!: boolean
+  emailVerified!: boolean
 
   @Field(() => String, { nullable: true })
-  google_profile_id!: string | null
+  googleProfileId!: string | null
 }

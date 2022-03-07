@@ -2,7 +2,7 @@ import { Field, Int, ObjectType } from '@nestjs/graphql'
 
 @ObjectType({ description: 'organization' })
 export class OrganizationModel {
-  @Field(type => Int)
+  @Field(() => Int)
   id!: number
 
   @Field()
@@ -12,8 +12,8 @@ export class OrganizationModel {
   blocked!: boolean
 
   @Field()
-  billing_email!: string
+  billingEmail!: string
 
   @Field()
-  billing_email_verified!: boolean
+  billingEmailVerified!: boolean
 }

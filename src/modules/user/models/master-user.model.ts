@@ -1,4 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql'
+
 import { is } from '../../../utils/coverage-helpers'
 
 @ObjectType({ description: 'master user (a user with access to the main panel' })
@@ -13,5 +14,5 @@ export class MasterUserModel {
   email!: string
 
   @Field()
-  email_verified!: boolean
+  emailVerified!: boolean
 }

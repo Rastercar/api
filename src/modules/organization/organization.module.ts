@@ -1,9 +1,9 @@
-import { OrganizationResolver } from './organization.resolver'
-import { OrganizationService } from './organization.service'
 import { Module } from '@nestjs/common'
 
+import { OrganizationResolver } from './organization.resolver'
+
 @Module({
-  providers: [OrganizationService, OrganizationResolver],
-  exports: [OrganizationService, OrganizationResolver]
+  providers: [OrganizationResolver],
+  exports: [OrganizationResolver]
 })
 export class OrganizationModule {}

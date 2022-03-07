@@ -1,9 +1,10 @@
-import { AuthTokenService } from '../services/auth-token.service'
-import { ExtractJwt, Strategy } from 'passport-jwt'
-import { PassportStrategy } from '@nestjs/passport'
-import { ConfigService } from '@nestjs/config'
 import { Injectable } from '@nestjs/common'
-import { master_user, user } from '@prisma/client'
+import { ConfigService } from '@nestjs/config'
+import { PassportStrategy } from '@nestjs/passport'
+import { MasterUser, User } from '@prisma/client'
+import { ExtractJwt, Strategy } from 'passport-jwt'
+
+import { AuthTokenService } from '../services/auth-token.service'
 
 export interface JwtPayload {
   /**
@@ -32,7 +33,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   /**
    * Validates the user on the JWT and exposes it on req.user
    */
-  async validate(tokenPayload: JwtPayload): Promise<user | master_user> {
+  async validate(tokenPayload: JwtPayload): Promise<User | MasterUser> {
     return this.authTokenService.getUserFromDecodedTokenOrFail(tokenPayload)
   }
 }

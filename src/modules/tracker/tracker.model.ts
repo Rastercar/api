@@ -2,7 +2,7 @@ import { Field, Int, ObjectType } from '@nestjs/graphql'
 
 @ObjectType({ description: 'tracker' })
 export class TrackerModel {
-  @Field(type => Int)
+  @Field(() => Int)
   id!: number
 
   @Field()

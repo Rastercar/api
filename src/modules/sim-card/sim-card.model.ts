@@ -2,7 +2,7 @@ import { Field, Int, ObjectType } from '@nestjs/graphql'
 
 @ObjectType({ description: 'sim card' })
 export class SimCardModel {
-  @Field(type => Int)
+  @Field(() => Int)
   id!: number
 
   @Field()
