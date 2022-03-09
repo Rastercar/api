@@ -53,8 +53,9 @@ describe('UserResolver', () => {
   describe('[me]', () => {
     it('just returns the user extracted by the CurrentUser guard', async () => {
       const userMock = createFakeUser(true)
+      jest.spyOn(userRepository, 'findOneOrFail').mockImplementation(async () => userMock as any)
 
-      let result = await resolver.me(userMock, [])
+      let result = await resolver.me(userMock)
       expect(result).toBe(userMock)
     })
 
@@ -64,18 +65,18 @@ describe('UserResolver', () => {
       const findUserSpy = jest.spyOn(userRepository, 'findOneOrFail').mockImplementation(async () => userMock as any)
 
       // masterAccessLevel should get filtered as it belongs only to master users
-      let result = await resolver.me(userMock, ['accessLevel', 'masterAccessLevel'])
+      let result = await resolver.me(userMock)
       expect(result).toBe(userMock)
-      expect(findUserSpy).toHaveBeenLastCalledWith({ id: userMock.id }, { populate: ['accessLevel'] })
+      expect(findUserSpy).toHaveBeenLastCalledWith({ id: userMock.id })
 
       const masterUserMock = createFakeMasterUser(true)
       masterUserMock.id = 2
       const findMasterUserSpy = jest.spyOn(masterUserRepository, 'findOneOrFail').mockImplementation(async () => masterUserMock as any)
 
       // organization should get filtered as it belongs only to regular users
-      result = await resolver.me(masterUserMock, ['organization', 'masterAccessLevel'])
+      result = await resolver.me(masterUserMock)
       expect(result).toBe(masterUserMock)
-      expect(findMasterUserSpy).toHaveBeenLastCalledWith({ id: masterUserMock.id }, { populate: ['masterAccessLevel'] })
+      expect(findMasterUserSpy).toHaveBeenLastCalledWith({ id: masterUserMock.id })
     })
   })
 
@@ -84,13 +85,13 @@ describe('UserResolver', () => {
       const userMock = createFakeUser(true) as any
       const id = 123
 
-      const findOneSpy = jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => userMock as any)
+      const findOneSpy = jest.spyOn(userRepository, 'findOne').mockImplementationOnce(async () => userMock)
 
-      const user = await resolver.user(id, [])
+      const user = await resolver.user(id)
 
       expect(user).toBe(userMock)
       expect(findOneSpy).toHaveBeenCalledTimes(1)
-      expect(findOneSpy).toHaveBeenLastCalledWith({ id }, expect.anything())
+      expect(findOneSpy).toHaveBeenLastCalledWith({ id })
     })
   })
 
@@ -103,7 +104,7 @@ describe('UserResolver', () => {
 
       const updateSpy = jest.spyOn(userService, 'updateUser')
       jest.spyOn(userRepository, 'findOneOrFail').mockImplementationOnce(async () => userMock as any)
-      const user = await resolver.updateMyProfile(userMock, dto, [])
+      const user = await resolver.updateMyProfile(userMock, dto)
 
       expect(user).toBe(userMock)
       expect(updateSpy).toHaveBeenCalledTimes(1)

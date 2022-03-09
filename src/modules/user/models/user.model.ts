@@ -1,8 +1,9 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql'
+import { Paginated } from '../../../graphql/gql-pagination'
 import { is } from '../../../utils/coverage-helpers'
 
-@ObjectType({ description: 'user' })
-export class UserModel {
+@ObjectType()
+export class BaseUserModel {
   @Field(is(Int))
   id!: number
 
@@ -14,7 +15,13 @@ export class UserModel {
 
   @Field()
   emailVerified!: boolean
+}
 
+@ObjectType({ description: 'user' })
+export class UserModel extends BaseUserModel {
   @Field(() => String, { nullable: true })
   googleProfileId!: string | null
 }
+
+@ObjectType()
+export class PaginatedUser extends Paginated(UserModel) {}

@@ -1,17 +1,5 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql'
-import { is } from '../../../utils/coverage-helpers'
+import { ObjectType } from '@nestjs/graphql'
+import { BaseUserModel } from './user.model'
 
-@ObjectType({ description: 'master user (a user with access to the main panel' })
-export class MasterUserModel {
-  @Field(is(Int))
-  id!: number
-
-  @Field()
-  username!: string
-
-  @Field()
-  email!: string
-
-  @Field()
-  emailVerified!: boolean
-}
+@ObjectType({ description: 'master user (a user with access to the main panel)' })
+export class MasterUserModel extends BaseUserModel {}

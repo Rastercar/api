@@ -10,7 +10,7 @@ import { Vehicle } from './vehicle.entity'
 export class VehicleResolver {
   constructor(readonly vehicleRepository: VehicleRepository, readonly trackerLoader: TrackerLoader) {}
 
-  @ResolveField('trackers', () => [TrackerModel])
+  @ResolveField(() => [TrackerModel])
   trackers(@Parent() vehicle: Vehicle): Promise<TrackerModel[]> {
     return this.trackerLoader.byVehicleId.load(vehicle.id)
   }

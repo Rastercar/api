@@ -10,6 +10,14 @@ type AccessLevelModel {
   permissions: [PERMISSION!]!
 }
 
+input ForwardPagination {
+  """Return the elements in the list after this cursor"""
+  after: Int = 0
+
+  """Return the first N elements from the list"""
+  first: Int = 10
+}
+
 """JSON Web Token"""
 type JwtModel {
   type: String!
@@ -38,7 +46,7 @@ type MasterAccessLevelModel {
   permissions: [MASTER_PERMISSION!]!
 }
 
-"""master user (a user with access to the main panel"""
+"""master user (a user with access to the main panel)"""
 type MasterUserModel {
   accessLevel: AccessLevelModel!
   email: String!
@@ -63,7 +71,7 @@ type OrganizationModel {
   id: Int!
   name: String!
   trackers: [TrackerModel!]!
-  users: [UserModel!]!
+  users(pagination: ForwardPagination!): PaginatedUser!
   vehicles: [VehicleModel!]!
 }
 
@@ -71,9 +79,30 @@ enum PERMISSION {
   EDIT_OTHER_USERS
 }
 
+type PageInfo {
+  """When paginating forwards, the cursor to continue"""
+  endCursor: String!
+
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue"""
+  startCursor: String!
+}
+
+type PaginatedUser {
+  edges: [UserModelConnection!]
+  nodes: [UserModel!]
+  pageInfo: PageInfo!
+}
+
 type Query {
   isEmailInUse(email: String!): Boolean!
   me: UserOrMasterUser!
+  organization(id: Int!): OrganizationModel
   organizations: [OrganizationModel!]
   unregisteredUser(uuid: String!): UnregisteredUserModel
   user(id: Int!): UserModel
@@ -136,8 +165,12 @@ type UserModel {
   emailVerified: Boolean!
   googleProfileId: String
   id: Int!
-  organization: OrganizationModel!
   username: String!
+}
+
+type UserModelConnection {
+  cursor: String!
+  node: UserModel!
 }
 
 union UserOrMasterUser = MasterUserModel | UserModel

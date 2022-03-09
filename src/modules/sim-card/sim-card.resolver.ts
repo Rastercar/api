@@ -9,9 +9,8 @@ import { SimCard } from './sim-card.entity'
 export class SimCardResolver {
   constructor(readonly trackerLoader: TrackerLoader) {}
 
-  @ResolveField('tracker', () => TrackerModel, { nullable: true })
-  async tracker(@Parent() simCard: SimCard) {
-    if (!simCard.tracker?.id) return null
-    return this.trackerLoader.byId.load(simCard.tracker.id)
+  @ResolveField(() => TrackerModel, { nullable: true })
+  tracker(@Parent() simCard: SimCard): Promise<TrackerModel | null> {
+    return this.trackerLoader.bySimCardId.load(simCard.id)
   }
 }

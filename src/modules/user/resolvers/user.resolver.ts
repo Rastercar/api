@@ -1,5 +1,4 @@
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
-import { OrganizationModel } from '../../organization/models/organization.model'
 import { MasterUserRepository } from '../repositories/master-user.repository'
 import { RequestUser } from '../../auth/decorators/request-user.decorator'
 import { UserOrMasterUser } from '../../auth/models/login-response.model'
@@ -26,13 +25,7 @@ export class UserResolver {
     readonly masterUserRepository: MasterUserRepository
   ) {}
 
-  @ResolveField('organization', () => OrganizationModel)
-  async organization(@Parent() user: User) {
-    await this.userRepository.populate(user, ['organization'])
-    return user.organization
-  }
-
-  @ResolveField('accessLevel', () => AccessLevelModel)
+  @ResolveField(() => AccessLevelModel)
   async accessLevel(@Parent() user: User) {
     await this.userRepository.populate(user, ['accessLevel'])
     return user.accessLevel

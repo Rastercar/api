@@ -1,22 +1,17 @@
-import { createByIdLoader } from '../../graphql/data-loader.utils'
-import { VehicleRepository } from '../vehicle/vehicle.repository'
-import { TrackerRepository } from './tracker.repository'
+import { createByParentIdLoader, createByIdLoader, createByChildIdLoader } from '../../graphql/data-loader'
+import { EntityManager } from '@mikro-orm/postgresql'
 import { Injectable, Scope } from '@nestjs/common'
-import * as DataLoader from 'dataloader'
+import { Tracker } from './tracker.entity'
 
 @Injectable({ scope: Scope.REQUEST })
 export default class TrackerLoader {
-  constructor(readonly trackerRepository: TrackerRepository, readonly vehicleRepository: VehicleRepository) {}
+  constructor(readonly em: EntityManager) {}
 
-  byId = createByIdLoader(this.trackerRepository)
+  byId = createByIdLoader(Tracker, this.em)
 
-  byVehicleId = new DataLoader(async (vehicleIds: readonly number[]) => {
-    const trackers = await this.trackerRepository.find({
-      vehicle: { id: vehicleIds as number[] }
-    })
+  bySimCardId = createByChildIdLoader(Tracker, this.em, 'simCards')
 
-    const vehicleIdToTrackersMap = new Map(vehicleIds.map(vehicleId => [vehicleId, trackers.filter(t => t.vehicle?.id === vehicleId)]))
+  byVehicleId = createByParentIdLoader(Tracker, this.em, 'vehicle')
 
-    return vehicleIds.map(vehicleId => vehicleIdToTrackersMap.get(vehicleId) ?? [])
-  })
+  byOrganizationId = createByParentIdLoader(Tracker, this.em, 'organization')
 }

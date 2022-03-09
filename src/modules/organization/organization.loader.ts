@@ -1,10 +1,11 @@
-import { OrganizationRepository } from './repositories/organization.repository'
-import { createByIdLoader } from '../../graphql/data-loader.utils'
+import { createByIdLoader } from '../../graphql/data-loader'
+import { EntityManager } from '@mikro-orm/postgresql'
 import { Injectable, Scope } from '@nestjs/common'
+import { Organization } from './entities/organization.entity'
 
 @Injectable({ scope: Scope.REQUEST })
 export default class OrganizationLoader {
-  constructor(readonly organizationRepository: OrganizationRepository) {}
+  constructor(readonly em: EntityManager) {}
 
-  byId = createByIdLoader(this.organizationRepository)
+  byId = createByIdLoader(Organization, this.em)
 }
