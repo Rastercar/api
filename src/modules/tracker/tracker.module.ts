@@ -1,3 +1,4 @@
+import OrganizationLoader from '../organization/organization.loader'
 import SimCardLoader from '../sim-card/sim-card.loader'
 import VehicleLoader from '../vehicle/vehicle.loader'
 import { TrackerResolver } from './tracker.resolver'
@@ -9,7 +10,7 @@ import { Module } from '@nestjs/common'
 
 @Module({
   imports: [MikroOrmModule.forFeature({ entities: [Tracker, Vehicle] })],
-  providers: [TrackerResolver, TrackerLoader, VehicleLoader, SimCardLoader],
+  providers: [TrackerResolver, TrackerLoader, VehicleLoader, SimCardLoader, OrganizationLoader],
   exports: [TrackerResolver, TrackerLoader]
 })
 export class TrackerModule {}

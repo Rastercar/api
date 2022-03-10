@@ -1,7 +1,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql'
 
-@ObjectType({ description: 'organization' })
-export class OrganizationModel {
+@ObjectType({ description: 'organization but without nested fields' })
+export class SimpleOrganizationModel {
   @Field(type => Int)
   id!: number
 
@@ -17,3 +17,6 @@ export class OrganizationModel {
   @Field()
   billingEmailVerified!: boolean
 }
+
+@ObjectType({ description: 'organization' })
+export class OrganizationModel extends SimpleOrganizationModel {}

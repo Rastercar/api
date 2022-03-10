@@ -1,8 +1,11 @@
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import { SimpleOrganizationModel } from '../../organization/models/organization.model'
 import { MasterUserRepository } from '../repositories/master-user.repository'
 import { RequestUser } from '../../auth/decorators/request-user.decorator'
 import { UserOrMasterUser } from '../../auth/models/login-response.model'
+import OrganizationLoader from '../../organization/organization.loader'
 import { AccessLevelModel } from '../../auth/models/access-level.model'
+import AccessLevelLoader from '../../auth/loaders/access-level.loader'
 import { MasterUserService } from '../services/master-user.service'
 import { GqlAuthGuard } from '../../auth/guards/gql-jwt-auth.guard'
 import { is, of, returns } from '../../../utils/coverage-helpers'
@@ -15,6 +18,7 @@ import { UserService } from '../services/user.service'
 import { UserModel } from '../models/user.model'
 import { User } from '../entities/user.entity'
 import { UseGuards } from '@nestjs/common'
+import { wrap } from '@mikro-orm/core'
 
 @Resolver(of(UserModel))
 export class UserResolver {
@@ -22,18 +26,24 @@ export class UserResolver {
     readonly userService: UserService,
     readonly userRepository: UserRepository,
     readonly masterUserService: MasterUserService,
+    readonly accessLevelLoader: AccessLevelLoader,
+    readonly organizationLoader: OrganizationLoader,
     readonly masterUserRepository: MasterUserRepository
   ) {}
 
+  @ResolveField(() => SimpleOrganizationModel)
+  organization(@Parent() user: User): SimpleOrganizationModel | Promise<SimpleOrganizationModel> {
+    return wrap(user.organization).isInitialized() ? user.organization : this.organizationLoader.byId.load(user.organization.id)
+  }
+
   @ResolveField(() => AccessLevelModel)
-  async accessLevel(@Parent() user: User) {
-    await this.userRepository.populate(user, ['accessLevel'])
-    return user.accessLevel
+  accessLevel(@Parent() user: User): AccessLevelModel | Promise<AccessLevelModel> {
+    return wrap(user.accessLevel).isInitialized() ? user.accessLevel : this.accessLevelLoader.byUserId.load(user.id)
   }
 
   @UseGuards(GqlAuthGuard)
   @Query(returns(UserOrMasterUser))
-  async me(@RequestUser() user: User | MasterUser): Promise<UserModel | MasterUserModel> {
+  me(@RequestUser() user: User | MasterUser): Promise<UserModel | MasterUserModel> {
     return user instanceof User
       ? this.userRepository.findOneOrFail({ id: user.id })
       : this.masterUserRepository.findOneOrFail({ id: user.id })

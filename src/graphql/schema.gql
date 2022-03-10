@@ -63,6 +63,27 @@ type Mutation {
   updateMyProfile(profileData: UpdateUserDTO!): UserModel!
 }
 
+type OffsetPageInfo {
+  """If you can increase the offset to fetch next records"""
+  hasMore: Boolean!
+
+  """If you can decrease the offset to fetch previous records"""
+  hasPrevious: Boolean!
+
+  """Quantity of all avaliable records"""
+  total: Int!
+}
+
+type OffsetPaginatedVehicle {
+  nodes: [VehicleModel!]
+  pageInfo: OffsetPageInfo!
+}
+
+input OffsetPagination {
+  limit: Int = 10
+  offset: Int = 0
+}
+
 """organization"""
 type OrganizationModel {
   billingEmail: String!
@@ -72,7 +93,7 @@ type OrganizationModel {
   name: String!
   trackers: [TrackerModel!]!
   users(pagination: ForwardPagination!): PaginatedUser!
-  vehicles: [VehicleModel!]!
+  vehicles(pagination: OffsetPagination!): OffsetPaginatedVehicle!
 }
 
 enum PERMISSION {
@@ -99,13 +120,21 @@ type PaginatedUser {
   pageInfo: PageInfo!
 }
 
+type PaginatedVehicle {
+  edges: [VehicleModelConnection!]
+  nodes: [VehicleModel!]
+  pageInfo: PageInfo!
+}
+
 type Query {
   isEmailInUse(email: String!): Boolean!
   me: UserOrMasterUser!
   organization(id: Int!): OrganizationModel
-  organizations: [OrganizationModel!]
   unregisteredUser(uuid: String!): UnregisteredUserModel
   user(id: Int!): UserModel
+
+  """The vehicles that belong to the request user organization"""
+  vehicles(pagination: ForwardPagination!): PaginatedVehicle!
 }
 
 input RegisterUserDTO {
@@ -125,15 +154,26 @@ type SimCardModel {
   apnPassword: String!
   apnUser: String!
   id: Int!
+  organization: SimpleOrganizationModel!
   phoneNumber: String!
   ssn: String!
   tracker: TrackerModel
+}
+
+"""organization but without nested fields"""
+type SimpleOrganizationModel {
+  billingEmail: String!
+  billingEmailVerified: Boolean!
+  blocked: Boolean!
+  id: Int!
+  name: String!
 }
 
 """tracker"""
 type TrackerModel {
   id: Int!
   model: String!
+  organization: SimpleOrganizationModel!
   simCards: [SimCardModel!]!
   vehicle: VehicleModel!
 }
@@ -165,6 +205,7 @@ type UserModel {
   emailVerified: Boolean!
   googleProfileId: String
   id: Int!
+  organization: SimpleOrganizationModel!
   username: String!
 }
 
@@ -184,7 +225,13 @@ type VehicleModel {
   id: Int!
   model: String
   modelYear: Float
+  organization: SimpleOrganizationModel!
   plate: String!
   renavam: String
   trackers: [TrackerModel!]!
+}
+
+type VehicleModelConnection {
+  cursor: String!
+  node: VehicleModel!
 }

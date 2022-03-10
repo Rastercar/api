@@ -14,7 +14,7 @@ function createDictForArray(array: number[]) {
  *
  * **NOTE:** NOT TYPE SAFE, this expects the entity to have a `id` PK
  */
-export function createByIdLoader<T>(entity: EntityName<T>, em: EntityManager) {
+export function createByIdLoader<T extends AnyEntity<T>>(entity: EntityName<T>, em: EntityManager): DataLoader<number, T, number> {
   return new DataLoader(async (ids: readonly number[]) => {
     const entities = await em.find(entity, { id: [...ids] } as any)
 
@@ -22,7 +22,7 @@ export function createByIdLoader<T>(entity: EntityName<T>, em: EntityManager) {
 
     const map = new Map(mapKeys as any)
 
-    return ids.map(id => map.get(id) ?? null)
+    return ids.map(id => map.get(id) ?? null) as T[]
   })
 }
 
@@ -65,7 +65,11 @@ export function createByParentIdLoader<T extends AnyEntity<T>>(
  * const vehicleByTrackerIdLoader = createByChildIdLoader(Vehicle, this.em, 'trackers')
  * ```
  */
-export function createByChildIdLoader<T extends AnyEntity<T>>(en: EntityName<T>, em: EntityManager, childKey: keyof T) {
+export function createByChildIdLoader<T extends AnyEntity<T>>(
+  en: EntityName<T>,
+  em: EntityManager,
+  childKey: keyof T
+): DataLoader<number, T, number> {
   return new DataLoader(async (childIds: readonly number[]) => {
     const mutIds = [...childIds]
 

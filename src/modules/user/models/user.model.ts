@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql'
-import { Paginated } from '../../../graphql/gql-pagination'
+import { Paginated } from '../../../graphql/pagination/cursor-pagination'
 import { is } from '../../../utils/coverage-helpers'
 
 @ObjectType()
