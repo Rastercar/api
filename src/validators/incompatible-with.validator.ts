@@ -11,8 +11,6 @@ import {
 @ValidatorConstraint({ async: false })
 class IncompatibleWithConstraint implements ValidatorConstraintInterface {
   validate(value: any, args: ValidationArguments) {
-    console.log({ value, args })
-
     if (isDefined(value)) return this.getFailedConstraints(args).length === 0
     return true
   }
@@ -23,7 +21,6 @@ class IncompatibleWithConstraint implements ValidatorConstraintInterface {
   }
 
   getFailedConstraints(args: ValidationArguments) {
-    console.log(args.constraints)
     return args.constraints.filter(prop => isDefined(args.object[prop]))
   }
 }

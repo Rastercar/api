@@ -1,6 +1,5 @@
 import { Parent, ResolveField, Resolver, Query, Args, Int } from '@nestjs/graphql'
 import { OrganizationRepository } from './repositories/organization.repository'
-import { CursorPagination } from '../../graphql/pagination/cursor-pagination'
 import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
 import { UserRepository } from '../user/repositories/user.repository'
 import { SimCardRepository } from '../sim-card/sim-card.repository'
@@ -11,9 +10,9 @@ import { OffsetPaginatedTracker } from '../tracker/tracker.model'
 import { TrackerRepository } from '../tracker/tracker.repository'
 import { OrderingArgs } from '../../graphql/pagination/ordering'
 import { OrganizationModel } from './models/organization.model'
+import { OffsetPaginatedUser } from '../user/models/user.model'
 import { is, of, returns } from '../../utils/coverage-helpers'
 import { Organization } from './entities/organization.entity'
-import { CursorPaginatedUser } from '../user/models/user.model'
 import VehicleLoader from '../vehicle/vehicle.loader'
 import UserLoader from '../user/user.loader'
 
@@ -49,16 +48,9 @@ export class OrganizationResolver {
     return this.simCardRepository.findAndOffsetPaginate({ limit, offset, queryFilter: { organization } })
   }
 
-  // TODO: OFFSET PAGINATE ME
-  @ResolveField(() => CursorPaginatedUser)
-  users(@Args() pagination: CursorPagination, @Parent() organization: Organization): Promise<CursorPaginatedUser> {
-    console.log('resolver', { pagination })
-
-    return this.userRepository.findAndCursorPaginate({
-      pagination,
-      cursorKey: 'id',
-      queryFilter: { organization }
-    })
+  @ResolveField(() => OffsetPaginatedUser)
+  users(@Parent() organization: Organization, @Args() { limit, offset }: OffsetPagination): Promise<OffsetPaginatedUser> {
+    return this.userRepository.findAndOffsetPaginate({ limit, offset, queryFilter: { organization } })
   }
 
   @Query(returns(OrganizationModel), { nullable: true })
