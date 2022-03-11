@@ -7,7 +7,7 @@ import { AppModule } from '../app.module'
 import * as express from 'express'
 
 export const createApp = () => {
-  return NestFactory.create(AppModule, { bodyParser: false })
+  return NestFactory.create(AppModule, { bodyParser: false, logger: ['debug', 'verbose'] })
 }
 
 /**

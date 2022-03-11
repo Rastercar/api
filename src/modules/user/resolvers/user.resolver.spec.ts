@@ -58,7 +58,7 @@ describe('UserResolver', () => {
       const userMock = createFakeUser(true)
       jest.spyOn(userRepository, 'findOneOrFail').mockImplementation(async () => userMock as any)
 
-      let result = await resolver.me(userMock)
+      const result = await resolver.me(userMock)
       expect(result).toBe(userMock)
     })
 

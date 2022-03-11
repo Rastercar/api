@@ -1,27 +1,24 @@
-import { Field, InputType, Int, ObjectType } from '@nestjs/graphql'
+import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
 import { is } from '../../utils/coverage-helpers'
 import { IsInt, Min } from 'class-validator'
 import { Type } from '@nestjs/common'
 
-@InputType()
-export class ForwardPagination {
+@ArgsType()
+export class CursorPagination {
   @Field(is(Int), { description: 'Return the first N elements from the list' })
   @IsInt()
   @Min(0)
-  first: number = 10
+  first = 10
 
   @Field(is(Int), { nullable: true, description: 'Return the elements in the list after this cursor' })
   @IsInt()
   @Min(0)
-  after: number = 0
-}
+  after = 0
 
-@InputType()
-export class BackwardPagination {
   @Field(is(Int), { description: 'Return the last N elements from the list' })
   @IsInt()
   @Min(0)
-  last: number = 10
+  last = 10
 
   @Field(is(Int), { description: 'Return the elements in the list before this cursor' })
   @IsInt()
@@ -71,22 +68,22 @@ export interface IPaginatedType<T> {
 export function Paginated<T>(classRef: Type<T>): Type<IPaginatedType<T>> {
   @ObjectType(`${classRef.name}Connection`)
   abstract class EdgeType {
-    @Field(type => classRef)
+    @Field(() => classRef)
     node!: T
 
-    @Field(type => String)
+    @Field(() => String)
     cursor!: string
   }
 
   @ObjectType({ isAbstract: true })
   abstract class PaginatedType implements IPaginatedType<T> {
-    @Field(type => [EdgeType], { nullable: true })
+    @Field(() => [EdgeType], { nullable: true })
     edges!: EdgeType[]
 
-    @Field(type => [classRef], { nullable: true })
+    @Field(() => [classRef], { nullable: true })
     nodes!: T[]
 
-    @Field(type => PageInfo)
+    @Field(() => PageInfo)
     pageInfo!: PageInfo
   }
 
@@ -101,7 +98,7 @@ export function Paginated<T>(classRef: Type<T>): Type<IPaginatedType<T>> {
  * - The amount of rows queried was `pagination.first + 1`
  * - The entities in rows have an id attribute
  */
-export function createForwardPagination<T extends { id: number }>(opts: { pagination: ForwardPagination; rows: T[] }): IPaginatedType<T> {
+export function createForwardPagination<T extends { id: number }>(opts: { pagination: CursorPagination; rows: T[] }): IPaginatedType<T> {
   const { pagination, rows } = opts
 
   const first: typeof rows[number] | undefined = rows[0]

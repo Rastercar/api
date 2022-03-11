@@ -33,12 +33,14 @@ export class UserResolver {
 
   @ResolveField(() => SimpleOrganizationModel)
   organization(@Parent() user: User): SimpleOrganizationModel | Promise<SimpleOrganizationModel> {
-    return wrap(user.organization).isInitialized() ? user.organization : this.organizationLoader.byId.load(user.organization.id)
+    if (wrap(user.organization).isInitialized()) return user.organization
+    return this.organizationLoader.byId.load(user.organization.id)
   }
 
   @ResolveField(() => AccessLevelModel)
   accessLevel(@Parent() user: User): AccessLevelModel | Promise<AccessLevelModel> {
-    return wrap(user.accessLevel).isInitialized() ? user.accessLevel : this.accessLevelLoader.byUserId.load(user.id)
+    if (wrap(user.accessLevel).isInitialized()) return user.accessLevel
+    return this.accessLevelLoader.byUserId.load(user.id)
   }
 
   @UseGuards(GqlAuthGuard)

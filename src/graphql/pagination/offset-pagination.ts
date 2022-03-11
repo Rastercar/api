@@ -1,21 +1,21 @@
-import { Type } from '@nestjs/common'
-import { Field, InputType, Int, ObjectType } from '@nestjs/graphql'
+import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
 import { IsInt } from 'class-validator'
+import { Type } from '@nestjs/common'
 
-@InputType()
+@ArgsType()
 export class OffsetPagination {
-  @Field(type => Int)
+  @Field(() => Int)
   @IsInt()
-  offset: number = 0
+  offset = 0
 
-  @Field(type => Int)
+  @Field(() => Int)
   @IsInt()
-  limit: number = 10
+  limit = 10
 }
 
 @ObjectType()
 class OffsetPageInfo {
-  @Field(type => Int, { description: 'Quantity of all avaliable records' })
+  @Field(() => Int, { description: 'Quantity of all avaliable records' })
   total!: number
 
   @Field({ description: 'If you can increase the offset to fetch next records' })
@@ -41,10 +41,10 @@ export interface IOffsetPaginatedType<T> {
 export function OffsetPaginated<T>(classRef: Type<T>): Type<IOffsetPaginatedType<T>> {
   @ObjectType({ isAbstract: true })
   abstract class PaginatedType implements IOffsetPaginatedType<T> {
-    @Field(type => [classRef], { nullable: true })
+    @Field(() => [classRef], { nullable: true })
     nodes!: T[]
 
-    @Field(type => OffsetPageInfo)
+    @Field(() => OffsetPageInfo)
     pageInfo!: OffsetPageInfo
   }
 

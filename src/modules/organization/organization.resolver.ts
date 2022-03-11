@@ -1,4 +1,4 @@
-import { ForwardPagination, createForwardPagination } from '../../graphql/pagination/cursor-pagination'
+import { CursorPagination, createForwardPagination } from '../../graphql/pagination/cursor-pagination'
 import { Parent, ResolveField, Resolver, Query, Args, Int } from '@nestjs/graphql'
 import { OrganizationRepository } from './repositories/organization.repository'
 import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
@@ -20,28 +20,23 @@ export class OrganizationResolver {
     readonly userLoader: UserLoader,
     readonly trackerLoader: TrackerLoader,
     readonly vehicleLoader: VehicleLoader,
-    readonly vehicleRepository: VehicleRepository,
     readonly userRepository: UserRepository,
+    readonly vehicleRepository: VehicleRepository,
     readonly organizationRepository: OrganizationRepository
   ) {}
 
-  // TODO: OFFSET PAGINATE ME
+  // TODO: OFFSET PAGINATE ME (FINISH PAGINATION ON ROOT VEHICLES QUERY AND USE IT HERE (DONT DUPLICATE CODE))
   @ResolveField(() => OffsetPaginatedVehicle)
-  async vehicles(@Args('pagination') pagination: OffsetPagination, @Parent() organization: Organization): Promise<OffsetPaginatedVehicle> {
-    console.log(pagination)
-    const vehicles = await this.vehicleRepository.find({ organization }, { limit: pagination.limit, offset: pagination.offset })
-    const total = await this.vehicleRepository.count({ organization })
+  async vehicles(@Args() pagination: OffsetPagination, @Parent() organization: Organization): Promise<OffsetPaginatedVehicle> {
+    const [vehicles, total] = await Promise.all([
+      this.vehicleRepository.find({ organization }, { limit: pagination.limit, offset: pagination.offset }),
+      this.vehicleRepository.count({ organization })
+    ])
 
-    console.log(pagination.offset, vehicles.length, pagination.offset + vehicles.length, total)
-
-    // TODO: FINISH ME ! ! ! !
     const hasMore = pagination.offset + vehicles.length < total
-    const hasPrevious = pagination.offset + vehicles.length < total
+    const hasPrevious = !!pagination.offset
 
-    return {
-      nodes: vehicles,
-      pageInfo: { total, hasMore, hasPrevious }
-    }
+    return { nodes: vehicles, pageInfo: { total, hasMore, hasPrevious } }
   }
 
   // TODO: OFFSET PAGINATE ME
@@ -52,7 +47,7 @@ export class OrganizationResolver {
 
   // TODO: OFFSET PAGINATE ME
   @ResolveField(() => PaginatedUser)
-  async users(@Args('pagination') pagination: ForwardPagination, @Parent() organization: Organization): Promise<PaginatedUser> {
+  async users(@Args() pagination: CursorPagination, @Parent() organization: Organization): Promise<PaginatedUser> {
     const users = await this.userRepository.find(
       { organization, id: { $gt: pagination.after } },
       { orderBy: [{ id: 'ASC' }], limit: pagination.first + 1 }

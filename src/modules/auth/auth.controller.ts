@@ -92,7 +92,7 @@ export class AuthController {
    */
   @Post('check-password')
   @UseGuards(JwtAuthGuard)
-  async checkPassword(@RequestUser('password') userPass: string, @Body() dto: CheckPasswordDTO): Promise<boolean> {
+  checkPassword(@RequestUser('password') userPass: string, @Body() dto: CheckPasswordDTO): Promise<boolean> {
     return this.authService.comparePasswords(dto.password, userPass)
   }
 
@@ -102,7 +102,9 @@ export class AuthController {
    */
   @Get('google/authenticate')
   @UseGuards(GoogleAuthGuard)
-  authenticate() {}
+  authenticate() {
+    return null
+  }
 
   /**
    * Handles the redirection after a successfull authentification with google oauth2.

@@ -1,8 +1,8 @@
 import { Collection, Entity, EntityRepositoryType, ManyToOne, OneToMany, Property, Unique } from '@mikro-orm/core'
-import { BaseEntity } from '../../database/base/base-entity'
 import { Organization } from '../organization/entities/organization.entity'
-import { Tracker } from '../tracker/tracker.entity'
+import { BaseEntity } from '../../database/base/base-entity'
 import { VehicleRepository } from './vehicle.repository'
+import { Tracker } from '../tracker/tracker.entity'
 
 interface VehicleArgs {
   plate: string

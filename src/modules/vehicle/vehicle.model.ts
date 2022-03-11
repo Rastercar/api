@@ -1,10 +1,10 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql'
-import { Paginated } from '../../graphql/pagination/cursor-pagination'
 import { OffsetPaginated } from '../../graphql/pagination/offset-pagination'
+import { Field, Int, ObjectType } from '@nestjs/graphql'
+import { Vehicle } from './vehicle.entity'
 
 @ObjectType({ description: 'vehicle' })
 export class VehicleModel {
-  @Field(type => Int)
+  @Field(() => Int)
   id!: number
 
   @Field()
@@ -32,8 +32,17 @@ export class VehicleModel {
   color!: string | null
 }
 
-// TODO: we will probably not use cursor pagination here, remove ?
-@ObjectType()
-export class PaginatedVehicle extends Paginated(VehicleModel) {}
 @ObjectType()
 export class OffsetPaginatedVehicle extends OffsetPaginated(VehicleModel) {}
+
+export const VEHICLE_ORDERABLE_FIELDS: (keyof Vehicle)[] = [
+  'id',
+  'plate',
+  'model',
+  'brand',
+  'color',
+  'renavam',
+  'modelYear',
+  'chassisNumber',
+  'fabricationYear'
+]

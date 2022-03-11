@@ -4,6 +4,7 @@ import { seedDatabase } from '../database/seed-database'
 import { Test, TestingModule } from '@nestjs/testing'
 import { AppModule } from '../../src/app.module'
 import { MikroORM } from '@mikro-orm/core'
+import { INestApplication } from '@nestjs/common'
 
 interface Options {
   init?: boolean
@@ -20,7 +21,7 @@ interface Options {
  * @param options.seed - if mockData should be inserted into the database, default: true
  * @param options.clearDatabase - if the database should be cleared before loading fixtures, default: true
  */
-export const createAppTestingModule = async (opts: Options = {}) => {
+export const createAppTestingModule = async (opts: Options = {}): Promise<INestApplication> => {
   const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] }).compile()
 
   const app = moduleFixture.createNestApplication(undefined, { bodyParser: false })

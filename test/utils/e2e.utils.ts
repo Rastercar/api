@@ -1,5 +1,6 @@
 import { LoginResponse } from '../../src/modules/auth/models/login-response.model'
 import { defaultTestUser } from '../../src/database/seeders/user.seeder'
+import { GraphQLErrorExtensions } from 'graphql'
 import { Response } from 'supertest'
 import * as request from 'supertest'
 import { Server } from 'http'
@@ -9,7 +10,7 @@ import { Server } from 'http'
  *
  * @param res - supertest request response
  */
-export const getGqlFirstErrorExtension = (res: Response) => {
+export const getGqlFirstErrorExtension = (res: Response): GraphQLErrorExtensions | null => {
   const firstError = res.body?.errors?.[0] || {}
   return firstError?.extensions ?? null
 }

@@ -10,14 +10,6 @@ type AccessLevelModel {
   permissions: [PERMISSION!]!
 }
 
-input ForwardPagination {
-  """Return the elements in the list after this cursor"""
-  after: Int = 0
-
-  """Return the first N elements from the list"""
-  first: Int = 10
-}
-
 """JSON Web Token"""
 type JwtModel {
   type: String!
@@ -79,11 +71,6 @@ type OffsetPaginatedVehicle {
   pageInfo: OffsetPageInfo!
 }
 
-input OffsetPagination {
-  limit: Int = 10
-  offset: Int = 0
-}
-
 """organization"""
 type OrganizationModel {
   billingEmail: String!
@@ -92,8 +79,20 @@ type OrganizationModel {
   id: Int!
   name: String!
   trackers: [TrackerModel!]!
-  users(pagination: ForwardPagination!): PaginatedUser!
-  vehicles(pagination: OffsetPagination!): OffsetPaginatedVehicle!
+  users(
+    """Return the elements in the list after this cursor"""
+    after: Int = 0
+
+    """Return the elements in the list before this cursor"""
+    before: Int!
+
+    """Return the first N elements from the list"""
+    first: Int = 10
+
+    """Return the last N elements from the list"""
+    last: Int = 10
+  ): PaginatedUser!
+  vehicles(limit: Int = 10, offset: Int = 0): OffsetPaginatedVehicle!
 }
 
 enum PERMISSION {
@@ -120,12 +119,6 @@ type PaginatedUser {
   pageInfo: PageInfo!
 }
 
-type PaginatedVehicle {
-  edges: [VehicleModelConnection!]
-  nodes: [VehicleModel!]
-  pageInfo: PageInfo!
-}
-
 type Query {
   isEmailInUse(email: String!): Boolean!
   me: UserOrMasterUser!
@@ -134,7 +127,18 @@ type Query {
   user(id: Int!): UserModel
 
   """The vehicles that belong to the request user organization"""
-  vehicles(pagination: ForwardPagination!): PaginatedVehicle!
+  vehicles(
+    """
+    It the records should be sorted in descending order by the field on "orderBy"
+    """
+    descending: Boolean = false
+    limit: Int = 10
+    offset: Int = 0
+
+    """The field to order results by. example: name, id"""
+    orderBy: String
+    search: String
+  ): OffsetPaginatedVehicle!
 }
 
 input RegisterUserDTO {
@@ -229,9 +233,4 @@ type VehicleModel {
   plate: String!
   renavam: String
   trackers: [TrackerModel!]!
-}
-
-type VehicleModelConnection {
-  cursor: String!
-  node: VehicleModel!
 }

@@ -8,4 +8,4 @@
  * })
  * ```
  */
-export const execTestIf = (condition: boolean) => (condition ? it : it.skip)
+export const execTestIf = (condition: boolean): jest.It | jest.It['skip'] => (condition ? it : it.skip)
