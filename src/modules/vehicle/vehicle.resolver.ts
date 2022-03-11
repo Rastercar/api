@@ -25,7 +25,7 @@ export class VehicleResolver {
   ) {}
 
   @ResolveField(() => SimpleOrganizationModel)
-  async organization(@Parent() vehicle: Vehicle): Promise<SimpleOrganizationModel> {
+  organization(@Parent() vehicle: Vehicle): Promise<SimpleOrganizationModel> | SimpleOrganizationModel {
     return wrap(vehicle.organization).isInitialized() ? vehicle.organization : this.organizationLoader.byId.load(vehicle.organization.id)
   }
 
@@ -42,11 +42,6 @@ export class VehicleResolver {
     @Args('search', { nullable: true }) search: string,
     @RequestUser() user: User
   ): Promise<OffsetPaginatedVehicle> {
-    return this.vehicleRepository.findSearchAndPaginate({
-      search,
-      ordering,
-      pagination,
-      queryFilter: { organization: user.organization }
-    })
+    return this.vehicleRepository.findSearchAndPaginate({ search, ordering, pagination, queryFilter: { organization: user.organization } })
   }
 }

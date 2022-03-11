@@ -2,26 +2,31 @@ import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
 import { is } from '../../utils/coverage-helpers'
 import { IsInt, Min } from 'class-validator'
 import { Type } from '@nestjs/common'
+import { IncompatableWith } from '../../validators/incompatible-with.validator'
 
 @ArgsType()
 export class CursorPagination {
   @Field(is(Int), { description: 'Return the first N elements from the list' })
   @IsInt()
   @Min(0)
+  @IncompatableWith(['before'])
   first = 10
 
   @Field(is(Int), { nullable: true, description: 'Return the elements in the list after this cursor' })
   @IsInt()
   @Min(0)
+  @IncompatableWith(['last'])
   after = 0
 
   @Field(is(Int), { description: 'Return the last N elements from the list' })
   @IsInt()
   @Min(0)
+  @IncompatableWith(['first'])
   last = 10
 
   @Field(is(Int), { description: 'Return the elements in the list before this cursor' })
   @IsInt()
+  @IncompatableWith(['first'])
   before!: number
 }
 
