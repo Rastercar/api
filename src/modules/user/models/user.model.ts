@@ -1,5 +1,5 @@
+import { CursorPaginated } from '../../../graphql/pagination/cursor-pagination'
 import { Field, Int, ObjectType } from '@nestjs/graphql'
-import { Paginated } from '../../../graphql/pagination/cursor-pagination'
 import { is } from '../../../utils/coverage-helpers'
 
 @ObjectType()
@@ -24,4 +24,4 @@ export class UserModel extends BaseUserModel {
 }
 
 @ObjectType()
-export class PaginatedUser extends Paginated(UserModel) {}
+export class CursorPaginatedUser extends CursorPaginated(UserModel) {}

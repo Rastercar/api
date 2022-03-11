@@ -1,68 +1,64 @@
-import { CursorPagination, createForwardPagination } from '../../graphql/pagination/cursor-pagination'
 import { Parent, ResolveField, Resolver, Query, Args, Int } from '@nestjs/graphql'
 import { OrganizationRepository } from './repositories/organization.repository'
+import { CursorPagination } from '../../graphql/pagination/cursor-pagination'
 import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
 import { UserRepository } from '../user/repositories/user.repository'
+import { SimCardRepository } from '../sim-card/sim-card.repository'
+import { OffsetPaginatedSimCard } from '../sim-card/sim-card.model'
 import { VehicleRepository } from '../vehicle/vehicle.repository'
 import { OffsetPaginatedVehicle } from '../vehicle/vehicle.model'
+import { OffsetPaginatedTracker } from '../tracker/tracker.model'
+import { TrackerRepository } from '../tracker/tracker.repository'
+import { OrderingArgs } from '../../graphql/pagination/ordering'
 import { OrganizationModel } from './models/organization.model'
 import { is, of, returns } from '../../utils/coverage-helpers'
 import { Organization } from './entities/organization.entity'
-import { PaginatedUser } from '../user/models/user.model'
-import { TrackerModel } from '../tracker/tracker.model'
+import { CursorPaginatedUser } from '../user/models/user.model'
 import VehicleLoader from '../vehicle/vehicle.loader'
-import TrackerLoader from '../tracker/tracker.loader'
 import UserLoader from '../user/user.loader'
-import { SimCardModel } from '../sim-card/sim-card.model'
-import SimCardLoader from '../sim-card/sim-card.loader'
 
 @Resolver(of(OrganizationModel))
 export class OrganizationResolver {
   constructor(
     readonly userLoader: UserLoader,
-    readonly trackerLoader: TrackerLoader,
-    readonly simCardLoader: SimCardLoader,
     readonly vehicleLoader: VehicleLoader,
     readonly userRepository: UserRepository,
     readonly vehicleRepository: VehicleRepository,
+    readonly trackerRepository: TrackerRepository,
+    readonly simCardRepository: SimCardRepository,
     readonly organizationRepository: OrganizationRepository
   ) {}
 
-  // TODO: OFFSET PAGINATE ME (FINISH PAGINATION ON ROOT VEHICLES QUERY AND USE IT HERE (DONT DUPLICATE CODE))
   @ResolveField(() => OffsetPaginatedVehicle)
-  async vehicles(@Args() pagination: OffsetPagination, @Parent() organization: Organization): Promise<OffsetPaginatedVehicle> {
-    const [vehicles, total] = await Promise.all([
-      this.vehicleRepository.find({ organization }, { limit: pagination.limit, offset: pagination.offset }),
-      this.vehicleRepository.count({ organization })
-    ])
+  vehicles(
+    @Parent() organization: Organization,
+    @Args() ordering: OrderingArgs,
+    @Args() pagination: OffsetPagination,
+    @Args('search', { nullable: true }) search: string
+  ): Promise<OffsetPaginatedVehicle> {
+    return this.vehicleRepository.findSearchAndPaginate({ search, ordering, pagination, queryFilter: { organization } })
+  }
 
-    const hasMore = pagination.offset + vehicles.length < total
-    const hasPrevious = !!pagination.offset
+  @ResolveField(() => OffsetPaginatedTracker)
+  trackers(@Parent() organization: Organization, @Args() { limit, offset }: OffsetPagination): Promise<OffsetPaginatedTracker> {
+    return this.trackerRepository.findAndOffsetPaginate({ limit, offset, queryFilter: { organization } })
+  }
 
-    return { nodes: vehicles, pageInfo: { total, hasMore, hasPrevious } }
+  @ResolveField(() => OffsetPaginatedSimCard)
+  simCards(@Parent() organization: Organization, @Args() { limit, offset }: OffsetPagination): Promise<OffsetPaginatedSimCard> {
+    return this.simCardRepository.findAndOffsetPaginate({ limit, offset, queryFilter: { organization } })
   }
 
   // TODO: OFFSET PAGINATE ME
-  @ResolveField(() => [TrackerModel])
-  trackers(@Parent() organization: Organization): Promise<TrackerModel[]> {
-    return this.trackerLoader.byOrganizationId.load(organization.id)
-  }
+  @ResolveField(() => CursorPaginatedUser)
+  users(@Args() pagination: CursorPagination, @Parent() organization: Organization): Promise<CursorPaginatedUser> {
+    console.log('resolver', { pagination })
 
-  // TODO: OFFSET PAGINATE ME
-  @ResolveField(() => [SimCardModel])
-  simCards(@Parent() organization: Organization): Promise<SimCardModel[]> {
-    return this.simCardLoader.byOrganizationId.load(organization.id)
-  }
-
-  // TODO: OFFSET PAGINATE ME
-  @ResolveField(() => PaginatedUser)
-  async users(@Args() pagination: CursorPagination, @Parent() organization: Organization): Promise<PaginatedUser> {
-    const users = await this.userRepository.find(
-      { organization, id: { $gt: pagination.after } },
-      { orderBy: [{ id: 'ASC' }], limit: pagination.first + 1 }
-    )
-
-    return createForwardPagination({ pagination, rows: users })
+    return this.userRepository.findAndCursorPaginate({
+      pagination,
+      cursorKey: 'id',
+      queryFilter: { organization }
+    })
   }
 
   @Query(returns(OrganizationModel), { nullable: true })

@@ -1,6 +1,6 @@
-import { PrimaryKey, Property, BaseEntity as Ba } from '@mikro-orm/core'
+import { PrimaryKey, Property, BaseEntity as Base } from '@mikro-orm/core'
 
-export abstract class BaseEntity extends Ba<BaseEntity, 'id'> {
+export abstract class BaseEntity extends Base<BaseEntity, 'id'> {
   @PrimaryKey()
   id!: number
 

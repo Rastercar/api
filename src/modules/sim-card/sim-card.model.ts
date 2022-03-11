@@ -1,3 +1,4 @@
+import { OffsetPaginated } from '../../graphql/pagination/offset-pagination'
 import { Field, Int, ObjectType } from '@nestjs/graphql'
 
 @ObjectType({ description: 'sim card' })
@@ -20,3 +21,6 @@ export class SimCardModel {
   @Field()
   apnPassword!: string
 }
+
+@ObjectType()
+export class OffsetPaginatedSimCard extends OffsetPaginated(SimCardModel) {}

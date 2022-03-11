@@ -1,8 +1,8 @@
 import { getOrderingClause, OrderingArgs } from '../../graphql/pagination/ordering'
-import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
 import { OffsetPaginatedVehicle, VEHICLE_ORDERABLE_FIELDS } from './vehicle.model'
-import { EntityRepository } from '@mikro-orm/postgresql'
-import { FindOptions, ObjectQuery } from '@mikro-orm/core'
+import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
+import { BaseRepository } from '../../database/base/base-repository'
+import { ObjectQuery } from '@mikro-orm/core'
 import { Vehicle } from './vehicle.entity'
 
 interface FindSearchAndPaginateArgs {
@@ -12,23 +12,17 @@ interface FindSearchAndPaginateArgs {
   search: string
 }
 
-export class VehicleRepository extends EntityRepository<Vehicle> {
-  async findSearchAndPaginate({ queryFilter, ordering, pagination, search }: FindSearchAndPaginateArgs): Promise<OffsetPaginatedVehicle> {
+export class VehicleRepository extends BaseRepository<Vehicle> {
+  /**
+   * Finds a vehi
+   */
+  findSearchAndPaginate({ queryFilter, ordering, pagination, search }: FindSearchAndPaginateArgs): Promise<OffsetPaginatedVehicle> {
     const { limit, offset } = pagination
-
-    const queryOptions: FindOptions<Vehicle> = { limit, offset, ...getOrderingClause<Vehicle>(ordering, VEHICLE_ORDERABLE_FIELDS) }
 
     if (search) queryFilter.plate = { $ilike: `${search}%` }
 
-    // prettier-ignore
-    const [vehicles, total] = await Promise.all([
-      this.em.find(Vehicle, queryFilter, queryOptions),
-      this.em.count(Vehicle, queryFilter)
-    ])
+    const queryOptions = getOrderingClause<Vehicle>(ordering, VEHICLE_ORDERABLE_FIELDS)
 
-    const hasMore = offset + vehicles.length < total
-    const hasPrevious = !!offset
-
-    return { nodes: vehicles, pageInfo: { total, hasMore, hasPrevious } }
+    return this.findAndOffsetPaginate({ limit, offset, queryOptions, queryFilter })
   }
 }

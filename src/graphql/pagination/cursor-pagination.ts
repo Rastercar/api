@@ -1,33 +1,41 @@
 import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
 import { is } from '../../utils/coverage-helpers'
-import { IsInt, Min } from 'class-validator'
+import { IsInt, IsOptional, IsString, Min } from 'class-validator'
 import { Type } from '@nestjs/common'
+import { Transform } from 'class-transformer'
+import { RequiredProps } from '../../validators/require-other-prop.validator'
 import { IncompatableWith } from '../../validators/incompatible-with.validator'
+
+const b64Encode = (x: string) => Buffer.from(x).toString('base64')
+const b64Decode = (x: string) => Buffer.from(x, 'base64').toString()
 
 @ArgsType()
 export class CursorPagination {
   @Field(is(Int), { description: 'Return the first N elements from the list' })
   @IsInt()
   @Min(0)
-  @IncompatableWith(['before'])
+  @IsOptional()
   first = 10
 
-  @Field(is(Int), { nullable: true, description: 'Return the elements in the list after this cursor' })
-  @IsInt()
-  @Min(0)
-  @IncompatableWith(['last'])
-  after = 0
+  @Field(is(String), { nullable: true, description: 'Return the elements in the list after this cursor' })
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => b64Decode(value || '0'), { toPlainOnly: true })
+  after!: string
 
   @Field(is(Int), { description: 'Return the last N elements from the list' })
+  @IncompatableWith(['first'])
+  @IsOptional()
   @IsInt()
   @Min(0)
-  @IncompatableWith(['first'])
+  @RequiredProps([{ prop: 'before' }])
   last = 10
 
-  @Field(is(Int), { description: 'Return the elements in the list before this cursor' })
-  @IsInt()
-  @IncompatableWith(['first'])
-  before!: number
+  @Field(is(String), { nullable: true, description: 'Return the elements in the list before this cursor' })
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => b64Decode(value || '0'), { toPlainOnly: true })
+  before!: string
 }
 
 @ObjectType()
@@ -50,7 +58,7 @@ interface IEdgeType<T> {
   node: T
 }
 
-export interface IPaginatedType<T> {
+export interface ICursorPaginatedType<T> {
   edges: IEdgeType<T>[]
 
   nodes: T[]
@@ -70,7 +78,7 @@ export interface IPaginatedType<T> {
  *
  * https://relay.dev/graphql/connections.htm
  */
-export function Paginated<T>(classRef: Type<T>): Type<IPaginatedType<T>> {
+export function CursorPaginated<T>(classRef: Type<T>): Type<ICursorPaginatedType<T>> {
   @ObjectType(`${classRef.name}Connection`)
   abstract class EdgeType {
     @Field(() => classRef)
@@ -81,7 +89,7 @@ export function Paginated<T>(classRef: Type<T>): Type<IPaginatedType<T>> {
   }
 
   @ObjectType({ isAbstract: true })
-  abstract class PaginatedType implements IPaginatedType<T> {
+  abstract class PaginatedType implements ICursorPaginatedType<T> {
     @Field(() => [EdgeType], { nullable: true })
     edges!: EdgeType[]
 
@@ -92,7 +100,7 @@ export function Paginated<T>(classRef: Type<T>): Type<IPaginatedType<T>> {
     pageInfo!: PageInfo
   }
 
-  return PaginatedType as Type<IPaginatedType<T>>
+  return PaginatedType as Type<ICursorPaginatedType<T>>
 }
 
 /**
@@ -103,8 +111,8 @@ export function Paginated<T>(classRef: Type<T>): Type<IPaginatedType<T>> {
  * - The amount of rows queried was `pagination.first + 1`
  * - The entities in rows have an id attribute
  */
-export function createForwardPagination<T extends { id: number }>(opts: { pagination: CursorPagination; rows: T[] }): IPaginatedType<T> {
-  const { pagination, rows } = opts
+export function createForwardPagination<T>(opts: { pagination: CursorPagination; rows: T[]; cursorKey: keyof T }): ICursorPaginatedType<T> {
+  const { pagination, rows, cursorKey } = opts
 
   const first: typeof rows[number] | undefined = rows[0]
 
@@ -129,16 +137,10 @@ export function createForwardPagination<T extends { id: number }>(opts: { pagina
   // (and only a mentaly ill user would query something with the first node as the cursor)
   const hasPreviousPage = !!pagination.after
 
-  const startCursor = `${first?.id || 0}`
-  const endCursor = hasNextPage ? `${last?.id || 0}` : '0'
+  const startCursor = b64Encode(`${first?.[cursorKey] || 0}`)
+  const endCursor = hasNextPage ? b64Encode(`${last?.[cursorKey] || 0}`) : b64Encode('0')
 
-  const edges = rows.map(u => ({ node: u, cursor: Buffer.from(`${u.id}`).toString('base64') }))
+  const edges = rows.map(u => ({ node: u, cursor: b64Encode(`${u[cursorKey]}`) }))
 
-  if (!hasPreviousPage && edges[0]) edges[0].cursor = Buffer.from('0').toString('base64')
-
-  return {
-    edges,
-    nodes: rows,
-    pageInfo: { hasNextPage, hasPreviousPage, startCursor, endCursor }
-  }
+  return { edges, nodes: rows, pageInfo: { hasNextPage, hasPreviousPage, startCursor, endCursor } }
 }

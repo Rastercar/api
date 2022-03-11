@@ -11,6 +11,8 @@ import {
 @ValidatorConstraint({ async: false })
 class IncompatibleWithConstraint implements ValidatorConstraintInterface {
   validate(value: any, args: ValidationArguments) {
+    console.log({ value, args })
+
     if (isDefined(value)) return this.getFailedConstraints(args).length === 0
     return true
   }
@@ -21,6 +23,7 @@ class IncompatibleWithConstraint implements ValidatorConstraintInterface {
   }
 
   getFailedConstraints(args: ValidationArguments) {
+    console.log(args.constraints)
     return args.constraints.filter(prop => isDefined(args.object[prop]))
   }
 }
@@ -39,7 +42,6 @@ function IncompatibleWith(props: string[], validationOptions?: ValidationOptions
 
 function incompatibleSiblingsNotPresent(incompatibleSiblings: string[]) {
   return function (object: any, value: any) {
-    // Validate if prop has value and Validate if all incompatible siblings are not defined
     return isDefined(value) || incompatibleSiblings.every(prop => !isDefined(object[prop]))
   }
 }
