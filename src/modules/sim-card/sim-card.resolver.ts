@@ -6,7 +6,6 @@ import TrackerLoader from '../tracker/tracker.loader'
 import { of } from '../../utils/coverage-helpers'
 import { SimCardModel } from './sim-card.model'
 import { SimCard } from './sim-card.entity'
-import { wrap } from '@mikro-orm/core'
 
 @Resolver(of(SimCardModel))
 export class SimCardResolver {
@@ -14,7 +13,7 @@ export class SimCardResolver {
 
   @ResolveField(() => SimpleOrganizationModel)
   async organization(@Parent() simCard: SimCard): Promise<SimpleOrganizationModel> {
-    return wrap(simCard.organization).isInitialized() ? simCard.organization : this.organizationLoader.byId.load(simCard.organization.id)
+    return simCard.organization.isInitialized() ? simCard.organization : this.organizationLoader.byId.load(simCard.organization.id)
   }
 
   @ResolveField(() => TrackerModel, { nullable: true })

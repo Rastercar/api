@@ -8,10 +8,11 @@ import UserLoader from '../user/user.loader'
 import TrackerLoader from '../tracker/tracker.loader'
 import { Vehicle } from '../vehicle/vehicle.entity'
 import VehicleLoader from '../vehicle/vehicle.loader'
+import SimCardLoader from '../sim-card/sim-card.loader'
 
 @Module({
   imports: [MikroOrmModule.forFeature({ entities: [Organization, User, Vehicle] })],
-  providers: [OrganizationService, OrganizationResolver, UserLoader, TrackerLoader, VehicleLoader],
+  providers: [OrganizationService, OrganizationResolver, UserLoader, TrackerLoader, VehicleLoader, SimCardLoader],
   exports: [OrganizationService, OrganizationResolver]
 })
 export class OrganizationModule {}

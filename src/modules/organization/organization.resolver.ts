@@ -13,12 +13,15 @@ import { TrackerModel } from '../tracker/tracker.model'
 import VehicleLoader from '../vehicle/vehicle.loader'
 import TrackerLoader from '../tracker/tracker.loader'
 import UserLoader from '../user/user.loader'
+import { SimCardModel } from '../sim-card/sim-card.model'
+import SimCardLoader from '../sim-card/sim-card.loader'
 
 @Resolver(of(OrganizationModel))
 export class OrganizationResolver {
   constructor(
     readonly userLoader: UserLoader,
     readonly trackerLoader: TrackerLoader,
+    readonly simCardLoader: SimCardLoader,
     readonly vehicleLoader: VehicleLoader,
     readonly userRepository: UserRepository,
     readonly vehicleRepository: VehicleRepository,
@@ -43,6 +46,12 @@ export class OrganizationResolver {
   @ResolveField(() => [TrackerModel])
   trackers(@Parent() organization: Organization): Promise<TrackerModel[]> {
     return this.trackerLoader.byOrganizationId.load(organization.id)
+  }
+
+  // TODO: OFFSET PAGINATE ME
+  @ResolveField(() => [SimCardModel])
+  simCards(@Parent() organization: Organization): Promise<SimCardModel[]> {
+    return this.simCardLoader.byOrganizationId.load(organization.id)
   }
 
   // TODO: OFFSET PAGINATE ME

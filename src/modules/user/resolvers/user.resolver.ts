@@ -18,7 +18,6 @@ import { UserService } from '../services/user.service'
 import { UserModel } from '../models/user.model'
 import { User } from '../entities/user.entity'
 import { UseGuards } from '@nestjs/common'
-import { wrap } from '@mikro-orm/core'
 
 @Resolver(of(UserModel))
 export class UserResolver {
@@ -33,13 +32,13 @@ export class UserResolver {
 
   @ResolveField(() => SimpleOrganizationModel)
   organization(@Parent() user: User): SimpleOrganizationModel | Promise<SimpleOrganizationModel> {
-    if (wrap(user.organization).isInitialized()) return user.organization
+    if (user.organization.isInitialized()) return user.organization
     return this.organizationLoader.byId.load(user.organization.id)
   }
 
   @ResolveField(() => AccessLevelModel)
   accessLevel(@Parent() user: User): AccessLevelModel | Promise<AccessLevelModel> {
-    if (wrap(user.accessLevel).isInitialized()) return user.accessLevel
+    if (user.accessLevel.isInitialized()) return user.accessLevel
     return this.accessLevelLoader.byUserId.load(user.id)
   }
 

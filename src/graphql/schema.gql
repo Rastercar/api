@@ -78,6 +78,7 @@ type OrganizationModel {
   blocked: Boolean!
   id: Int!
   name: String!
+  simCards: [SimCardModel!]!
   trackers: [TrackerModel!]!
   users(
     """Return the elements in the list after this cursor"""

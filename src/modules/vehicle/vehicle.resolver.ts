@@ -14,7 +14,6 @@ import TrackerLoader from '../tracker/tracker.loader'
 import { User } from '../user/entities/user.entity'
 import { UseGuards } from '@nestjs/common'
 import { Vehicle } from './vehicle.entity'
-import { wrap } from '@mikro-orm/core'
 
 @Resolver(of(VehicleModel))
 export class VehicleResolver {
@@ -26,7 +25,7 @@ export class VehicleResolver {
 
   @ResolveField(() => SimpleOrganizationModel)
   organization(@Parent() vehicle: Vehicle): Promise<SimpleOrganizationModel> | SimpleOrganizationModel {
-    return wrap(vehicle.organization).isInitialized() ? vehicle.organization : this.organizationLoader.byId.load(vehicle.organization.id)
+    return vehicle.organization.isInitialized() ? vehicle.organization : this.organizationLoader.byId.load(vehicle.organization.id)
   }
 
   @ResolveField(() => [TrackerModel])
