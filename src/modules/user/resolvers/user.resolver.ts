@@ -7,7 +7,6 @@ import OrganizationLoader from '../../organization/organization.loader'
 import { AccessLevelModel } from '../../auth/models/access-level.model'
 import AccessLevelLoader from '../../auth/loaders/access-level.loader'
 import { MasterUserService } from '../services/master-user.service'
-import { GqlAuthGuard } from '../../auth/guards/gql-jwt-auth.guard'
 import { is, of, returns } from '../../../utils/coverage-helpers'
 import { UserRepository } from '../repositories/user.repository'
 import { UserOnlyGuard } from '../guards/user-only-route.guard'
@@ -18,6 +17,7 @@ import { UserService } from '../services/user.service'
 import { UserModel } from '../models/user.model'
 import { User } from '../entities/user.entity'
 import { UseGuards } from '@nestjs/common'
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
 
 @Resolver(of(UserModel))
 export class UserResolver {
@@ -42,7 +42,7 @@ export class UserResolver {
     return this.accessLevelLoader.byUserId.load(user.id)
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Query(returns(UserOrMasterUser))
   me(@RequestUser() user: User | MasterUser): Promise<UserModel | MasterUserModel> {
     return user instanceof User
@@ -55,7 +55,7 @@ export class UserResolver {
     return this.userRepository.findOne({ id })
   }
 
-  @UseGuards(GqlAuthGuard, UserOnlyGuard)
+  @UseGuards(JwtAuthGuard, UserOnlyGuard)
   @Mutation(returns(UserModel))
   async updateMyProfile(@RequestUser() user: User, @Args('profileData') profileData: UpdateUserDTO): Promise<UserModel> {
     await this.userService.updateUser(user, profileData)

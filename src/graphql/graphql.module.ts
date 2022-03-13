@@ -1,11 +1,30 @@
+import { DynamicModule, MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
+import { graphqlUploadExpress } from 'graphql-upload'
 import { GraphQLModule } from '@nestjs/graphql'
-import { Module } from '@nestjs/common'
 import { join } from 'path'
 
 const autoSchemaFile = join(process.cwd(), 'src', 'graphql', 'schema.gql')
 
-@Module({
-  imports: [GraphQLModule.forRoot({ sortSchema: true, autoSchemaFile, bodyParserConfig: false })],
-  exports: [GraphQLModule]
-})
-export class GraphqlModule {}
+@Module({})
+export class GraphQLWithUploadModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(graphqlUploadExpress()).forRoutes('graphql')
+  }
+
+  static forRoot(): DynamicModule {
+    return {
+      module: GraphQLWithUploadModule,
+      imports: [
+        GraphQLModule.forRoot<ApolloDriverConfig>({
+          driver: ApolloDriver,
+          sortSchema: true,
+          playground: false,
+          autoSchemaFile,
+          bodyParserConfig: false
+        })
+      ],
+      exports: [GraphQLModule]
+    }
+  }
+}

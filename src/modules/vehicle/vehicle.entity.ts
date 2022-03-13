@@ -6,13 +6,13 @@ import { Tracker } from '../tracker/tracker.entity'
 
 interface VehicleArgs {
   plate: string
-  modelYear?: number
-  fabricationYear?: number
-  chassisNumber?: string
   brand?: string
   model?: string
-  renavam?: string
   color?: string
+  renavam?: string
+  modelYear?: number
+  chassisNumber?: string
+  fabricationYear?: number
 }
 
 @Entity({ customRepository: () => VehicleRepository })

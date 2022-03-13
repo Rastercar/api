@@ -10,6 +10,24 @@ type AccessLevelModel {
   permissions: [PERMISSION!]!
 }
 
+input CreateVehicleDTO {
+  brand: String
+  chassisNumber: String
+  color: String
+  fabricationYear: Float
+  model: String
+  modelYear: Float
+  plate: String!
+  renavam: String
+}
+
+type File {
+  encoding: String!
+  filename: String!
+  mimetype: String!
+  uri: String!
+}
+
 """JSON Web Token"""
 type JwtModel {
   type: String!
@@ -49,6 +67,7 @@ type MasterUserModel {
 }
 
 type Mutation {
+  createVehicle(data: CreateVehicleDTO!, photo: Upload): File!
   login(credentials: LoginInput!): LoginResponse!
   loginWithToken(token: String!): LoginResponse!
   register(user: RegisterUserDTO!): LoginResponse!
@@ -196,6 +215,9 @@ input UpdateUserDTO {
   removeGoogleProfileLink: Boolean
   username: String
 }
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
 
 """user"""
 type UserModel {

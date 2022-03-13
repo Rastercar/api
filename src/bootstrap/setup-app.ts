@@ -5,9 +5,14 @@ import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from '../app.module'
 import * as express from 'express'
+import { useContainer } from 'class-validator'
 
-export const createApp = () => {
-  return NestFactory.create(AppModule, { bodyParser: false, logger: ['debug', 'verbose'] })
+export const createApp = async () => {
+  const app = await NestFactory.create(AppModule, { bodyParser: false })
+
+  useContainer(app.select(AppModule), { fallbackOnErrors: true })
+
+  return app
 }
 
 /**

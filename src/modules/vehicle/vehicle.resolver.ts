@@ -1,19 +1,22 @@
+import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { SimpleOrganizationModel } from '../organization/models/organization.model'
 import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
-import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { RequestUser } from '../auth/decorators/request-user.decorator'
 import { OffsetPaginatedVehicle, VehicleModel } from './vehicle.model'
-import { UserOnlyGuard } from '../user/guards/user-only-route.guard'
 import OrganizationLoader from '../organization/organization.loader'
-import { GqlAuthGuard } from '../auth/guards/gql-jwt-auth.guard'
+import { UserAuth } from '../auth/decorators/user-auth.decorator'
 import { OrderingArgs } from '../../graphql/pagination/ordering'
-import { of, returns } from '../../utils/coverage-helpers'
+import { is, of, returns } from '../../utils/coverage-helpers'
+import { CreateVehicleDTO } from './dtos/create-vehicle.dto'
+import { FileUpload, GraphQLUpload } from 'graphql-upload'
 import { VehicleRepository } from './vehicle.repository'
 import { TrackerModel } from '../tracker/tracker.model'
 import TrackerLoader from '../tracker/tracker.loader'
 import { User } from '../user/entities/user.entity'
-import { UseGuards } from '@nestjs/common'
+import { File } from '../../graphql/common/file'
 import { Vehicle } from './vehicle.entity'
+import * as path from 'path'
+import * as fs from 'fs'
 
 @Resolver(of(VehicleModel))
 export class VehicleResolver {
@@ -33,7 +36,7 @@ export class VehicleResolver {
     return this.trackerLoader.byVehicleId.load(vehicle.id)
   }
 
-  @UseGuards(GqlAuthGuard, UserOnlyGuard)
+  @UserAuth()
   @Query(returns(OffsetPaginatedVehicle), { description: 'The vehicles that belong to the request user organization' })
   vehicles(
     @Args() ordering: OrderingArgs,
@@ -42,5 +45,34 @@ export class VehicleResolver {
     @RequestUser() user: User
   ): Promise<OffsetPaginatedVehicle> {
     return this.vehicleRepository.findSearchAndPaginate({ search, ordering, pagination, queryFilter: { organization: user.organization } })
+  }
+
+  @UserAuth()
+  @Mutation(returns(File))
+  async createVehicle(
+    @Args({ name: 'photo', type: is(GraphQLUpload), nullable: true }) photo: FileUpload | null,
+    @Args({ name: 'data', type: is(CreateVehicleDTO) }) dto: CreateVehicleDTO,
+    @RequestUser() user: User
+  ): Promise<VehicleModel> {
+    console.log('-----------------------------------------------------------------------')
+    console.log(photo, dto)
+
+    if (photo) {
+      const { createReadStream, filename, mimetype, encoding } = photo
+
+      console.log({ mimetype, encoding })
+
+      const stream = createReadStream()
+      const pathname = path.join('test', filename)
+
+      stream.pipe(fs.createWriteStream(pathname))
+    }
+
+    const vehicle = new Vehicle(dto)
+    vehicle.organization = user.organization
+
+    await this.vehicleRepository.persistAndFlush(vehicle)
+
+    return { filename: '', mimetype: '', encoding: '', uri: 'http://about:blank' } as any
   }
 }
