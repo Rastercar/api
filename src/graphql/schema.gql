@@ -21,13 +21,6 @@ input CreateVehicleDTO {
   renavam: String
 }
 
-type File {
-  encoding: String!
-  filename: String!
-  mimetype: String!
-  uri: String!
-}
-
 """JSON Web Token"""
 type JwtModel {
   type: String!
@@ -67,7 +60,7 @@ type MasterUserModel {
 }
 
 type Mutation {
-  createVehicle(data: CreateVehicleDTO!, photo: Upload): File!
+  createVehicle(data: CreateVehicleDTO!, photo: Upload): VehicleModel!
   login(credentials: LoginInput!): LoginResponse!
   loginWithToken(token: String!): LoginResponse!
   register(user: RegisterUserDTO!): LoginResponse!
@@ -242,6 +235,7 @@ type VehicleModel {
   model: String
   modelYear: Float
   organization: SimpleOrganizationModel!
+  photo: String
   plate: String!
   renavam: String
   trackers: [TrackerModel!]!

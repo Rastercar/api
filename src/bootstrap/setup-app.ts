@@ -2,10 +2,10 @@ import { HttpExceptionFilter } from '../filters/http-exception.filter'
 import { INestApplication, ValidationPipe } from '@nestjs/common'
 import { MikroORM, RequestContext } from '@mikro-orm/core'
 import { ConfigService } from '@nestjs/config'
+import { useContainer } from 'class-validator'
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from '../app.module'
 import * as express from 'express'
-import { useContainer } from 'class-validator'
 
 export const createApp = async () => {
   const app = await NestFactory.create(AppModule, { bodyParser: false })

@@ -21,8 +21,8 @@ export class SetDbSchema extends Migration {
     this.addSql('create table "master_user" ("id" serial primary key, "created_at" timestamptz(0) not null, "updated_at" timestamptz(0) null, "username" varchar(255) not null, "last_login" timestamptz(0) null, "email" varchar(255) not null, "email_verified" boolean not null default false, "password" varchar(255) not null, "reset_password_token" text null, "access_level_id" int null, "master_access_level_id" int not null);');
     this.addSql('alter table "master_user" add constraint "master_user_email_unique" unique ("email");');
 
-    this.addSql('create table "vehicle" ("id" serial primary key, "created_at" timestamptz(0) not null, "updated_at" timestamptz(0) null, "plate" varchar(255) not null, "model_year" smallint null, "fabrication_year" smallint null, "chassis_number" varchar(255) null, "brand" varchar(255) null, "model" varchar(255) null, "renavam" varchar(255) null, "color" varchar(255) null, "organization_id" int not null);');
-    this.addSql('alter table "vehicle" add constraint "vehicle_plate_unique" unique ("plate");');
+    this.addSql('create table "vehicle" ("id" serial primary key, "created_at" timestamptz(0) not null, "updated_at" timestamptz(0) null, "plate" varchar(255) not null, "photo" varchar(255) null, "model_year" smallint null, "fabrication_year" smallint null, "chassis_number" varchar(255) null, "brand" varchar(255) null, "model" varchar(255) null, "renavam" varchar(255) null, "color" varchar(255) null, "organization_id" int not null);');
+    this.addSql('alter table "vehicle" add constraint "vehicle_plate_organization_id_unique" unique ("plate", "organization_id");');
 
     this.addSql('create table "tracker" ("id" serial primary key, "created_at" timestamptz(0) not null, "updated_at" timestamptz(0) null, "model" varchar(255) not null, "organization_id" int not null, "vehicle_id" int null);');
 

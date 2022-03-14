@@ -15,6 +15,7 @@ interface VehicleArgs {
   fabricationYear?: number
 }
 
+@Unique({ properties: ['plate', 'organization'] })
 @Entity({ customRepository: () => VehicleRepository })
 export class Vehicle extends BaseEntity {
   constructor(data: VehicleArgs) {
@@ -33,8 +34,13 @@ export class Vehicle extends BaseEntity {
   [EntityRepositoryType]?: VehicleRepository
 
   @Property()
-  @Unique()
   plate!: string
+
+  /**
+   * S3 object ID
+   */
+  @Property({ type: String, nullable: true })
+  photo!: string | null
 
   @Property({ type: Number, nullable: true, columnType: 'smallint' })
   modelYear!: number | null

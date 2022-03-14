@@ -10,6 +10,9 @@ export class VehicleModel {
   @Field()
   plate!: string
 
+  @Field(() => String, { nullable: true })
+  photo!: string | null
+
   @Field(() => Number, { nullable: true })
   modelYear!: number | null
 

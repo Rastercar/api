@@ -13,15 +13,14 @@ import { VehicleRepository } from './vehicle.repository'
 import { TrackerModel } from '../tracker/tracker.model'
 import TrackerLoader from '../tracker/tracker.loader'
 import { User } from '../user/entities/user.entity'
-import { File } from '../../graphql/common/file'
+import { VehicleService } from './vehicle.service'
 import { Vehicle } from './vehicle.entity'
-import * as path from 'path'
-import * as fs from 'fs'
 
 @Resolver(of(VehicleModel))
 export class VehicleResolver {
   constructor(
     readonly trackerLoader: TrackerLoader,
+    readonly vehicleService: VehicleService,
     readonly vehicleRepository: VehicleRepository,
     readonly organizationLoader: OrganizationLoader
   ) {}
@@ -48,31 +47,12 @@ export class VehicleResolver {
   }
 
   @UserAuth()
-  @Mutation(returns(File))
+  @Mutation(returns(VehicleModel))
   async createVehicle(
     @Args({ name: 'photo', type: is(GraphQLUpload), nullable: true }) photo: FileUpload | null,
     @Args({ name: 'data', type: is(CreateVehicleDTO) }) dto: CreateVehicleDTO,
     @RequestUser() user: User
   ): Promise<VehicleModel> {
-    console.log('-----------------------------------------------------------------------')
-    console.log(photo, dto)
-
-    if (photo) {
-      const { createReadStream, filename, mimetype, encoding } = photo
-
-      console.log({ mimetype, encoding })
-
-      const stream = createReadStream()
-      const pathname = path.join('test', filename)
-
-      stream.pipe(fs.createWriteStream(pathname))
-    }
-
-    const vehicle = new Vehicle(dto)
-    vehicle.organization = user.organization
-
-    await this.vehicleRepository.persistAndFlush(vehicle)
-
-    return { filename: '', mimetype: '', encoding: '', uri: 'http://about:blank' } as any
+    return this.vehicleService.create(dto, user.organization, photo)
   }
 }

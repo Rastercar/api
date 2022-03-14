@@ -1,13 +1,28 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { v4 as uuid } from 'uuid'
+import { ReadStream } from 'fs'
 import { S3 } from 'aws-sdk'
+import { FILE_UPLOAD_FOLDERS } from '../../constants/file-upload-folders'
+
+interface UploadArgs {
+  bufferOrStream: Buffer | (() => ReadStream)
+  mimetype: string
+  fileExtension: string
+  /**
+   * A forward slash ending folder path, ex: `users/profile-pictures/`
+   *
+   * @see https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-folders.html
+   */
+  folderPath?: FILE_UPLOAD_FOLDERS
+}
 
 @Injectable()
 export class S3Service {
   constructor(readonly configService: ConfigService) {
     const bucketName = configService.get<string>('AWS_UPLOADS_BUCKET_NAME')
     if (!bucketName) throw new Error('Cant insantiate S3 Service, no bucket name avaliable')
+
     this.bucketName = bucketName
   }
 
@@ -23,8 +38,17 @@ export class S3Service {
     })
   }
 
-  upload(dataBuffer: Buffer, filename: string): Promise<S3.ManagedUpload.SendData> {
-    return this.s3.upload({ Bucket: this.bucketName, Body: dataBuffer, Key: `${uuid()}-${filename}` }).promise()
+  upload(options: UploadArgs): Promise<S3.ManagedUpload.SendData> {
+    const { bufferOrStream, fileExtension, mimetype, folderPath } = options
+
+    return this.s3
+      .upload({
+        Key: `${folderPath ?? ''}${uuid()}-${fileExtension}`,
+        Body: Buffer.isBuffer(bufferOrStream) ? bufferOrStream : bufferOrStream(),
+        Bucket: this.bucketName,
+        ContentType: mimetype
+      })
+      .promise()
   }
 
   delete(key: string) {
