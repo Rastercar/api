@@ -7,6 +7,8 @@ import { RedisPubSub } from 'graphql-redis-subscriptions'
 async function bootstrap() {
   const app = await createApp()
 
+  app.enableShutdownHooks()
+
   setupAppGlobals(app)
 
   // IMPORTANT: MUST BE AFTER SETUP APP GLOBALS

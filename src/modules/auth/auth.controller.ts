@@ -92,8 +92,10 @@ export class AuthController {
    */
   @Post('check-password')
   @UseGuards(JwtAuthGuard)
-  checkPassword(@RequestUser('password') userPass: string, @Body() dto: CheckPasswordDTO): Promise<boolean> {
-    return this.authService.comparePasswords(dto.password, userPass)
+  async checkPassword(@RequestUser() user: User, @Body() dto: CheckPasswordDTO): Promise<boolean> {
+    await this.userService.userRepository.populate(user, ['password'])
+
+    return this.authService.comparePasswords(dto.password, user.password as string)
   }
 
   /**

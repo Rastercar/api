@@ -106,6 +106,7 @@ export class UserService {
     if (newPassword) {
       if (oldPasswordVerification) {
         await this.userRepository.populate(userToUpdate, ['password'])
+
         const oldPasswordIsValid = await this.authService.comparePasswords(oldPasswordVerification, userToUpdate.password as string)
         if (!oldPasswordIsValid) throw new BadRequestException(ERROR_CODES.OLD_PASSWORD_INVALID)
       }

@@ -10,6 +10,7 @@ import { AuthService } from './services/auth.service'
 import { AuthController } from './auth.controller'
 import { ConfigService } from '@nestjs/config'
 import { JwtModule } from '@nestjs/jwt'
+import { createRepositoryMock } from '../../../test/mocks/repository.mock'
 
 describe('AuthController', () => {
   let authMailerService: AuthMailerService
@@ -58,6 +59,7 @@ describe('AuthController', () => {
           provide: UserService,
           useFactory: () => ({
             updateUser: jest.fn(),
+            userRepository: createRepositoryMock(),
             getUserForGoogleProfile: jest.fn(),
             createOrFindUnregisteredUserForGoogleProfile: jest.fn()
           })
@@ -132,9 +134,12 @@ describe('AuthController', () => {
     })
   })
 
-  it('[checkPassword] compares the current user password and the provided password with the authservice', () => {
-    controller.checkPassword('currentUserHashedPassword', { password: 'passwordToTestAgainst' })
-    expect(authService.comparePasswords).toHaveBeenLastCalledWith('passwordToTestAgainst', 'currentUserHashedPassword')
+  it('[checkPassword] compares the current user password and the provided password with the authservice', async () => {
+    const user = createFakeUser(true)
+    user.password = 'currentUserHashedPass'
+
+    await controller.checkPassword(user, { password: 'passwordToTestAgainst' })
+    expect(authService.comparePasswords).toHaveBeenLastCalledWith('passwordToTestAgainst', 'currentUserHashedPass')
   })
 
   it('[confirmEmailAddress] confirms the email adress according to the user type', async () => {
