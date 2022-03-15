@@ -180,6 +180,10 @@ type SimpleOrganizationModel {
   name: String!
 }
 
+type Subscription {
+  testSub: VehicleModel!
+}
+
 """tracker"""
 type TrackerModel {
   id: Int!

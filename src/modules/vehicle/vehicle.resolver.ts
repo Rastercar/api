@@ -15,6 +15,9 @@ import TrackerLoader from '../tracker/tracker.loader'
 import { User } from '../user/entities/user.entity'
 import { VehicleService } from './vehicle.service'
 import { Vehicle } from './vehicle.entity'
+import { Inject } from '@nestjs/common'
+import { PUB_SUB } from '../pubsub/pubsub.module'
+import { RedisPubSub } from 'graphql-redis-subscriptions'
 
 @Resolver(of(VehicleModel))
 export class VehicleResolver {
@@ -22,7 +25,8 @@ export class VehicleResolver {
     readonly trackerLoader: TrackerLoader,
     readonly vehicleService: VehicleService,
     readonly vehicleRepository: VehicleRepository,
-    readonly organizationLoader: OrganizationLoader
+    readonly organizationLoader: OrganizationLoader,
+    @Inject(PUB_SUB) readonly pubSub: RedisPubSub
   ) {}
 
   @ResolveField(() => SimpleOrganizationModel)
@@ -43,6 +47,7 @@ export class VehicleResolver {
     @Args('search', { nullable: true }) search: string,
     @RequestUser() user: User
   ): Promise<OffsetPaginatedVehicle> {
+    this.pubSub.publish('postAdded', { plate: 'YYY4444' })
     return this.vehicleRepository.findSearchAndPaginate({ search, ordering, pagination, queryFilter: { organization: user.organization } })
   }
 

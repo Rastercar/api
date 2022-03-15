@@ -5,6 +5,7 @@ import { GraphQLWithUploadModule } from './graphql/graphql.module'
 import { VehicleModule } from './modules/vehicle/vehicles.module'
 import { TrackerModule } from './modules/tracker/tracker.module'
 import { ValidatorModule } from './validators/validator.module'
+import { PubSubModule } from './modules/pubsub/pubsub.module'
 import { MailerModule } from './modules/mail/mailer.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { ConfigModule } from './config/config.module'
@@ -17,6 +18,7 @@ import { Module } from '@nestjs/common'
     AuthModule,
     MailerModule,
     ConfigModule,
+    PubSubModule,
     VehicleModule,
     TrackerModule,
     SimCardModule,

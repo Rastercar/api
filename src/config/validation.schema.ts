@@ -20,6 +20,9 @@ export const validationSchema = Joi.object({
   JWT_DEFAULT_TTL: Joi.string().required(),
   JWT_SECRET: Joi.string().min(10).required(),
 
+  REDIS_HOST: Joi.string().required(),
+  REDIS_PORT: Joi.number().required(),
+
   GOOGLE_OAUTH_CLIENT_ID: Joi.string().min(10).required(),
   GOOGLE_OAUTH_CLIENT_SECRET: Joi.string().min(10).required(),
 

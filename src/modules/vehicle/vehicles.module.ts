@@ -8,10 +8,11 @@ import VehicleLoader from './vehicle.loader'
 import { Vehicle } from './vehicle.entity'
 import { S3Module } from '../s3/s3.module'
 import { Module } from '@nestjs/common'
+import { TestResolver } from './test.resolver'
 
 @Module({
   imports: [MikroOrmModule.forFeature({ entities: [Vehicle, Tracker] }), S3Module],
-  providers: [VehicleResolver, VehicleService, VehicleLoader, TrackerLoader, OrganizationLoader],
+  providers: [VehicleResolver, TestResolver, VehicleService, VehicleLoader, TrackerLoader, OrganizationLoader],
   exports: [VehicleResolver, VehicleService, VehicleLoader]
 })
 export class VehicleModule {}

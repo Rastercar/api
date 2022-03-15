@@ -13,15 +13,26 @@ export class GraphQLWithUploadModule implements NestModule {
   }
 
   static forRoot(): DynamicModule {
+    const inDevelopmentMode = process.env.NODE_ENV === 'development'
+
     return {
       module: GraphQLWithUploadModule,
       imports: [
         GraphQLModule.forRoot<ApolloDriverConfig>({
           driver: ApolloDriver,
           sortSchema: true,
-          playground: false,
           autoSchemaFile,
-          bodyParserConfig: false
+          bodyParserConfig: false,
+          playground: inDevelopmentMode,
+          subscriptions: {
+            'graphql-ws': true,
+            /**
+             * Graphql playground and apollo studio do not support
+             * subscriptions with graphql-ws, so we can use both
+             * transports while in development for it to work
+             */
+            'subscriptions-transport-ws': inDevelopmentMode
+          }
         })
       ],
       exports: [GraphQLModule]
