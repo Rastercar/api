@@ -19,10 +19,12 @@ $ yarn
 
 > For now we do not support [expandable enviroment variables](https://docs.nestjs.com/techniques/configuration#expandable-variables) since theyre injected to the docker container when running and theyre interpreted as the final values
 
-### Setting up the database
+---
+
+### Setting up postgres / mongo
 
 **Running locally:**
-Just install postgres 13+ on your machine and setup the env vars on the _test_ and _development_ files as described above, check `database.config.ts` to see all the possible env variables used to setup the connection, dont forget to create the databases and install the postgis extension
+Just install postgres 13+/mongo and setup the env vars on the _test_ and _development_ files as described above, check `postgres.config.ts` and `mongo.config.ts` to see all the possible env variables used to setup the connection, for postgres dont forget to create the databases and install the postgis extension
 
 ```sql
 -- same database names as the POSTGRES_DB env var on the .development.env and .test.env files
@@ -36,7 +38,7 @@ CREATE EXTENSION postgis_topology;
 
 **Running on docker** :whale:
 
-There is a docker-compose file that creates a postgis container with a persistent volume, it will also create empty _dev_ and _test_ databases according to the POSTGRES_DB env var on the env files if the postgis container contains no data
+There is a docker-compose file that creates a postgis container with a persistent volume, it will also create empty _dev_ and _test_ databases according to the `POSTGRES_DB` env var on the env files if the postgis container contains no data
 
 ```bash
 # start the db container
@@ -49,27 +51,23 @@ sudo docker-compose down
 sudo docker-compose down --volumes
 ```
 
-### Synching the DB schema with migrations (recommended)
+---
+
+### Synching the DB schema with migrations
 
 ```bash
-yarn mikro-orm migration:up
+# Apply all migrations to local postgres/mongo
+yarn db:postgres migration:up
+yarn db:mongo migration:up
+
+# Reset and seed local postgres/mongo db
+yarn db:postgres migration:fresh --seed
+yarn db:mongo migration:fresh --seed
 ```
 
 > Note that by default the mikro-orm cli will use the use the `env/.development.env` file to get the db connection config, if you wish to run the CLI using another env file just use run the cli with MIKRO_ORM_CFG env var with the name of the env file containing the desired config, for example: `MIKRO_ORM_CFG=homolog yarn mikro-orm...` would use the `env/.homolog.env` file to load the connection config variables
 
 For a list of commands see: https://mikro-orm.io/docs/migrations/#using-via-cli
-
-### Synching the DB schema without running migrations
-
-After setting up the empty databases you can sync the DB schema with mikro-orm.
-
-```bash
-# Sync the schema on the dev DB using migrations (recommended)
-yarn mikro-orm schema:update -r --drop-tables
-
-# Sync the schema on the test DB
-MIKRO_ORM_CFG=test yarn mikro-orm schema:update -r --drop-tables
-```
 
 ---
 

@@ -11,6 +11,10 @@
     "build": "nest build",
     "build:docker": "sudo docker build -t rastercar-api .",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "db:mongo": "MIKRO_ORM_DB=mongo yarn mikro-orm",
+    "db:mongo:homolog": "MIKRO_ORM_CFG=homolog MIKRO_ORM_DB=mongo yarn mikro-orm",
+    "db:postgres": "MIKRO_ORM_DB=postgres yarn mikro-orm",
+    "db:postgres:homolog": "MIKRO_ORM_CFG=homolog MIKRO_ORM_DB=postgres yarn mikro-orm",
     "start": "nest start",
     "start:dev": "NODE_ENV=development nest start --watch",
     "start:test": "NODE_ENV=test node dist/main",
@@ -116,8 +120,8 @@
   "mikro-orm": {
     "useTsNode": true,
     "configPaths": [
-      "./src/database/postgres/mikro-orm.config.ts",
-      "./dist/database/postgres/mikro-orm.config.js"
+      "./src/database/mikro-orm.config.ts",
+      "./dist/database/mikro-orm.config.js"
     ]
   }
 }

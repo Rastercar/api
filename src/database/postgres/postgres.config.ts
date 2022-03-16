@@ -1,4 +1,4 @@
-/**
+/*
  |
  | This configuration file is used by the mikro-orm cli aswell  
  | as mikro-orm while running the api, the database config vars
@@ -10,9 +10,10 @@
  |
  */
 
-import getDatabaseConfig from '../../config/database.config'
+import getPostgresConfig from '../../config/postgres.config'
 import { SqlHighlighter } from '@mikro-orm/sql-highlighter'
 import { Logger, NotFoundException } from '@nestjs/common'
+import { PostgreSqlDriver } from '@mikro-orm/postgresql'
 import { LoadStrategy, Options } from '@mikro-orm/core'
 import { entities } from './entities'
 
@@ -22,12 +23,14 @@ const findOneOrFailHandler = (entityName: string) => {
   throw new NotFoundException(`${entityName} not found.`)
 }
 
-export default {
-  ...getDatabaseConfig(),
-
-  entities,
+const postgresConfig: Options<PostgreSqlDriver> = {
+  ...getPostgresConfig(),
 
   logger: logger.log.bind(logger),
+
+  findOneOrFailHandler,
+
+  entities,
 
   migrations: {
     path: './src/database/postgres/migrations'
@@ -42,7 +45,7 @@ export default {
 
   loadStrategy: LoadStrategy.JOINED,
 
-  highlighter: process.env.NODE_ENV === 'development' ? new SqlHighlighter() : null,
+  highlighter: process.env.NODE_ENV === 'development' ? new SqlHighlighter() : undefined
+}
 
-  findOneOrFailHandler
-} as Options
+export default postgresConfig

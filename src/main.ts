@@ -1,8 +1,11 @@
 import { addMikroOrmRequestContextMiddleware, createApp, initApp, setupAppGlobals } from './bootstrap/setup-app'
-import { ConfigService } from '@nestjs/config'
-import { config } from 'aws-sdk'
-import { PUB_SUB } from './modules/pubsub/pubsub.module'
+import { Position } from './modules/positions/position.entity'
 import { RedisPubSub } from 'graphql-redis-subscriptions'
+import { PUB_SUB } from './modules/pubsub/pubsub.module'
+import { getMikroORMToken } from '@mikro-orm/nestjs'
+import { ConfigService } from '@nestjs/config'
+import { MikroORM } from '@mikro-orm/core'
+import { config } from 'aws-sdk'
 
 async function bootstrap() {
   const app = await createApp()
@@ -25,6 +28,10 @@ async function bootstrap() {
   initApp(app)
 
   const pub = app.get<RedisPubSub>(PUB_SUB)
+  const xd = app.get<MikroORM>(getMikroORMToken('mongo'))
+
+  const wew = new Position()
+  xd.em.fork().persistAndFlush(wew)
 
   let i = 1111
 

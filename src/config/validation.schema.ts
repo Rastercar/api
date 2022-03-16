@@ -8,14 +8,21 @@ export const validationSchema = Joi.object({
   POSTGRES_USER: Joi.string().required(),
   POSTGRES_PASSWORD: Joi.string().required(),
 
+  DB_HOST: Joi.string(),
+  DB_PORT: Joi.number(),
+  DB_DEBUG_MODE: Joi.boolean().required(),
+
+  MONGO_DB: Joi.string().required(),
+  MONGO_HOST: Joi.string(),
+  MONGO_USER: Joi.string().required(),
+  MONGO_PASSWORD: Joi.string().required(),
+  MONGO_INITDB_ROOT_USERNAME: Joi.string(),
+  MONGO_INITDB_ROOT_PASSWORD: Joi.string(),
+
   AWS_REGION: Joi.string().required(),
   AWS_ACCESS_KEY_ID: Joi.string().required(),
   AWS_SECRET_ACCESS_KEY: Joi.string().required(),
   AWS_UPLOADS_BUCKET_NAME: Joi.string().required(),
-
-  DB_HOST: Joi.string(),
-  DB_PORT: Joi.number(),
-  DB_DEBUG_MODE: Joi.boolean().required(),
 
   JWT_DEFAULT_TTL: Joi.string().required(),
   JWT_SECRET: Joi.string().min(10).required(),
