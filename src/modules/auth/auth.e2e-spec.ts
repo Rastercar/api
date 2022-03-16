@@ -1,6 +1,6 @@
 import { loginForTestuser, getGqlFirstErrorExtension } from '../../../test/utils/e2e.utils'
 import { createAppTestingModule } from '../../../test/utils/create-app'
-import { defaultTestUser } from '../../database/seeders/user.seeder'
+import { defaultTestUser } from '../../database/postgres/seeders/user.seeder'
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import { RegisterUserDTO } from './dtos/register-user.dto'
 import { User } from '../user/entities/user.entity'

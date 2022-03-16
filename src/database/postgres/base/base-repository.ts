@@ -1,5 +1,5 @@
-import { createPagination, ICursorPaginatedType, CursorPagination } from '../../graphql/pagination/cursor-pagination'
-import { IOffsetPaginatedType } from '../../graphql/pagination/offset-pagination'
+import { createPagination, ICursorPaginatedType, CursorPagination } from '../../../graphql/pagination/cursor-pagination'
+import { IOffsetPaginatedType } from '../../../graphql/pagination/offset-pagination'
 import { FindOptions, ObjectQuery } from '@mikro-orm/core'
 import { EntityRepository } from '@mikro-orm/postgresql'
 
@@ -65,7 +65,7 @@ export class BaseRepository<T> extends EntityRepository<T> {
     const filter = { ...queryFilter, ...opts }
 
     const rows = await this.find(filter as any, {
-      orderBy: [{ [cursorKey]: isForwardPagination ? 'ASC' : 'DESC' }],
+      orderBy: [{ [cursorKey]: isForwardPagination ? 'ASC' : 'DESC' }] as any,
       limit: isForwardPagination ? first + 1 : last + 1
     })
 

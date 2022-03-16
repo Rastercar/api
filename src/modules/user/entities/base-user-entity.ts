@@ -1,4 +1,4 @@
-import { BaseEntity } from '../../../database/base/base-entity'
+import { BaseEntity } from '../../../database/postgres/base/base-entity'
 import { Property, Unique } from '@mikro-orm/core'
 
 export abstract class BaseUser extends BaseEntity {

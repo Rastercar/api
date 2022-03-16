@@ -32,12 +32,12 @@
   "dependencies": {
     "@apollo/gateway": "^0.44.1",
     "@ardatan/aggregate-error": "^0.0.6",
-    "@mikro-orm/cli": "^5.0.0",
-    "@mikro-orm/core": "^5.0.0",
-    "@mikro-orm/migrations": "^5.0.0",
-    "@mikro-orm/nestjs": "^4.3.1",
-    "@mikro-orm/postgresql": "^5.0.0",
-    "@mikro-orm/seeder": "^5.0.0",
+    "@mikro-orm/cli": "^5.1.0",
+    "@mikro-orm/core": "^5.1.0",
+    "@mikro-orm/migrations": "^5.1.0",
+    "@mikro-orm/nestjs": "^5.0.1",
+    "@mikro-orm/postgresql": "^5.1.0",
+    "@mikro-orm/seeder": "^5.1.0",
     "@mikro-orm/sql-highlighter": "^1.0.1",
     "@nestjs-modules/mailer": "^1.6.1",
     "@nestjs/apollo": "^10.0.6",
@@ -115,8 +115,8 @@
   "mikro-orm": {
     "useTsNode": true,
     "configPaths": [
-      "./src/database/mikro-orm.config.ts",
-      "./dist/mikro-orm.config.js"
+      "./src/database/postgres/mikro-orm.config.ts",
+      "./dist/database/postgres/mikro-orm.config.js"
     ]
   }
 }

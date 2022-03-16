@@ -1,5 +1,5 @@
 import { LoginResponse } from '../../src/modules/auth/models/login-response.model'
-import { defaultTestUser } from '../../src/database/seeders/user.seeder'
+import { defaultTestUser } from '../../src/database/postgres/seeders/user.seeder'
 import { GraphQLErrorExtensions } from 'graphql'
 import { Response } from 'supertest'
 import * as request from 'supertest'

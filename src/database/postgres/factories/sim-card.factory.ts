@@ -1,7 +1,7 @@
-import { apnsByBrazillianProvider } from '../../constants/sim-card-apn'
-import { SimCard } from '../../modules/sim-card/sim-card.entity'
+import { apnsByBrazillianProvider } from '../../../constants/sim-card-apn'
+import { SimCard } from '../../../modules/sim-card/sim-card.entity'
 import { Factory, faker } from '@mikro-orm/seeder'
-import { randomElementFromArray } from '../../utils/rng.utils'
+import { randomElementFromArray } from '../../../utils/rng.utils'
 
 export function createFakeSimCard(): Partial<SimCard>
 export function createFakeSimCard(instantiate: true): SimCard

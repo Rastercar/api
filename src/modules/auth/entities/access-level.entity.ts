@@ -1,7 +1,7 @@
 import { Collection, Entity, EntityRepositoryType, Enum, ManyToOne, OneToMany, Property } from '@mikro-orm/core'
 import { AccessLevelRepository } from '../repositories/access-level.repository'
 import { Organization } from '../../organization/entities/organization.entity'
-import { BaseEntity } from '../../../database/base/base-entity'
+import { BaseEntity } from '../../../database/postgres/base/base-entity'
 import { User } from '../../user/entities/user.entity'
 import { PERMISSION } from '../constants/permissions'
 

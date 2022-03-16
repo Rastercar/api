@@ -76,16 +76,13 @@ export class UserService {
     await this.userRepository.persistAndFlush(userToRegister)
 
     const getUserAndSetHimAsTheOrganizationOwner = async () => {
-      const createdUser = await this.userRepository.findOneOrFail({ email: userToRegister.email }, { populate: ['organization'] })
-
-      createdUser.organization.owner = createdUser
-
-      await this.organizationRepository.persistAndFlush(createdUser.organization)
-
-      return createdUser
+      userToRegister.organization.owner = userToRegister
+      await this.organizationRepository.persistAndFlush(userToRegister.organization)
     }
 
-    return getUserAndSetHimAsTheOrganizationOwner()
+    await getUserAndSetHimAsTheOrganizationOwner()
+
+    return userToRegister
   }
 
   async updateUser(userToUpdate: User, newData: UpdateUserData): Promise<User> {

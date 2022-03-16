@@ -74,9 +74,6 @@ export class AuthService {
     const { user, token } =
       userToLogin instanceof User ? await this.loginForUser(userToLogin, options) : await this.loginForMasterUser(userToLogin, options)
 
-    delete user.password
-    delete user.resetPasswordToken
-
     return { user, token }
   }
 

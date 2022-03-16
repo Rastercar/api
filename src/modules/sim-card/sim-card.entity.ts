@@ -1,5 +1,5 @@
 import { Entity, EntityRepositoryType, ManyToOne, Property, Unique } from '@mikro-orm/core'
-import { BaseEntity } from '../../database/base/base-entity'
+import { BaseEntity } from '../../database/postgres/base/base-entity'
 import { Organization } from '../organization/entities/organization.entity'
 import { Tracker } from '../tracker/tracker.entity'
 import { SimCardRepository } from './sim-card.repository'

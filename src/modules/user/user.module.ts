@@ -14,7 +14,10 @@ import { User } from './entities/user.entity'
 import AccessLevelLoader from '../auth/loaders/access-level.loader'
 
 @Module({
-  imports: [forwardRef(() => AuthModule), MikroOrmModule.forFeature({ entities: [User, UnregisteredUser, Organization, MasterUser] })],
+  imports: [
+    forwardRef(() => AuthModule),
+    MikroOrmModule.forFeature({ entities: [User, UnregisteredUser, Organization, MasterUser] }, 'postgres')
+  ],
   providers: [
     UserService,
     MasterUserService,

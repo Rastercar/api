@@ -1,4 +1,4 @@
-import { Organization } from '../../modules/organization/entities/organization.entity'
+import { Organization } from '../../../modules/organization/entities/organization.entity'
 import { Factory, faker } from '@mikro-orm/seeder'
 
 export function createFakeOrganization(): Partial<Organization>

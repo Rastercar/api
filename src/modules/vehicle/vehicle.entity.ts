@@ -1,6 +1,6 @@
 import { Collection, Entity, EntityRepositoryType, ManyToOne, OneToMany, Property, Unique } from '@mikro-orm/core'
 import { Organization } from '../organization/entities/organization.entity'
-import { BaseEntity } from '../../database/base/base-entity'
+import { BaseEntity } from '../../database/postgres/base/base-entity'
 import { VehicleRepository } from './vehicle.repository'
 import { Tracker } from '../tracker/tracker.entity'
 

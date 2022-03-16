@@ -1,4 +1,4 @@
-import { MasterUser } from '../../modules/user/entities/master-user.entity'
+import { MasterUser } from '../../../modules/user/entities/master-user.entity'
 import { createFakeMasterAccessLevel } from './master-access-level.factory'
 import { createFakeAccessLevel } from './access-level.factory'
 import { Factory, faker } from '@mikro-orm/seeder'

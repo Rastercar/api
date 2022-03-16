@@ -1,6 +1,6 @@
-import { AccessLevel } from '../../modules/auth/entities/access-level.entity'
-import { PERMISSION } from '../../modules/auth/constants/permissions'
-import { enumToRandomImpartialArray } from '../../utils/enum.utils'
+import { AccessLevel } from '../../../modules/auth/entities/access-level.entity'
+import { PERMISSION } from '../../../modules/auth/constants/permissions'
+import { enumToRandomImpartialArray } from '../../../utils/enum.utils'
 import { Factory, faker } from '@mikro-orm/seeder'
 
 export function createFakeAccessLevel(): Partial<AccessLevel>

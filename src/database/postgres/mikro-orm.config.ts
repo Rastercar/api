@@ -10,9 +10,9 @@
  |
  */
 
+import getDatabaseConfig from '../../config/database.config'
 import { SqlHighlighter } from '@mikro-orm/sql-highlighter'
 import { Logger, NotFoundException } from '@nestjs/common'
-import getDatabaseConfig from '../config/database.config'
 import { LoadStrategy, Options } from '@mikro-orm/core'
 import { entities } from './entities'
 
@@ -30,11 +30,11 @@ export default {
   logger: logger.log.bind(logger),
 
   migrations: {
-    path: './src/database/migrations'
+    path: './src/database/postgres/migrations'
   },
 
   seeder: {
-    path: './src/database/seeders',
+    path: './src/database/postgres/seeders',
     defaultSeeder: 'DatabaseSeeder'
   },
 

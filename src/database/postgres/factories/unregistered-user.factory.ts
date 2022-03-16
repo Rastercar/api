@@ -1,4 +1,4 @@
-import { UnregisteredUser } from '../../modules/user/entities/unregistered-user.entity'
+import { UnregisteredUser } from '../../../modules/user/entities/unregistered-user.entity'
 import { Factory, faker } from '@mikro-orm/seeder'
 
 export function createFakeUnregisteredUser(): Partial<UnregisteredUser>

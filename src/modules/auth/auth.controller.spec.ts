@@ -1,7 +1,7 @@
-import { createFakeMasterUser } from '../../database/factories/master-user.factory'
+import { createFakeMasterUser } from '../../database/postgres/factories/master-user.factory'
 import { NotFoundException, UnauthorizedException } from '@nestjs/common'
 import { MasterUserService } from '../user/services/master-user.service'
-import { createFakeUser } from '../../database/factories/user.factory'
+import { createFakeUser } from '../../database/postgres/factories/user.factory'
 import { AuthMailerService } from './services/auth-mailer.service'
 import { AuthTokenService } from './services/auth-token.service'
 import { UserService } from '../user/services/user.service'
@@ -238,7 +238,7 @@ describe('AuthController', () => {
 
       const lastResRedirectArg = res.redirect.mock.calls[0][0]
       expect(typeof lastResRedirectArg === 'string').toBe(true)
-      expect((lastResRedirectArg as string).endsWith(`/register?finishFor=${unregisteredUserMock.uuid}`)).toBe(true)
+      expect((lastResRedirectArg as string).endsWith(`/registrar?finishFor=${unregisteredUserMock.uuid}`)).toBe(true)
     })
 
     it('logins and redirects to the auto login page if a user exists for the profile', async () => {

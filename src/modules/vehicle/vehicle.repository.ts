@@ -1,7 +1,7 @@
 import { getOrderingClause, OrderingArgs } from '../../graphql/pagination/ordering'
 import { OffsetPaginatedVehicle, VEHICLE_ORDERABLE_FIELDS } from './vehicle.model'
 import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
-import { BaseRepository } from '../../database/base/base-repository'
+import { BaseRepository } from '../../database/postgres/base/base-repository'
 import { ObjectQuery } from '@mikro-orm/core'
 import { Vehicle } from './vehicle.entity'
 

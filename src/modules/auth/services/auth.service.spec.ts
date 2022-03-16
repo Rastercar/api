@@ -1,10 +1,10 @@
 import { UnregisteredUserRepository } from '../../user/repositories/unregistered-user.repository'
 import { OrganizationRepository } from '../../organization/repositories/organization.repository'
 import { BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common'
-import { createFakeMasterUser } from '../../../database/factories/master-user.factory'
+import { createFakeMasterUser } from '../../../database/postgres/factories/master-user.factory'
 import { MasterUserRepository } from '../../user/repositories/master-user.repository'
 import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
-import { createFakeUser } from '../../../database/factories/user.factory'
+import { createFakeUser } from '../../../database/postgres/factories/user.factory'
 import { UserRepository } from '../../user/repositories/user.repository'
 import { createEmptyMocksFor } from '../../../../test/utils/mocking'
 import { MasterUser } from '../../user/entities/master-user.entity'
@@ -196,7 +196,7 @@ describe('AuthService', () => {
       jest.useRealTimers()
     })
 
-    const userMock = { id: 1, password: 'i_should_be_removed', lastLogin: new Date() } as any
+    const userMock = { id: 1, lastLogin: new Date() } as any
 
     it('Changes the user lastLogin field when options.setLastLogin is not false', async () => {
       const userMock = createFakeUser(true)
@@ -210,11 +210,6 @@ describe('AuthService', () => {
       await service.login(userMock)
 
       expect(userRepository.persistAndFlush).toHaveBeenLastCalledWith({ ...userMock, lastLogin: new Date() })
-    })
-
-    it('Removes the user password before returning it', async () => {
-      const result = await service.login(userMock)
-      expect((result.user as any).password).toBe(undefined)
     })
 
     it('Removes the user unregistered_user record if the user uses oauth', async () => {

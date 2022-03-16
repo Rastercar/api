@@ -24,7 +24,7 @@ import { JwtModule } from '@nestjs/jwt'
     OrganizationModule,
     JwtModule.registerAsync(jwtConfig),
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    MikroOrmModule.forFeature({ entities: [User, UnregisteredUser, Organization, MasterUser] })
+    MikroOrmModule.forFeature({ entities: [User, UnregisteredUser, Organization, MasterUser] }, 'postgres')
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthMailerService, AuthTokenService, AuthResolver, LocalStrategy, JwtStrategy, GoogleStrategy],

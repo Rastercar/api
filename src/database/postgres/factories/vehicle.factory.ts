@@ -1,5 +1,5 @@
-import { randomColor, randomIntFromInterval } from '../../utils/rng.utils'
-import { Vehicle } from '../../modules/vehicle/vehicle.entity'
+import { randomColor, randomIntFromInterval } from '../../../utils/rng.utils'
+import { Vehicle } from '../../../modules/vehicle/vehicle.entity'
 import { Factory, faker } from '@mikro-orm/seeder'
 
 export function createFakeVehicle(): Partial<Vehicle>

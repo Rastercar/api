@@ -1,6 +1,6 @@
 import { UnregisteredUserRepository } from '../repositories/unregistered-user.repository'
 import { Entity, EntityRepositoryType, Property } from '@mikro-orm/core'
-import { UuidBaseEntity } from '../../../database/base/uuid-base-entity'
+import { UuidBaseEntity } from '../../../database/postgres/base/uuid-base-entity'
 import { oauthProvider } from '../../auth/constants/oauth-providers'
 
 interface UnregisteredUserArgs {

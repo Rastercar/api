@@ -1,5 +1,5 @@
-import { Tracker, trackerModel } from '../../modules/tracker/tracker.entity'
-import { randomElementFromArray } from '../../utils/rng.utils'
+import { Tracker, trackerModel } from '../../../modules/tracker/tracker.entity'
+import { randomElementFromArray } from '../../../utils/rng.utils'
 import { Factory } from '@mikro-orm/seeder'
 
 export function createFakeTracker(): Partial<Tracker>

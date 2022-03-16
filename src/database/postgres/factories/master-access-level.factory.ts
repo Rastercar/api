@@ -1,6 +1,6 @@
-import { MasterAccessLevel } from '../../modules/auth/entities/master-access-level.entity'
-import { MASTER_PERMISSION } from '../../modules/auth/constants/permissions'
-import { enumToRandomImpartialArray } from '../../utils/enum.utils'
+import { MasterAccessLevel } from '../../../modules/auth/entities/master-access-level.entity'
+import { MASTER_PERMISSION } from '../../../modules/auth/constants/permissions'
+import { enumToRandomImpartialArray } from '../../../utils/enum.utils'
 import { Factory, faker } from '@mikro-orm/seeder'
 
 export function createFakeMasterAccessLevel(): Partial<MasterAccessLevel>

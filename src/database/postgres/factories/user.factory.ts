@@ -1,5 +1,5 @@
 import { createFakeOrganization } from './organization.factory'
-import { User } from '../../modules/user/entities/user.entity'
+import { User } from '../../../modules/user/entities/user.entity'
 import { createFakeAccessLevel } from './access-level.factory'
 import { Factory, faker } from '@mikro-orm/seeder'
 import * as bcrypt from 'bcrypt'

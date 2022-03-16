@@ -1,6 +1,6 @@
-import { MasterUserSeeder } from '../../src/database/seeders/master-user.seeder'
+import { MasterUserSeeder } from '../../src/database/postgres/seeders/master-user.seeder'
 import { Connection, IDatabaseDriver, MikroORM } from '@mikro-orm/core'
-import { UserSeeder } from '../../src/database/seeders/user.seeder'
+import { UserSeeder } from '../../src/database/postgres/seeders/user.seeder'
 
 /**
  * Loads fixtures into the database for testing purposes

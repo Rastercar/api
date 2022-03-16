@@ -6,6 +6,6 @@ export enum PWA_ROUTE {
   REDEFINE_PASSWORD = 'redefinir-senha',
   CONFIRM_EMAIL = 'confirmar-email',
   AUTO_LOGIN = 'auto-login',
-  REGISTER = 'register',
+  REGISTER = 'registrar',
   HELP = 'ajuda'
 }

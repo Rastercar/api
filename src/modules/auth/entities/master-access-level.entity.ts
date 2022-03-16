@@ -1,7 +1,7 @@
 import { Collection, Entity, EntityRepositoryType, Enum, OneToMany, Property } from '@mikro-orm/core'
 import { MasterAccessLevelRepository } from '../repositories/master-access-level.repository'
 import { MasterUser } from '../../user/entities/master-user.entity'
-import { BaseEntity } from '../../../database/base/base-entity'
+import { BaseEntity } from '../../../database/postgres/base/base-entity'
 import { MASTER_PERMISSION } from '../constants/permissions'
 
 interface MasterAccessLevelArgs {

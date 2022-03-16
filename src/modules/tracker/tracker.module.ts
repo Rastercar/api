@@ -9,7 +9,7 @@ import { Tracker } from './tracker.entity'
 import { Module } from '@nestjs/common'
 
 @Module({
-  imports: [MikroOrmModule.forFeature({ entities: [Tracker, Vehicle] })],
+  imports: [MikroOrmModule.forFeature({ entities: [Tracker, Vehicle] }, 'postgres')],
   providers: [TrackerResolver, TrackerLoader, VehicleLoader, SimCardLoader, OrganizationLoader],
   exports: [TrackerResolver, TrackerLoader]
 })

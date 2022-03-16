@@ -1,11 +1,11 @@
 import { OrganizationFactory } from '../factories/organization.factory'
-import { Tracker } from '../../modules/tracker/tracker.entity'
+import { Tracker } from '../../../modules/tracker/tracker.entity'
 import { SimCardFactory } from '../factories/sim-card.factory'
 import { VehicleFactory } from '../factories/vehicle.factory'
 import { TrackerFactory } from '../factories/tracker.factory'
 import { UserFactory } from '../factories/user.factory'
 import type { EntityManager } from '@mikro-orm/core'
-import { randomBool } from '../../utils/rng.utils'
+import { randomBool } from '../../../utils/rng.utils'
 import { Seeder } from '@mikro-orm/seeder'
 
 export class OrganizationSeeder extends Seeder {

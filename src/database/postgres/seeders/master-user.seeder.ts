@@ -1,5 +1,5 @@
-import { MasterAccessLevel } from '../../modules/auth/entities/master-access-level.entity'
-import { AccessLevel } from '../../modules/auth/entities/access-level.entity'
+import { MasterAccessLevel } from '../../../modules/auth/entities/master-access-level.entity'
+import { AccessLevel } from '../../../modules/auth/entities/access-level.entity'
 import { MasterUserFactory } from '../factories/master-user.factory'
 import type { EntityManager } from '@mikro-orm/core'
 import { Seeder } from '@mikro-orm/seeder'

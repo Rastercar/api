@@ -7,7 +7,7 @@ import { Module } from '@nestjs/common'
 import OrganizationLoader from '../organization/organization.loader'
 
 @Module({
-  imports: [MikroOrmModule.forFeature({ entities: [SimCard] })],
+  imports: [MikroOrmModule.forFeature({ entities: [SimCard] }, 'postgres')],
   providers: [SimCardResolver, TrackerLoader, SimCardLoader, OrganizationLoader],
   exports: [SimCardResolver]
 })

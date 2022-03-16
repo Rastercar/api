@@ -1,6 +1,6 @@
 import { createExecutionContextMock } from '../../../../test/mocks/execution-context.mock'
-import { createFakeMasterUser } from '../../../database/factories/master-user.factory'
-import { createFakeUser } from '../../../database/factories/user.factory'
+import { createFakeMasterUser } from '../../../database/postgres/factories/master-user.factory'
+import { createFakeUser } from '../../../database/postgres/factories/user.factory'
 import { UserOnlyGuard } from './user-only-route.guard'
 import { UnauthorizedException } from '@nestjs/common'
 import * as httpMock from 'node-mocks-http'

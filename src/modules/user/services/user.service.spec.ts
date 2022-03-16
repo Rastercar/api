@@ -2,7 +2,7 @@ import { OrganizationRepository } from '../../organization/repositories/organiza
 import { UnregisteredUserRepository } from '../repositories/unregistered-user.repository'
 import { Organization } from '../../organization/entities/organization.entity'
 import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
-import { createFakeUser } from '../../../database/factories/user.factory'
+import { createFakeUser } from '../../../database/postgres/factories/user.factory'
 import { UnregisteredUser } from '../entities/unregistered-user.entity'
 import { createEmptyMocksFor } from '../../../../test/utils/mocking'
 import { RegisterUserDTO } from '../../auth/dtos/register-user.dto'
@@ -125,7 +125,7 @@ describe('UserService', () => {
       jest.spyOn(organizationRepository, 'findOneOrFail').mockImplementationOnce(async () => anotherOrg as any)
 
       const registeredUser = await service.registerUser(registerDto)
-      expect(registeredUser.organization.owner).toBe(userMock)
+      expect(registeredUser.organization.owner).toBeDefined()
     })
   })
 

@@ -11,7 +11,7 @@ import { Module } from '@nestjs/common'
 import { TestResolver } from './test.resolver'
 
 @Module({
-  imports: [MikroOrmModule.forFeature({ entities: [Vehicle, Tracker] }), S3Module],
+  imports: [MikroOrmModule.forFeature({ entities: [Vehicle, Tracker] }, 'postgres'), S3Module],
   providers: [VehicleResolver, TestResolver, VehicleService, VehicleLoader, TrackerLoader, OrganizationLoader],
   exports: [VehicleResolver, VehicleService, VehicleLoader]
 })

@@ -1,4 +1,4 @@
-import { MASTER_PERMISSION, PERMISSION } from '../../modules/auth/constants/permissions'
+import { MASTER_PERMISSION, PERMISSION } from '../../../modules/auth/constants/permissions'
 import { Migration } from '@mikro-orm/migrations'
 import * as bcrypt from 'bcrypt'
 

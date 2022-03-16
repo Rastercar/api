@@ -11,7 +11,7 @@ import UserLoader from '../user/user.loader'
 import { Module } from '@nestjs/common'
 
 @Module({
-  imports: [MikroOrmModule.forFeature({ entities: [Organization, User, Vehicle, Tracker, SimCard] })],
+  imports: [MikroOrmModule.forFeature({ entities: [Organization, User, Vehicle, Tracker, SimCard] }, 'postgres')],
   providers: [OrganizationService, OrganizationResolver, UserLoader, VehicleLoader],
   exports: [OrganizationService, OrganizationResolver]
 })

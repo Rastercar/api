@@ -1,4 +1,4 @@
-import { createFakeMasterUser } from '../../../database/factories/master-user.factory'
+import { createFakeMasterUser } from '../../../database/postgres/factories/master-user.factory'
 import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
 import { MasterUserRepository } from '../repositories/master-user.repository'
 import { createEmptyMocksFor } from '../../../../test/utils/mocking'

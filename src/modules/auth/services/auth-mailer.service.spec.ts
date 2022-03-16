@@ -1,4 +1,4 @@
-import { createFakeUser } from '../../../database/factories/user.factory'
+import { createFakeUser } from '../../../database/postgres/factories/user.factory'
 import { UnprocessableEntityException } from '@nestjs/common'
 import { AuthMailerService } from './auth-mailer.service'
 import { MailerService } from '@nestjs-modules/mailer'
