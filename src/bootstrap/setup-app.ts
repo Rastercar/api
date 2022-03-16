@@ -1,6 +1,7 @@
 import { HttpExceptionFilter } from '../filters/http-exception.filter'
 import { INestApplication, ValidationPipe } from '@nestjs/common'
-import { MikroORM, RequestContext } from '@mikro-orm/core'
+import { getMikroORMToken } from '@mikro-orm/nestjs'
+import { RequestContext } from '@mikro-orm/core'
 import { ConfigService } from '@nestjs/config'
 import { useContainer } from 'class-validator'
 import { NestFactory } from '@nestjs/core'
@@ -31,7 +32,7 @@ export const setupAppGlobals = (app: INestApplication) => {
 }
 
 export const addMikroOrmRequestContextMiddleware = (app: INestApplication) => {
-  const orm = app.get(MikroORM)
+  const orm = app.get(getMikroORMToken('postgres'))
 
   app.use((req: Express.Request, res: Express.Response, next: () => void) => {
     RequestContext.create(orm.em, next)

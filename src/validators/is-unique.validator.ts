@@ -3,6 +3,7 @@ import { ValidationOptions, registerDecorator } from 'class-validator'
 import { EntityManager } from '@mikro-orm/postgresql'
 import { EntityClass } from '@mikro-orm/core'
 import { Injectable } from '@nestjs/common'
+import { InjectEntityManager } from '@mikro-orm/nestjs'
 
 interface IsUniqueOptions<T> {
   entity: EntityClass<T>
@@ -12,7 +13,10 @@ interface IsUniqueOptions<T> {
 @Injectable()
 @ValidatorConstraint({ async: true })
 export class isUniqueValidator<T> implements ValidatorConstraintInterface {
-  constructor(readonly em: EntityManager) {}
+  constructor(
+    @InjectEntityManager('postgres')
+    readonly em: EntityManager
+  ) {}
 
   async validate(value: unknown, args: ValidationArguments) {
     const options: IsUniqueOptions<T> = args.constraints[0]
