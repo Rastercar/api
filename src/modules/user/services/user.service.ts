@@ -12,7 +12,7 @@ import { ERROR_CODES } from '../../../constants/error.codes'
 import { UpdateUserDTO } from '../dtos/update-user.dto'
 import { Profile } from 'passport-google-oauth20'
 import { User } from '../entities/user.entity'
-import * as bcrypt from 'bcrypt'
+import bcrypt from 'bcrypt'
 
 /*
  * Contains aditional fields that would be unreasonable

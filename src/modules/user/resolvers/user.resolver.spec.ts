@@ -9,8 +9,6 @@ import { UpdateUserDTO } from '../dtos/update-user.dto'
 import { UserService } from '../services/user.service'
 import { Test, TestingModule } from '@nestjs/testing'
 import { UserResolver } from './user.resolver'
-import AccessLevelLoader from '../../auth/loaders/access-level.loader'
-import OrganizationLoader from '../../organization/organization.loader'
 
 describe('UserResolver', () => {
   let masterUserRepository: MasterUserRepository
@@ -24,7 +22,6 @@ describe('UserResolver', () => {
       providers: [
         UserResolver,
         ...createEmptyMocksFor([UserRepository, MasterUserRepository], createRepositoryMock),
-        ...createEmptyMocksFor([AccessLevelLoader, OrganizationLoader]),
         {
           provide: UserService,
           useFactory: () => ({

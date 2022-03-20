@@ -4,17 +4,17 @@ import { FindOptions, ObjectQuery } from '@mikro-orm/core'
 import { EntityRepository } from '@mikro-orm/postgresql'
 
 interface FindAndOffsetPaginateArgs<T> {
-  queryFilter?: ObjectQuery<T>
-  queryOptions?: FindOptions<T>
   limit: number
   offset: number
+  queryFilter?: ObjectQuery<T>
+  queryOptions?: FindOptions<T>
 }
 
 interface FindAndCursorPaginateArgs<T> {
-  queryFilter?: ObjectQuery<T>
-  pagination: CursorPagination
   cursorKey: keyof T
   cursorType?: 'number' | 'string'
+  pagination: CursorPagination
+  queryFilter?: ObjectQuery<T>
 }
 
 export class BaseRepository<T> extends EntityRepository<T> {

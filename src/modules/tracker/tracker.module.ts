@@ -1,16 +1,12 @@
-import OrganizationLoader from '../organization/organization.loader'
-import SimCardLoader from '../sim-card/sim-card.loader'
-import VehicleLoader from '../vehicle/vehicle.loader'
 import { TrackerResolver } from './tracker.resolver'
 import { Vehicle } from '../vehicle/vehicle.entity'
 import { MikroOrmModule } from '@mikro-orm/nestjs'
-import TrackerLoader from './tracker.loader'
 import { Tracker } from './tracker.entity'
 import { Module } from '@nestjs/common'
 
 @Module({
   imports: [MikroOrmModule.forFeature({ entities: [Tracker, Vehicle] }, 'postgres')],
-  providers: [TrackerResolver, TrackerLoader, VehicleLoader, SimCardLoader, OrganizationLoader],
-  exports: [TrackerResolver, TrackerLoader]
+  providers: [TrackerResolver],
+  exports: [TrackerResolver]
 })
 export class TrackerModule {}

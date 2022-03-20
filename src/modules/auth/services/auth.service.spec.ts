@@ -16,7 +16,7 @@ import { ConfigService } from '@nestjs/config'
 import { AuthService } from './auth.service'
 import { Loaded } from '@mikro-orm/core'
 import { JwtService } from '@nestjs/jwt'
-import * as bcrypt from 'bcrypt'
+import bcrypt from 'bcrypt'
 
 describe('AuthService', () => {
   let unregisteredUserRepository: UnregisteredUserRepository
@@ -42,7 +42,8 @@ describe('AuthService', () => {
             createTokenForUser: jest.fn(),
             validateAndDecodeToken: jest.fn(),
             getUserIdFromAutoLoginToken: jest.fn(),
-            getUserFromDecodedTokenOrFail: jest.fn()
+            getUserFromDecodedTokenOrFail: jest.fn(),
+            createAutoLoginTokenForUser: jest.fn()
           })
         },
         {
@@ -199,17 +200,17 @@ describe('AuthService', () => {
     const userMock = { id: 1, lastLogin: new Date() } as any
 
     it('Changes the user lastLogin field when options.setLastLogin is not false', async () => {
+      jest.spyOn(authTokenService, 'createTokenForUser').mockImplementation(() => ({ type: 'bearer', value: 'asdasdasdasd' }))
+
       const userMock = createFakeUser(true)
-
-      jest.spyOn(authTokenService, 'createTokenForUser').mockImplementationOnce(() => ({
-        type: 'bearer',
-        value: 'asdasdasdasd'
-      }))
-
       jest.spyOn(userRepository, 'persistAndFlush')
       await service.login(userMock)
-
       expect(userRepository.persistAndFlush).toHaveBeenLastCalledWith({ ...userMock, lastLogin: new Date() })
+
+      const masterUserMock = createFakeMasterUser(true)
+      jest.spyOn(masterUserRepository, 'persistAndFlush')
+      await service.login(masterUserMock)
+      expect(masterUserRepository.persistAndFlush).toHaveBeenLastCalledWith({ ...masterUserMock, lastLogin: new Date() })
     })
 
     it('Removes the user unregistered_user record if the user uses oauth', async () => {
@@ -248,6 +249,23 @@ describe('AuthService', () => {
 
       expect(newToken).toEqual(newTokenMock)
       expect(user.password).toBeUndefined()
+    })
+  })
+
+  describe('[setUserAutoLoginToken]', () => {
+    it('Updates the database user to contain the new auto login token', async () => {
+      const value = 'tokenduahsud'
+      const userMock = createFakeUser(true)
+
+      jest.spyOn(authTokenService, 'createAutoLoginTokenForUser').mockImplementationOnce(() => ({ value, type: '' }))
+      jest.spyOn(userRepository, 'persistAndFlush')
+
+      const token = await service.setUserAutoLoginToken(userMock)
+
+      expect(token).toBe(value)
+      expect(userRepository.persistAndFlush).toHaveBeenLastCalledWith({ autoLoginToken: value, ...userMock })
+
+      await expect(service.loginWithToken(token)).rejects.toThrow(UnauthorizedException)
     })
   })
 })

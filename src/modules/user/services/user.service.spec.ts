@@ -12,7 +12,7 @@ import { UpdateUserDTO } from '../dtos/update-user.dto'
 import { UserService } from '../services/user.service'
 import { Test, TestingModule } from '@nestjs/testing'
 import { Profile } from 'passport-google-oauth20'
-import * as bcrypt from 'bcrypt'
+import bcrypt from 'bcrypt'
 
 describe('UserService', () => {
   let unregisteredUserRepository: UnregisteredUserRepository

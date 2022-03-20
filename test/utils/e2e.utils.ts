@@ -2,7 +2,7 @@ import { LoginResponse } from '../../src/modules/auth/models/login-response.mode
 import { defaultTestUser } from '../../src/database/postgres/seeders/user.seeder'
 import { GraphQLErrorExtensions } from 'graphql'
 import { Response } from 'supertest'
-import * as request from 'supertest'
+import request from 'supertest'
 import { Server } from 'http'
 
 /**

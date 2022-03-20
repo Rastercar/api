@@ -1,14 +1,14 @@
 import { RequiredProps } from './require-other-prop.validator'
 import { validate, ValidationError } from 'class-validator'
 
-export class Test {
+class Test {
   required_prop?: unknown
 
   @RequiredProps([{ prop: 'required_prop' }])
   common_prop?: unknown
 }
 
-export class AdvancedTest {
+class AdvancedTest {
   required_prop?: unknown
 
   @RequiredProps([{ prop: 'required_prop', value: 'i_will_match' }])

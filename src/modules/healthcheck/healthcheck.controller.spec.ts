@@ -1,12 +1,17 @@
 import { HealthcheckController } from './healthcheck.controller'
 import { UnauthorizedException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
+import { createEmptyMocksFor } from '../../../test/utils/mocking'
+import { PositionService } from '../positions/position.service'
 
 describe('HealthcheckController', () => {
   let controller: HealthcheckController
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({ controllers: [HealthcheckController] }).compile()
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [HealthcheckController],
+      providers: [...createEmptyMocksFor([PositionService])]
+    }).compile()
 
     controller = module.get(HealthcheckController)
   })

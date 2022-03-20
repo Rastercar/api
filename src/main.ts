@@ -1,11 +1,26 @@
-import { addMikroOrmRequestContextMiddleware, createApp, initApp, setupAppGlobals } from './bootstrap/setup-app'
-import { Position } from './modules/positions/position.entity'
+import {
+  addMikroOrmRequestContextMiddleware,
+  updateMongoDbSchema,
+  setupAppGlobals,
+  updateAwsConfig,
+  createApp,
+  initApp
+} from './bootstrap/setup-app'
 import { RedisPubSub } from 'graphql-redis-subscriptions'
 import { PUB_SUB } from './modules/pubsub/pubsub.module'
-import { getMikroORMToken } from '@mikro-orm/nestjs'
-import { ConfigService } from '@nestjs/config'
-import { MikroORM } from '@mikro-orm/core'
-import { config } from 'aws-sdk'
+import { INestApplication } from '@nestjs/common'
+
+// TODO: remove me
+const testPubSub = (app: INestApplication) => {
+  const pub = app.get<RedisPubSub>(PUB_SUB)
+
+  let i = 1111
+
+  setInterval(() => {
+    i++
+    pub.publish('postAdded', { testSub: { plate: `YYY${i}` } })
+  }, 5000)
+}
 
 async function bootstrap() {
   const app = await createApp()
@@ -17,28 +32,13 @@ async function bootstrap() {
   // IMPORTANT: MUST BE AFTER SETUP APP GLOBALS
   addMikroOrmRequestContextMiddleware(app)
 
-  const configService = app.get(ConfigService)
+  updateAwsConfig(app)
 
-  config.update({
-    region: configService.get('AWS_REGION'),
-    accessKeyId: configService.get('AWS_ACCESS_KEY_ID'),
-    secretAccessKey: configService.get('AWS_SECRET_ACCESS_KEY')
-  })
+  await updateMongoDbSchema(app)
 
-  initApp(app)
+  await initApp(app)
 
-  const pub = app.get<RedisPubSub>(PUB_SUB)
-  const xd = app.get<MikroORM>(getMikroORMToken('mongo'))
-
-  const wew = new Position()
-  xd.em.fork().persistAndFlush(wew)
-
-  let i = 1111
-
-  setInterval(() => {
-    i++
-    pub.publish('postAdded', { testSub: { plate: `YYY${i}` } })
-  }, 5000)
+  testPubSub(app)
 }
 
 bootstrap()

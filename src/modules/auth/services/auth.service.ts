@@ -10,7 +10,7 @@ import { ERROR_CODES } from '../../../constants/error.codes'
 import { JwtService, JwtSignOptions } from '@nestjs/jwt'
 import { AuthTokenService } from './auth-token.service'
 import { User } from '../../user/entities/user.entity'
-import * as bcrypt from 'bcrypt'
+import bcrypt from 'bcrypt'
 
 interface LoginOptions {
   /**
@@ -59,7 +59,7 @@ export class AuthService {
   private async loginForMasterUser(user: MasterUser, options: LoginOptions) {
     if (options?.setLastLogin) {
       user.lastLogin = new Date()
-      await this.userRepository.persistAndFlush(user)
+      await this.masterUserRepository.persistAndFlush(user)
     }
 
     const token = this.authTokenService.createTokenForUser(user, options.tokenOptions)

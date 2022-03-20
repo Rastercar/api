@@ -1,7 +1,7 @@
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host'
 import { requestUserFactory } from './request-user.decorator'
 import { UnauthorizedException } from '@nestjs/common'
-import * as httpMock from 'node-mocks-http'
+import httpMock from 'node-mocks-http'
 
 const userMock = {
   id: 1,

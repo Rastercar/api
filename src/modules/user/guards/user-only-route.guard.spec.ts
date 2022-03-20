@@ -3,7 +3,7 @@ import { createFakeMasterUser } from '../../../database/postgres/factories/maste
 import { createFakeUser } from '../../../database/postgres/factories/user.factory'
 import { UserOnlyGuard } from './user-only-route.guard'
 import { UnauthorizedException } from '@nestjs/common'
-import * as httpMock from 'node-mocks-http'
+import httpMock from 'node-mocks-http'
 
 describe('[GUARD] User only', () => {
   let req: httpMock.MockRequest<any>

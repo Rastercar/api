@@ -2,7 +2,7 @@ import { MasterUser } from '../../../modules/user/entities/master-user.entity'
 import { createFakeMasterAccessLevel } from './master-access-level.factory'
 import { createFakeAccessLevel } from './access-level.factory'
 import { Factory, faker } from '@mikro-orm/seeder'
-import * as bcrypt from 'bcrypt'
+import bcrypt from 'bcrypt'
 
 export function createFakeMasterUser(): Partial<MasterUser>
 export function createFakeMasterUser(instantiate: true): MasterUser

@@ -4,7 +4,7 @@ import { defaultTestUser } from '../../database/postgres/seeders/user.seeder'
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import { RegisterUserDTO } from './dtos/register-user.dto'
 import { User } from '../user/entities/user.entity'
-import * as request from 'supertest'
+import request from 'supertest'
 import { Server } from 'http'
 
 // Hack for graphql syntax highlighting

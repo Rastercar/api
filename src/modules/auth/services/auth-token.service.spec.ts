@@ -85,6 +85,33 @@ describe('AuthTokenService', () => {
     })
   })
 
+  it('[createAutoLoginTokenForUser] Creates a valid auto login token', () => {
+    const spy = jest.spyOn(jwtService, 'sign').mockImplementationOnce(() => 'asdhaush')
+
+    const token = service.createAutoLoginTokenForUser(1)
+
+    const args = spy.mock.calls[0][0]
+
+    expect((args as { sub: unknown })?.sub).toBe(`autologin-user-${1}`)
+    expect(typeof token.value).toBe('string')
+    expect(token.type).toBe('autologin')
+  })
+
+  describe('[getUserIdFromAutoLoginToken]', () => {
+    it('Fails if the token subject is not a string token string', () => {
+      jest.spyOn(service, 'validateAndDecodeToken').mockImplementationOnce(async () => ({ invalid: 'invalid' }))
+      expect(service.getUserIdFromAutoLoginToken('')).rejects.toBeInstanceOf(UnauthorizedException)
+
+      jest.spyOn(service, 'validateAndDecodeToken').mockImplementationOnce(async () => ({ sub: 'invalid' }))
+      expect(service.getUserIdFromAutoLoginToken('')).rejects.toBeInstanceOf(UnauthorizedException)
+    })
+
+    it('Returns the user id as a number', () => {
+      jest.spyOn(service, 'validateAndDecodeToken').mockImplementationOnce(async () => ({ sub: 'autologin-user-1' }))
+      expect(service.getUserIdFromAutoLoginToken('')).resolves.toBe(1)
+    })
+  })
+
   it('[createTokenForUser]', () => {
     const masterUserMock = createFakeMasterUser(true) as any
     masterUserMock.id = 666

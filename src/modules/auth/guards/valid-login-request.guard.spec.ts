@@ -2,7 +2,7 @@ import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-hos
 import { ValidLoginRequestGuard } from './valid-login-request.guard'
 import { BadRequestException } from '@nestjs/common'
 import { LoginDTO } from '../dtos/login.dto'
-import * as httpMock from 'node-mocks-http'
+import httpMock from 'node-mocks-http'
 
 describe('[GUARD] ValidLoginRequest', () => {
   let guard: ValidLoginRequestGuard

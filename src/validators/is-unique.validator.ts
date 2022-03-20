@@ -1,9 +1,9 @@
 import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from 'class-validator'
 import { ValidationOptions, registerDecorator } from 'class-validator'
+import { InjectEntityManager } from '@mikro-orm/nestjs'
 import { EntityManager } from '@mikro-orm/postgresql'
 import { EntityClass } from '@mikro-orm/core'
 import { Injectable } from '@nestjs/common'
-import { InjectEntityManager } from '@mikro-orm/nestjs'
 
 interface IsUniqueOptions<T> {
   entity: EntityClass<T>

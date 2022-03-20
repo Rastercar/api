@@ -1,7 +1,7 @@
 import { MasterUserRepository } from '../repositories/master-user.repository'
 import { MasterUser } from '../entities/master-user.entity'
 import { Injectable } from '@nestjs/common'
-import * as bcrypt from 'bcrypt'
+import bcrypt from 'bcrypt'
 
 @Injectable()
 export class MasterUserService {

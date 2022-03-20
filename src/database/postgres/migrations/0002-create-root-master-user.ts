@@ -1,6 +1,6 @@
 import { MASTER_PERMISSION, PERMISSION } from '../../../modules/auth/constants/permissions'
 import { Migration } from '@mikro-orm/migrations'
-import * as bcrypt from 'bcrypt'
+import bcrypt from 'bcrypt'
 
 /**
  * Creates the root master user and his root access level and master access level

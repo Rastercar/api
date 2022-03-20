@@ -13,14 +13,10 @@ import { OrganizationModel } from './models/organization.model'
 import { OffsetPaginatedUser } from '../user/models/user.model'
 import { is, of, returns } from '../../utils/coverage-helpers'
 import { Organization } from './entities/organization.entity'
-import VehicleLoader from '../vehicle/vehicle.loader'
-import UserLoader from '../user/user.loader'
 
 @Resolver(of(OrganizationModel))
 export class OrganizationResolver {
   constructor(
-    readonly userLoader: UserLoader,
-    readonly vehicleLoader: VehicleLoader,
     readonly userRepository: UserRepository,
     readonly vehicleRepository: VehicleRepository,
     readonly trackerRepository: TrackerRepository,

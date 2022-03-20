@@ -1,6 +1,6 @@
 import { createAppTestingModule } from '../../../test/utils/create-app'
 import { INestApplication } from '@nestjs/common'
-import * as request from 'supertest'
+import request from 'supertest'
 
 describe('e2e: HealthCheckController', () => {
   let app: INestApplication

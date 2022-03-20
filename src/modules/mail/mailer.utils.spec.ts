@@ -1,6 +1,6 @@
 import { createPwaUrl, parseHandlebarsTemplate } from './mailer.utils'
 import { InternalServerErrorException } from '@nestjs/common'
-import * as fs from 'fs'
+import fs from 'fs'
 
 describe('[createPwaUrl]', () => {
   const baseUrl = process.env.PWA_BASE_URL

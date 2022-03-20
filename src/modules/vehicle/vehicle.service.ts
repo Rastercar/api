@@ -7,7 +7,7 @@ import { S3Service } from '../s3/s3.service'
 import { Injectable } from '@nestjs/common'
 import { FileUpload } from 'graphql-upload'
 import { Vehicle } from './vehicle.entity'
-import * as path from 'path'
+import path from 'path'
 
 @Injectable()
 export class VehicleService {

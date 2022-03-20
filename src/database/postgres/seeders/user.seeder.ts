@@ -4,7 +4,7 @@ import { User } from '../../../modules/user/entities/user.entity'
 import { UserFactory } from '../factories/user.factory'
 import type { EntityManager } from '@mikro-orm/core'
 import { Seeder } from '@mikro-orm/seeder'
-import * as bcrypt from 'bcrypt'
+import bcrypt from 'bcrypt'
 
 const defaultTestUserOrg = new Organization({
   name: 'testuser org',

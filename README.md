@@ -56,13 +56,11 @@ sudo docker-compose down --volumes
 ### Synching the DB schema with migrations
 
 ```bash
-# Apply all migrations to local postgres/mongo
+# Apply all migrations to local postgres
 yarn db:postgres migration:up
-yarn db:mongo migration:up
 
-# Reset and seed local postgres/mongo db
+# Reset and seed local postgres db
 yarn db:postgres migration:fresh --seed
-yarn db:mongo migration:fresh --seed
 ```
 
 > Note that by default the mikro-orm cli will use the use the `env/.development.env` file to get the db connection config, if you wish to run the CLI using another env file just use run the cli with MIKRO_ORM_CFG env var with the name of the env file containing the desired config, for example: `MIKRO_ORM_CFG=homolog yarn mikro-orm...` would use the `env/.homolog.env` file to load the connection config variables
