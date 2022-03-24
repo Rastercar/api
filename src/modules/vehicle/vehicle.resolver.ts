@@ -45,9 +45,9 @@ export class VehicleResolver {
 
   @UserAuth()
   @Mutation(returns(VehicleModel))
-  async createVehicle(
-    @Args({ name: 'photo', type: is(GraphQLUpload), nullable: true }) photo: FileUpload | null,
+  createVehicle(
     @Args({ name: 'data', type: is(CreateVehicleDTO) }) dto: CreateVehicleDTO,
+    @Args({ name: 'photo', type: is(GraphQLUpload), nullable: true }) photo: FileUpload | null,
     @RequestUser() user: User
   ): Promise<VehicleModel> {
     return this.vehicleService.create(dto, user.organization, photo)

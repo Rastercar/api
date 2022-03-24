@@ -14,12 +14,30 @@ import { INestApplication } from '@nestjs/common'
 const testPubSub = (app: INestApplication) => {
   const pub = app.get<RedisPubSub>(PUB_SUB)
 
-  let i = 1111
+  let posIdx = 0
+
+  const pos = [
+    { lat: -20.4662829, lng: -54.576612 },
+    { lat: -20.4672829, lng: -54.577612 },
+    { lat: -20.4682829, lng: -54.578612 },
+    { lat: -20.4692829, lng: -54.579612 },
+    { lat: -20.4702829, lng: -54.580612 },
+    { lat: -20.4692829, lng: -54.579612 },
+    { lat: -20.4682829, lng: -54.578612 },
+    { lat: -20.4672829, lng: -54.577612 },
+    { lat: -20.4662829, lng: -54.576612 }
+  ]
 
   setInterval(() => {
-    i++
-    pub.publish('postAdded', { testSub: { plate: `YYY${i}` } })
-  }, 5000)
+    pub.publish('positionRecieved', {
+      onPositionRecieved: {
+        lat: pos[posIdx].lat,
+        lng: pos[posIdx].lng
+      }
+    })
+
+    posIdx = posIdx === pos.length - 1 ? 0 : posIdx + 1
+  }, 2500)
 }
 
 async function bootstrap() {
@@ -29,7 +47,6 @@ async function bootstrap() {
 
   setupAppGlobals(app)
 
-  // IMPORTANT: MUST BE AFTER SETUP APP GLOBALS
   addMikroOrmRequestContextMiddleware(app)
 
   updateAwsConfig(app)

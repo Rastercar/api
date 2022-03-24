@@ -40,6 +40,8 @@ export const setupAppGlobals = (app: INestApplication) => {
  * Creates a request context middleware for mikroOrm entity managers, meaning
  * every time a request is recieved all entity managers will be forked so different
  * request do not affect the same in memory entities
+ *
+ * **MUST BE AFTER SETUP APP GLOBALS**
  */
 export const addMikroOrmRequestContextMiddleware = (app: INestApplication) => {
   const ormPg = app.get(getMikroORMToken('postgres'))
