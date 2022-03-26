@@ -27,7 +27,6 @@ type JwtModel {
   value: String!
 }
 
-"""tracker position mock"""
 type LatLng {
   lat: Float!
   lng: Float!
@@ -191,12 +190,13 @@ type SimpleOrganizationModel {
 }
 
 type Subscription {
-  onPositionRecieved: LatLng!
+  listenToTracker(ids: [Int!] = []): TrackerModel!
 }
 
 """tracker"""
 type TrackerModel {
   id: Int!
+  lastPosition: LatLng
   model: String!
   organization: SimpleOrganizationModel!
   simCards: [SimCardModel!]!

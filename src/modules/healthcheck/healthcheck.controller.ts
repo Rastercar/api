@@ -1,20 +1,10 @@
 import { Controller, Get, UnauthorizedException } from '@nestjs/common'
-import { PositionService } from '../positions/position.service'
 
 @Controller()
 export class HealthcheckController {
-  constructor(readonly positionService: PositionService) {}
-
   @Get('healthcheck')
   getHealthcheck() {
     return 'ok'
-  }
-
-  // TODO: REMOVE ME LATER
-  @Get('test')
-  async test() {
-    await this.positionService.createTest()
-    return this.positionService.fetchTest()
   }
 
   /**
