@@ -14,6 +14,9 @@ async function bootstrap() {
 
   const inProduction = app.get(ConfigService).get('NODE_ENV') === 'production'
 
+  // If we enable shutdown hooks in development, hot reloading will shutdown the
+  // apolloGraphql server completely on file change, making it a pain work with
+  // apollo studio and the graphql playground
   if (inProduction) app.enableShutdownHooks()
 
   setupAppGlobals(app)
@@ -27,7 +30,7 @@ async function bootstrap() {
   await initApp(app)
 
   // TODO: remove me
-  setInterval(() => app.get(TrackerService).mockTransmissions(), 2000)
+  setInterval(() => app.get(TrackerService).mockTransmissions(), 5000)
 }
 
 bootstrap()

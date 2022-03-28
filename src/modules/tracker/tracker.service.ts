@@ -2,7 +2,7 @@ import { randomIntFromInterval, randomElementFromArray } from '../../utils/rng.u
 import { PositionService } from '../positions/position.service'
 import { RedisPubSub } from 'graphql-redis-subscriptions'
 import { TrackerRepository } from './tracker.repository'
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
 import { PUB_SUB } from '../pubsub/pubsub.module'
 import { PositionRecievedEvent, TRACKER_EVENTS } from './tracker.events'
 
@@ -14,6 +14,25 @@ export class TrackerService {
     readonly positionService: PositionService,
     readonly trackerRepository: TrackerRepository
   ) {}
+
+  /**
+   * @throws {UnauthorizedException} If a tracker does not belong to the organization
+   */
+  async assertTrackersBelongToOrganization(args: { organization: number; trackerIds: number[] }): Promise<void> {
+    const trackerIdsAndOrgIds: { id: number; organization_id: number }[] = await this.trackerRepository
+      .getKnex()
+      .select(['id', 'organization_id'])
+      .from('tracker')
+      .whereIn('id', args.trackerIds)
+
+    const trackersThatDontBelongToOrg = trackerIdsAndOrgIds
+      .filter(({ organization_id }) => organization_id !== args.organization)
+      .map(({ id }) => id)
+
+    if (trackersThatDontBelongToOrg.length > 0) {
+      throw new UnauthorizedException(`Trackers ${trackersThatDontBelongToOrg.join(', ')} do not belong to the user organization`)
+    }
+  }
 
   /**
    * Pretends to recieve a transmission from a random tracker, storing the position and broadcasting it

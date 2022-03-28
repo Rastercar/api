@@ -16,6 +16,7 @@ export function requestUserFactory(prop: keyof User | undefined, ctx: ExecutionC
  * Extracts the request user or one of his properties if specified
  *
  * ```ts
+ * .@JwtAuthGuard() // Remember to use a guard that populates the request user
  * .@Get('my-route')
  * routeHandler(.@RequestUser('name') name: string) {
  *   return `user name is ${name}`

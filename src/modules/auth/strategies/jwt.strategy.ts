@@ -33,7 +33,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   /**
    * Validates the user on the JWT and exposes it on req.user
    */
-  async validate(tokenPayload: JwtPayload): Promise<User | MasterUser> {
+  validate(tokenPayload: JwtPayload): Promise<User | MasterUser> {
     return this.authTokenService.getUserFromDecodedTokenOrFail(tokenPayload)
   }
 }

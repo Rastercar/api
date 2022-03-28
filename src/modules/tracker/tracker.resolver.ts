@@ -15,12 +15,15 @@ import { TrackerModel } from './tracker.model'
 import { Tracker } from './tracker.entity'
 import { Inject } from '@nestjs/common'
 import { PositionRecievedEvent, TrackerPositionSubscriptionArgs, TRACKER_EVENTS } from './tracker.events'
+import { TrackerService } from './tracker.service'
+import { Organization } from '../organization/entities/organization.entity'
 
 @Resolver(of(TrackerModel))
 export class TrackerResolver {
   constructor(
     @Inject(PUB_SUB)
     readonly pubSub: RedisPubSub,
+    readonly trackerService: TrackerService,
     readonly trackerRepository: TrackerRepository
   ) {}
 
@@ -66,9 +69,15 @@ export class TrackerResolver {
       return eventArgs.ids.includes(event.listenToTracker.id)
     }
   })
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  subscribeToTrackerPositions(@Args() _args: TrackerPositionSubscriptionArgs) {
-    // TODO: AUTHENTICATE USER HERE
+  @UserAuth()
+  async subscribeToTrackerPositions(
+    @Args() { ids: trackersToListenIds }: TrackerPositionSubscriptionArgs,
+    @RequestUser('organization') userOrg: Organization
+  ) {
+    if (trackersToListenIds.length > 0) {
+      await this.trackerService.assertTrackersBelongToOrganization({ organization: userOrg.id, trackerIds: trackersToListenIds })
+    }
+
     return this.pubSub.asyncIterator<PositionRecievedEvent>(TRACKER_EVENTS.POSITION_RECIEVED)
   }
 }
