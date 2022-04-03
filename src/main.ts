@@ -30,7 +30,7 @@ async function bootstrap() {
   await initApp(app)
 
   // TODO: remove me
-  setInterval(() => app.get(TrackerService).mockTransmissions(), 5000)
+  setInterval(() => app.get(TrackerService).mockTransmissions(), 25000)
 }
 
 bootstrap()

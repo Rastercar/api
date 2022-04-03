@@ -6,13 +6,13 @@ import { Tracker } from '../tracker/tracker.entity'
 
 interface VehicleArgs {
   plate: string
-  brand?: string
-  model?: string
-  color?: string
-  renavam?: string
-  modelYear?: number
-  chassisNumber?: string
-  fabricationYear?: number
+  brand?: string | null
+  model?: string | null
+  color?: string | null
+  renavam?: string | null
+  modelYear?: number | null
+  chassisNumber?: string | null
+  fabricationYear?: number | null
 }
 
 @Unique({ properties: ['plate', 'organization'] })

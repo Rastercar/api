@@ -70,6 +70,7 @@ type Mutation {
   loginWithToken(token: String!): LoginResponse!
   register(user: RegisterUserDTO!): LoginResponse!
   updateMyProfile(profileData: UpdateUserDTO!): UserModel!
+  updateVehicle(data: UpdateVehicleDTO!, id: Int!, photo: Upload): VehicleModel!
 }
 
 type OffsetPageInfo {
@@ -141,6 +142,7 @@ type Query {
   organization(id: Int!): OrganizationModel
   unregisteredUser(uuid: String!): UnregisteredUserModel
   user(id: Int!): UserModel
+  vehicle(id: Int!): VehicleModel
 
   """The vehicles that belong to the request user organization"""
   vehicles(
@@ -221,6 +223,18 @@ input UpdateUserDTO {
   password: String
   removeGoogleProfileLink: Boolean
   username: String
+}
+
+input UpdateVehicleDTO {
+  brand: String
+  chassisNumber: String
+  color: String
+  fabricationYear: Float
+  model: String
+  modelYear: Float
+  plate: String
+  removePhoto: Boolean
+  renavam: String
 }
 
 """The `Upload` scalar type represents a file upload."""

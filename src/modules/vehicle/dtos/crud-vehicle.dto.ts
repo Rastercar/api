@@ -1,6 +1,6 @@
 import { IsVehiclePlate } from '../validators/is-vehicle-plate.validator'
-import { IsNumber, IsOptional, IsString } from 'class-validator'
-import { Field, InputType } from '@nestjs/graphql'
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator'
+import { Field, InputType, PartialType } from '@nestjs/graphql'
 import { Transform } from 'class-transformer'
 
 @InputType()
@@ -14,35 +14,46 @@ export class CreateVehicleDTO {
   @Field(() => Number, { nullable: true })
   @IsNumber()
   @IsOptional()
-  modelYear?: number
+  modelYear?: number | null
 
   @Field(() => Number, { nullable: true })
   @IsNumber()
   @IsOptional()
-  fabricationYear?: number
+  fabricationYear?: number | null
 
   @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
-  brand?: string
+  brand?: string | null
 
   @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
-  model?: string
+  model?: string | null
 
   @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
-  renavam?: string
+  renavam?: string | null
 
   @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
-  color?: string
+  color?: string | null
 
   @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
-  chassisNumber?: string
+  chassisNumber?: string | null
+}
+
+@InputType()
+export class UpdateVehicleDTO extends PartialType(CreateVehicleDTO) {
+  /**
+   * If the current vehicle photo should be deleted
+   */
+  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
+  @IsOptional()
+  removePhoto?: boolean
 }

@@ -1,4 +1,4 @@
-import { Args, Context, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import { Args, Context, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { SimpleOrganizationModel } from '../organization/models/organization.model'
 import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
 import { IDataLoaders } from '../../graphql/data-loader/data-loader.service'
@@ -7,13 +7,14 @@ import { OffsetPaginatedVehicle, VehicleModel } from './vehicle.model'
 import { UserAuth } from '../auth/decorators/user-auth.decorator'
 import { OrderingArgs } from '../../graphql/pagination/ordering'
 import { is, of, returns } from '../../utils/coverage-helpers'
-import { CreateVehicleDTO } from './dtos/create-vehicle.dto'
+import { CreateVehicleDTO, UpdateVehicleDTO } from './dtos/crud-vehicle.dto'
 import { FileUpload, GraphQLUpload } from 'graphql-upload'
 import { VehicleRepository } from './vehicle.repository'
 import { TrackerModel } from '../tracker/tracker.model'
 import { User } from '../user/entities/user.entity'
 import { VehicleService } from './vehicle.service'
 import { Vehicle } from './vehicle.entity'
+import { Organization } from '../organization/entities/organization.entity'
 
 @Resolver(of(VehicleModel))
 export class VehicleResolver {
@@ -44,12 +45,29 @@ export class VehicleResolver {
   }
 
   @UserAuth()
+  @Query(returns(VehicleModel), { nullable: true })
+  vehicle(@Args('id', { type: () => Int }) id: number, @RequestUser() user: User): Promise<VehicleModel | null> {
+    return this.vehicleRepository.findOne({ id, organization: user.organization })
+  }
+
+  @UserAuth()
   @Mutation(returns(VehicleModel))
   createVehicle(
+    @RequestUser('organization') userOrganization: Organization,
     @Args({ name: 'data', type: is(CreateVehicleDTO) }) dto: CreateVehicleDTO,
-    @Args({ name: 'photo', type: is(GraphQLUpload), nullable: true }) photo: FileUpload | null,
-    @RequestUser() user: User
+    @Args({ name: 'photo', type: is(GraphQLUpload), nullable: true }) photo: FileUpload | null
   ): Promise<VehicleModel> {
-    return this.vehicleService.create(dto, user.organization, photo)
+    return this.vehicleService.create({ dto, organization: userOrganization, photo })
+  }
+
+  @UserAuth()
+  @Mutation(returns(VehicleModel))
+  updateVehicle(
+    @RequestUser('organization') userOrganization: Organization,
+    @Args({ name: 'id', type: is(Int) }) id: number,
+    @Args({ name: 'data', type: is(UpdateVehicleDTO) }) dto: UpdateVehicleDTO,
+    @Args({ name: 'photo', type: is(GraphQLUpload), nullable: true }) photo: FileUpload | null
+  ): Promise<VehicleModel> {
+    return this.vehicleService.update({ dto, userOrganization, id, newPhoto: photo })
   }
 }
