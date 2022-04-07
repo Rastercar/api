@@ -24,7 +24,7 @@ export class SetDbSchema extends Migration {
     this.addSql('create table "vehicle" ("id" serial primary key, "created_at" timestamptz(0) not null, "updated_at" timestamptz(0) null, "plate" varchar(255) not null, "photo" varchar(255) null, "model_year" smallint null, "fabrication_year" smallint null, "chassis_number" varchar(255) null, "brand" varchar(255) null, "model" varchar(255) null, "renavam" varchar(255) null, "color" varchar(255) null, "organization_id" int not null);');
     this.addSql('alter table "vehicle" add constraint "vehicle_plate_organization_id_unique" unique ("plate", "organization_id");');
 
-    this.addSql('create table "tracker" ("id" serial primary key, "created_at" timestamptz(0) not null, "updated_at" timestamptz(0) null, "model" varchar(255) not null, "organization_id" int not null, "vehicle_id" int null);');
+    this.addSql('create table "tracker" ("id" serial primary key, "created_at" timestamptz(0) not null, "updated_at" timestamptz(0) null, "model" varchar(255) not null, "identifier" varchar(255) null, "organization_id" int not null, "vehicle_id" int null);');
 
     this.addSql('create table "sim_card" ("id" serial primary key, "created_at" timestamptz(0) not null, "updated_at" timestamptz(0) null, "phone_number" varchar(255) not null, "ssn" varchar(255) not null, "apn_address" varchar(255) not null, "apn_user" varchar(255) not null, "apn_password" varchar(255) not null, "organization_id" int not null, "tracker_id" int null);');
     this.addSql('alter table "sim_card" add constraint "sim_card_phone_number_unique" unique ("phone_number");');

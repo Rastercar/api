@@ -9,7 +9,7 @@ export class OrderingArgs {
   @IsOptional()
   orderBy!: string | null
 
-  @Field(() => Boolean, { description: 'It the records should be sorted in descending order by the field on "orderBy"' })
+  @Field(() => Boolean, { description: 'If the records should be sorted in descending order by the field on "orderBy"' })
   @IsBoolean()
   descending = false
 }

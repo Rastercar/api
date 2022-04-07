@@ -1,7 +1,7 @@
 import { ArgsType, Field, Int } from '@nestjs/graphql'
+import { IsInt, IsOptional } from 'class-validator'
 import { TrackerModel } from './tracker.model'
 import { LatLng } from './dto/lat-lng'
-import { IsInt, IsOptional } from 'class-validator'
 
 export enum TRACKER_EVENTS {
   /**
@@ -19,6 +19,9 @@ export interface PositionRecievedEvent {
 
 @ArgsType()
 export class TrackerPositionSubscriptionArgs {
+  /**
+   * The ids of the tracker to listen positions for
+   */
   @Field(() => [Int])
   @IsOptional()
   @IsInt({ each: true })

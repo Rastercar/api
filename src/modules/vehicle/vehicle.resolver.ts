@@ -34,7 +34,7 @@ export class VehicleResolver {
   }
 
   @UserAuth()
-  @Query(returns(OffsetPaginatedVehicle), { description: 'The vehicles that belong to the request user organization' })
+  @Query(returns(OffsetPaginatedVehicle), { description: 'Vehicles that belong to the request user organization' })
   vehicles(
     @Args() ordering: OrderingArgs,
     @Args() pagination: OffsetPagination,
@@ -69,5 +69,26 @@ export class VehicleResolver {
     @Args({ name: 'photo', type: is(GraphQLUpload), nullable: true }) photo: FileUpload | null
   ): Promise<VehicleModel> {
     return this.vehicleService.update({ dto, userOrganization, id, newPhoto: photo })
+  }
+
+  @UserAuth()
+  @Mutation(returns(VehicleModel), { description: 'Sets the trackers associated with the vehicle' })
+  setVehicleTrackers(
+    @RequestUser('organization') userOrganization: Organization,
+    @Args({ name: 'id', type: is(Int) }) id: number,
+    @Args({ name: 'trackerIds', type: is([Int]) }) trackerIds: number[]
+  ): Promise<VehicleModel> {
+    return this.vehicleService.setTrackers({ vehicleId: id, userOrganization, trackerIds })
+  }
+
+  // TODO: FINISH ME
+  @UserAuth()
+  @Mutation(returns(VehicleModel), { description: 'Creates new trackers and associate them with a existing vehicle' })
+  installTrackersOnVehicle(
+    @RequestUser('organization') userOrganization: Organization,
+    @Args({ name: 'id', type: is(Int) }) id: number,
+    @Args({ name: 'data', type: is(UpdateVehicleDTO) }) dto: UpdateVehicleDTO
+  ): Promise<VehicleModel> {
+    return this.vehicleService.update({ dto, userOrganization, id })
   }
 }

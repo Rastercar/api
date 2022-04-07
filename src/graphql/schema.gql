@@ -66,9 +66,15 @@ type MasterUserModel {
 
 type Mutation {
   createVehicle(data: CreateVehicleDTO!, photo: Upload): VehicleModel!
+
+  """Creates new trackers and associate them with a existing vehicle"""
+  installTrackersOnVehicle(data: UpdateVehicleDTO!, id: Int!): VehicleModel!
   login(credentials: LoginInput!): LoginResponse!
   loginWithToken(token: String!): LoginResponse!
   register(user: RegisterUserDTO!): LoginResponse!
+
+  """Sets the trackers associated with the vehicle"""
+  setVehicleTrackers(id: Int!, trackerIds: [Int!]!): VehicleModel!
   updateMyProfile(profileData: UpdateUserDTO!): UserModel!
   updateVehicle(data: UpdateVehicleDTO!, id: Int!, photo: Upload): VehicleModel!
 }
@@ -116,7 +122,7 @@ type OrganizationModel {
   users(limit: Int = 10, offset: Int = 0): OffsetPaginatedUser!
   vehicles(
     """
-    It the records should be sorted in descending order by the field on "orderBy"
+    If the records should be sorted in descending order by the field on "orderBy"
     """
     descending: Boolean = false
     limit: Int = 10
@@ -140,14 +146,31 @@ type Query {
   isEmailInUse(email: String!): Boolean!
   me: UserOrMasterUser!
   organization(id: Int!): OrganizationModel
+
+  """Sim cards that belong to the request user organization"""
+  simCards(
+    """
+    If the records should be sorted in descending order by the field on "orderBy"
+    """
+    descending: Boolean = false
+
+    """If the sim card is not associated/installed on a tracker"""
+    installedOnTracker: Boolean = null
+    limit: Int = 10
+    offset: Int = 0
+
+    """The field to order results by. example: name, id"""
+    orderBy: String
+    search: String
+  ): OffsetPaginatedSimCard!
   unregisteredUser(uuid: String!): UnregisteredUserModel
   user(id: Int!): UserModel
   vehicle(id: Int!): VehicleModel
 
-  """The vehicles that belong to the request user organization"""
+  """Vehicles that belong to the request user organization"""
   vehicles(
     """
-    It the records should be sorted in descending order by the field on "orderBy"
+    If the records should be sorted in descending order by the field on "orderBy"
     """
     descending: Boolean = false
     limit: Int = 10
@@ -198,6 +221,9 @@ type Subscription {
 """tracker"""
 type TrackerModel {
   id: Int!
+
+  """A human readable identifier, ex: MXT013-BOX-33, Tracker 123 lote 2"""
+  identifier: String
   lastPosition: LatLng
   model: String!
   organization: SimpleOrganizationModel!

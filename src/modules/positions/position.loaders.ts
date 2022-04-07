@@ -16,7 +16,6 @@ export interface TrackerLastPosition {
  * Creates a data loader for the most recent position for a tracker id.
  *
  * ```ts
- *
  * const lastTrackerPosition = await createLastPositionByTrackerIdLoader(em).load(trackerId)
  * ```
  */

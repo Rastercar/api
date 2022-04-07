@@ -4,16 +4,11 @@ import { BaseEntity } from '../../database/postgres/base/base-entity'
 import { TrackerRepository } from './tracker.repository'
 import { SimCard } from '../sim-card/sim-card.entity'
 import { Vehicle } from '../vehicle/vehicle.entity'
-
-export type trackerModel = 'maxtrack' | 'suntech' | 'gtk'
+import { trackerModel } from './tracker.constants'
 
 interface TrackerArgs {
   model: trackerModel
 }
-
-/**
- * Tracker models supported by the plataform
- */
 
 @Entity({ customRepository: () => TrackerRepository })
 export class Tracker extends BaseEntity {
@@ -26,6 +21,12 @@ export class Tracker extends BaseEntity {
 
   @Property({ type: String })
   model!: trackerModel
+
+  /**
+   * A human readable identifier, ex: MXT013-BOX-33, Tracker 123 lote 2
+   */
+  @Property({ type: String, nullable: true })
+  identifier!: string | null
 
   /**
    * Relationship: N - 1
