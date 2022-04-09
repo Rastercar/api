@@ -1082,6 +1082,7 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
+          "comment": "Phone numbers are stored in the E164 international format",
           "mappedType": "string"
         },
         "ssn": {
@@ -1144,19 +1145,20 @@
       "indexes": [
         {
           "columnNames": [
-            "phone_number"
-          ],
-          "composite": false,
-          "keyName": "sim_card_phone_number_unique",
-          "primary": false,
-          "unique": true
-        },
-        {
-          "columnNames": [
             "ssn"
           ],
           "composite": false,
           "keyName": "sim_card_ssn_unique",
+          "primary": false,
+          "unique": true
+        },
+        {
+          "keyName": "sim_card_phone_number_organization_id_unique",
+          "columnNames": [
+            "phone_number",
+            "organization_id"
+          ],
+          "composite": true,
           "primary": false,
           "unique": true
         },

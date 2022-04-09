@@ -37,11 +37,12 @@ jobs:
 workflows:
   main-workflow:
     jobs:
-      - test-unit
-      - test-e2e:
-          requires:
-            # Since e2e tests are expensive only run then after unit tests, this way if unit tests fail e2e tests will be skipped
-            - test-unit
+      # TODO: Uncomment test-unit and test-e2e when things go into homologation again
+      # - test-unit
+      # - test-e2e:
+      #     requires:
+      #       # Since e2e tests are expensive only run then after unit tests, this way if unit tests fail e2e tests will be skipped
+      #       - test-unit
       - aws-ecr/build-and-push-image:
           # Only bother deploying if tests pass
           requires:

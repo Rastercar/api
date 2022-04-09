@@ -27,8 +27,9 @@ export class SetDbSchema extends Migration {
     this.addSql('create table "tracker" ("id" serial primary key, "created_at" timestamptz(0) not null, "updated_at" timestamptz(0) null, "model" varchar(255) not null, "identifier" varchar(255) null, "organization_id" int not null, "vehicle_id" int null);');
 
     this.addSql('create table "sim_card" ("id" serial primary key, "created_at" timestamptz(0) not null, "updated_at" timestamptz(0) null, "phone_number" varchar(255) not null, "ssn" varchar(255) not null, "apn_address" varchar(255) not null, "apn_user" varchar(255) not null, "apn_password" varchar(255) not null, "organization_id" int not null, "tracker_id" int null);');
-    this.addSql('alter table "sim_card" add constraint "sim_card_phone_number_unique" unique ("phone_number");');
+    this.addSql('comment on column "sim_card"."phone_number" is \'Phone numbers are stored in the E164 international format\';');
     this.addSql('alter table "sim_card" add constraint "sim_card_ssn_unique" unique ("ssn");');
+    this.addSql('alter table "sim_card" add constraint "sim_card_phone_number_organization_id_unique" unique ("phone_number", "organization_id");');
 
     this.addSql('alter table "organization" add constraint "organization_owner_id_foreign" foreign key ("owner_id") references "user" ("id") on update cascade on delete set null;');
 
