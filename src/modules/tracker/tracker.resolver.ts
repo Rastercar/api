@@ -1,22 +1,26 @@
+import { PositionRecievedEvent, TrackerPositionSubscriptionArgs, TRACKER_EVENTS } from './tracker.events'
 import { Args, Context, Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql'
 import { SimpleOrganizationModel } from '../organization/models/organization.model'
+import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
 import { IDataLoaders } from '../../graphql/data-loader/data-loader.service'
+import { Organization } from '../organization/entities/organization.entity'
 import { RequestUser } from '../auth/decorators/request-user.decorator'
+import { OffsetPaginatedTracker, TrackerModel } from './tracker.model'
+import { TrackerSearchFilterArgs } from './dto/tracker-search-filter'
 import { UserAuth } from '../auth/decorators/user-auth.decorator'
+import { OrderingArgs } from '../../graphql/pagination/ordering'
+import { of, returns } from '../../utils/coverage-helpers'
 import { RedisPubSub } from 'graphql-redis-subscriptions'
 import { SimCardModel } from '../sim-card/sim-card.model'
 import { TrackerRepository } from './tracker.repository'
 import { VehicleModel } from '../vehicle/vehicle.model'
-import { LatLng } from './dto/lat-lng'
 import { User } from '../user/entities/user.entity'
+import { TrackerService } from './tracker.service'
 import { PUB_SUB } from '../pubsub/pubsub.module'
-import { of } from '../../utils/coverage-helpers'
-import { TrackerModel } from './tracker.model'
+import { ObjectQuery } from '@mikro-orm/core'
 import { Tracker } from './tracker.entity'
 import { Inject } from '@nestjs/common'
-import { PositionRecievedEvent, TrackerPositionSubscriptionArgs, TRACKER_EVENTS } from './tracker.events'
-import { TrackerService } from './tracker.service'
-import { Organization } from '../organization/entities/organization.entity'
+import { LatLng } from './dto/lat-lng'
 
 @Resolver(of(TrackerModel))
 export class TrackerResolver {
@@ -58,8 +62,26 @@ export class TrackerResolver {
   }
 
   @UserAuth()
+  @Query(returns(OffsetPaginatedTracker), { description: 'Trackers that belong to the request user organization' })
+  trackers(
+    @Args() ordering: OrderingArgs,
+    @Args() pagination: OffsetPagination,
+    @Args('search', { nullable: true }) search: string,
+    @Args({ type: () => TrackerSearchFilterArgs, nullable: true }) filter: TrackerSearchFilterArgs | null,
+    @RequestUser() user: User
+  ): Promise<OffsetPaginatedTracker> {
+    const queryFilter: ObjectQuery<Tracker> = { organization: user.organization }
+
+    if (filter?.installedOnVehicle !== null) {
+      queryFilter['vehicle'] = filter?.installedOnVehicle ? { $ne: null } : { $eq: null }
+    }
+
+    return this.trackerRepository.findSearchAndPaginate({ search, ordering, pagination, queryFilter })
+  }
+
+  @UserAuth()
   @Query(() => [TrackerModel], { description: 'All trackers that can recieve positions (trackers that have one or more sim cards)' })
-  allActiveTrackers(@RequestUser() user: User): Promise<TrackerModel[]> {
+  activeTrackers(@RequestUser() user: User): Promise<TrackerModel[]> {
     return this.trackerRepository.allActiveTrackersForOrganization(user.organization.id)
   }
 

@@ -149,9 +149,9 @@ export class VehicleService {
     const invalidTrackers = trackerIds.filter(id => {
       const tracker = trackers.find(t => t.id === id)
 
-      if (!tracker) return false
+      if (!tracker) return true
 
-      return tracker.vehicle === null || tracker.vehicle.id !== vehicleId
+      return tracker.vehicle !== null && tracker.vehicle.id !== vehicleId
     })
 
     if (invalidTrackers.length > 0) {

@@ -1,6 +1,7 @@
 import { OffsetPaginated } from '../../graphql/pagination/offset-pagination'
 import { Field, Int, ObjectType } from '@nestjs/graphql'
 import { trackerModel } from './tracker.constants'
+import { Tracker } from './tracker.entity'
 
 @ObjectType({ description: 'tracker' })
 export class TrackerModel {
@@ -16,3 +17,5 @@ export class TrackerModel {
 
 @ObjectType()
 export class OffsetPaginatedTracker extends OffsetPaginated(TrackerModel) {}
+
+export const TRACKER_ORDERABLE_FIELDS: (keyof Tracker)[] = ['id', 'identifier', 'model']

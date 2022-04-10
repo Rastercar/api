@@ -142,7 +142,7 @@ type Query {
   """
   All trackers that can recieve positions (trackers that have one or more sim cards)
   """
-  allActiveTrackers: [TrackerModel!]!
+  activeTrackers: [TrackerModel!]!
   isEmailInUse(email: String!): Boolean!
   me: UserOrMasterUser!
   organization(id: Int!): OrganizationModel
@@ -163,6 +163,23 @@ type Query {
     orderBy: String
     search: String
   ): OffsetPaginatedSimCard!
+
+  """Trackers that belong to the request user organization"""
+  trackers(
+    """
+    If the records should be sorted in descending order by the field on "orderBy"
+    """
+    descending: Boolean = false
+
+    """If the tracker is not associated/installed on a vehicle"""
+    installedOnVehicle: Boolean = null
+    limit: Int = 10
+    offset: Int = 0
+
+    """The field to order results by. example: name, id"""
+    orderBy: String
+    search: String
+  ): OffsetPaginatedTracker!
   unregisteredUser(uuid: String!): UnregisteredUserModel
   user(id: Int!): UserModel
   vehicle(id: Int!): VehicleModel

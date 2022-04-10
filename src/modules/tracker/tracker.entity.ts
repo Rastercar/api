@@ -1,4 +1,4 @@
-import { Collection, Entity, EntityRepositoryType, ManyToOne, OneToMany, Property } from '@mikro-orm/core'
+import { Collection, Entity, EntityRepositoryType, ManyToOne, OneToMany, Property, Unique } from '@mikro-orm/core'
 import { Organization } from '../organization/entities/organization.entity'
 import { BaseEntity } from '../../database/postgres/base/base-entity'
 import { TrackerRepository } from './tracker.repository'
@@ -8,6 +8,7 @@ import { trackerModel } from './tracker.constants'
 
 interface TrackerArgs {
   model: trackerModel
+  identifier: string
 }
 
 @Entity({ customRepository: () => TrackerRepository })
@@ -23,9 +24,15 @@ export class Tracker extends BaseEntity {
   model!: trackerModel
 
   /**
-   * A human readable identifier, ex: MXT013-BOX-33, Tracker 123 lote 2
+   * A unique (even across organizations) human readable identifier.
+   *
+   * ex:
+   * - MXT013-BOX-33
+   * - Tracker 123 lote 2
+   * - Rastreador ST310 do Fulano
    */
   @Property({ type: String, nullable: true })
+  @Unique()
   identifier!: string | null
 
   /**

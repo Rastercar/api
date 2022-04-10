@@ -43,7 +43,7 @@ export class SimCardResolver {
     const queryFilter: ObjectQuery<SimCard> = { organization: user.organization }
 
     if (filter?.installedOnTracker !== null) {
-      queryFilter['tracker'] = filter?.installedOnTracker ? { $not: null } : { $eq: null }
+      queryFilter['tracker'] = filter?.installedOnTracker ? { $ne: null } : { $eq: null }
     }
 
     return this.simCardRepository.findSearchAndPaginate({ search, ordering, pagination, queryFilter })
