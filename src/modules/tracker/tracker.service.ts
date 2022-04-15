@@ -1,10 +1,10 @@
-import { randomIntFromInterval, randomElementFromArray } from '../../utils/rng.utils'
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
-import { PositionRecievedEvent, TRACKER_EVENTS } from './tracker.events'
-import { PositionService } from '../positions/position.service'
 import { RedisPubSub } from 'graphql-redis-subscriptions'
-import { TrackerRepository } from './tracker.repository'
+import { randomElementFromArray, randomIntFromInterval } from '../../utils/rng.utils'
+import { PositionService } from '../positions/position.service'
 import { PUB_SUB } from '../pubsub/pubsub.module'
+import { PositionRecievedEvent, TRACKER_EVENTS } from './tracker.events'
+import { TrackerRepository } from './tracker.repository'
 
 @Injectable()
 export class TrackerService {

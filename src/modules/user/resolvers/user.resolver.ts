@@ -1,22 +1,20 @@
 import { Args, Context, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
-import { SimpleOrganizationModel } from '../../organization/models/organization.model'
 import { IDataLoaders } from '../../../graphql/data-loader/data-loader.service'
-import { MasterUserRepository } from '../repositories/master-user.repository'
-import { RequestUser } from '../../auth/decorators/request-user.decorator'
-import { UserOrMasterUser } from '../../auth/models/login-response.model'
-import { AccessLevelModel } from '../../auth/models/access-level.model'
-import { MasterUserService } from '../services/master-user.service'
 import { is, of, returns } from '../../../utils/coverage-helpers'
-import { UserRepository } from '../repositories/user.repository'
-import { UserOnlyGuard } from '../guards/user-only-route.guard'
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
-import { MasterUserModel } from '../models/master-user.model'
-import { MasterUser } from '../entities/master-user.entity'
+import { RequestUser } from '../../auth/decorators/request-user.decorator'
+import { UserAuth } from '../../auth/decorators/user-auth.decorator'
+import { AccessLevelModel } from '../../auth/models/access-level.model'
+import { UserOrMasterUser } from '../../auth/models/login-response.model'
+import { SimpleOrganizationModel } from '../../organization/models/organization.model'
 import { UpdateUserDTO } from '../dtos/update-user.dto'
-import { UserService } from '../services/user.service'
-import { UserModel } from '../models/user.model'
+import { MasterUser } from '../entities/master-user.entity'
 import { User } from '../entities/user.entity'
-import { UseGuards } from '@nestjs/common'
+import { MasterUserModel } from '../models/master-user.model'
+import { UserModel } from '../models/user.model'
+import { MasterUserRepository } from '../repositories/master-user.repository'
+import { UserRepository } from '../repositories/user.repository'
+import { MasterUserService } from '../services/master-user.service'
+import { UserService } from '../services/user.service'
 
 @Resolver(of(UserModel))
 export class UserResolver {
@@ -42,7 +40,7 @@ export class UserResolver {
     return loaders.accessLevel.byUserId.load(user.id)
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UserAuth()
   @Query(returns(UserOrMasterUser))
   me(@RequestUser() user: User | MasterUser): Promise<UserModel | MasterUserModel> {
     return user instanceof User
@@ -55,7 +53,7 @@ export class UserResolver {
     return this.userRepository.findOne({ id })
   }
 
-  @UseGuards(JwtAuthGuard, UserOnlyGuard)
+  @UserAuth({ allowedUserType: 'user' })
   @Mutation(returns(UserModel))
   async updateMyProfile(@RequestUser() user: User, @Args('profileData') profileData: UpdateUserDTO): Promise<UserModel> {
     await this.userService.updateUser(user, profileData)

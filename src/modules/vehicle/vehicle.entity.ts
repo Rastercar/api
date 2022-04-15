@@ -1,21 +1,23 @@
 import { Collection, Entity, EntityRepositoryType, ManyToOne, OneToMany, Property, Unique } from '@mikro-orm/core'
-import { Organization } from '../organization/entities/organization.entity'
 import { BaseEntity } from '../../database/postgres/base/base-entity'
-import { VehicleRepository } from './vehicle.repository'
+import { Organization } from '../organization/entities/organization.entity'
 import { Tracker } from '../tracker/tracker.entity'
+import { VehicleRepository } from './vehicle.repository'
 
 interface VehicleArgs {
   plate: string
   brand?: string | null
   model?: string | null
   color?: string | null
+  fuelType?: string | null
+  fuelConsumption?: number | null
   renavam?: string | null
   modelYear?: number | null
   chassisNumber?: string | null
   fabricationYear?: number | null
+  additionalInfo?: string | null
 }
 
-@Unique({ properties: ['plate', 'organization'] })
 @Entity({ customRepository: () => VehicleRepository })
 export class Vehicle extends BaseEntity {
   constructor(data: VehicleArgs) {
@@ -26,14 +28,18 @@ export class Vehicle extends BaseEntity {
     this.model = data.model ?? null
     this.color = data.color ?? null
     this.renavam = data.renavam ?? null
+    this.fuelType = data.fuelType ?? null
+    this.additionalInfo = data.additionalInfo ?? null
     this.modelYear = data.modelYear ?? null
     this.chassisNumber = data.chassisNumber ?? null
+    this.fuelConsumption = data.fuelConsumption ?? null
     this.fabricationYear = data.fabricationYear ?? null
   }
 
   [EntityRepositoryType]?: VehicleRepository
 
   @Property()
+  @Unique()
   plate!: string
 
   /**
@@ -77,6 +83,24 @@ export class Vehicle extends BaseEntity {
    */
   @Property({ type: String, nullable: true })
   color!: string | null
+
+  /**
+   * Fuel type, for example: "gasoline", "additive gasoline", "ethanol"
+   */
+  @Property({ type: String, nullable: true })
+  fuelType!: string | null
+
+  /**
+   * Fuel consumption in km/l
+   */
+  @Property({ type: Number, nullable: true })
+  fuelConsumption!: number | null
+
+  /**
+   * Free varchar field for any additional information/observations
+   */
+  @Property({ type: String, nullable: true })
+  additionalInfo!: string | null
 
   /**
    * Relationship: N - 1

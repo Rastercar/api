@@ -1,24 +1,24 @@
 import { Body, Controller, Get, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common'
-import { ValidLoginRequestGuard } from './guards/valid-login-request.guard'
-import { MasterUserService } from '../user/services/master-user.service'
-import { ChangePasswordDTO } from '../user/dtos/change-password.dto'
-import { AuthMailerService } from './services/auth-mailer.service'
-import { RequestUser } from './decorators/request-user.decorator'
-import { MasterUser } from '../user/entities/master-user.entity'
-import { AuthTokenService } from './services/auth-token.service'
-import { ForgotPasswordDTO } from './dtos/forgot-password.dto'
-import { LoginResponse } from './models/login-response.model'
-import { GoogleAuthGuard } from './guards/google-auth.guard'
-import { CheckPasswordDTO } from './dtos/check-password.dto'
-import { UserService } from '../user/services/user.service'
-import { LocalAuthGuard } from './guards/local-auth.guard'
-import { JwtAuthGuard } from './guards/jwt-auth.guard'
-import { PWA_ROUTE } from '../../constants/pwa-routes'
-import { AuthService } from './services/auth.service'
-import { createPwaUrl } from '../mail/mailer.utils'
-import { User } from '../user/entities/user.entity'
-import { Profile } from 'passport-google-oauth20'
 import { Request, Response } from 'express'
+import { Profile } from 'passport-google-oauth20'
+import { PWA_ROUTE } from '../../constants/pwa-routes'
+import { createPwaUrl } from '../mail/mailer.utils'
+import { ChangePasswordDTO } from '../user/dtos/change-password.dto'
+import { MasterUser } from '../user/entities/master-user.entity'
+import { User } from '../user/entities/user.entity'
+import { MasterUserService } from '../user/services/master-user.service'
+import { UserService } from '../user/services/user.service'
+import { RequestUser } from './decorators/request-user.decorator'
+import { UserAuth } from './decorators/user-auth.decorator'
+import { CheckPasswordDTO } from './dtos/check-password.dto'
+import { ForgotPasswordDTO } from './dtos/forgot-password.dto'
+import { GoogleAuthGuard } from './guards/google-auth.guard'
+import { LocalAuthGuard } from './guards/local-auth.guard'
+import { ValidLoginRequestGuard } from './guards/valid-login-request.guard'
+import { LoginResponse } from './models/login-response.model'
+import { AuthMailerService } from './services/auth-mailer.service'
+import { AuthTokenService } from './services/auth-token.service'
+import { AuthService } from './services/auth.service'
 
 @Controller('auth')
 export class AuthController {
@@ -35,7 +35,7 @@ export class AuthController {
    * the email contains a token to be used by the 'confirm-email-address' route
    */
   @Get('send-email-address-confirmation-email')
-  @UseGuards(JwtAuthGuard)
+  @UserAuth()
   sendEmailConfirmation(@RequestUser() user: User | MasterUser) {
     return this.authMailerService.sendEmailAdressConfirmationEmail(user.email)
   }
@@ -66,7 +66,7 @@ export class AuthController {
    * Confirms the email adress of the user found by the JwtEmailAuthGuard
    */
   @Get('confirm-email-address')
-  @UseGuards(JwtAuthGuard)
+  @UserAuth()
   async confirmEmailAddress(@RequestUser() user: User | MasterUser) {
     const isRegularUser = user instanceof User
 
@@ -91,7 +91,7 @@ export class AuthController {
    * of the user in the token, this is usefull for validating critical actions
    */
   @Post('check-password')
-  @UseGuards(JwtAuthGuard)
+  @UserAuth()
   async checkPassword(@RequestUser() user: User, @Body() dto: CheckPasswordDTO): Promise<boolean> {
     await this.userService.userRepository.populate(user, ['password'])
 

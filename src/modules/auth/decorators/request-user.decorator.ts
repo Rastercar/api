@@ -1,8 +1,9 @@
 import { createParamDecorator, ExecutionContext, UnauthorizedException } from '@nestjs/common'
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql'
+import { MasterUser } from '../../user/entities/master-user.entity'
 import { User } from '../../user/entities/user.entity'
 
-export function requestUserFactory(prop: keyof User | undefined, ctx: ExecutionContext) {
+export function requestUserFactory(prop: keyof User | keyof MasterUser | undefined, ctx: ExecutionContext) {
   const isGraphqlContext = ctx.getType<GqlContextType>() === 'graphql'
 
   const { user } = isGraphqlContext ? GqlExecutionContext.create(ctx).getContext().req : ctx.switchToHttp().getRequest()

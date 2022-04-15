@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common'
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common'
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql'
 import { MasterUser } from '../entities/master-user.entity'
 import { User } from '../entities/user.entity'

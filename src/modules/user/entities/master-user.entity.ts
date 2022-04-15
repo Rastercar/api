@@ -1,7 +1,7 @@
 import { Entity, EntityRepositoryType, ManyToOne } from '@mikro-orm/core'
+import { AccessLevel } from '../../auth/entities/access-level.entity'
 import { MasterAccessLevel } from '../../auth/entities/master-access-level.entity'
 import { MasterUserRepository } from '../repositories/master-user.repository'
-import { AccessLevel } from '../../auth/entities/access-level.entity'
 import { BaseUser } from './base-user-entity'
 
 interface MasterUserArgs {
@@ -11,7 +11,7 @@ interface MasterUserArgs {
   email: string
   emailVerified: boolean
 
-  accessLevel: AccessLevel
+  accessLevel?: AccessLevel
   masterAccessLevel: MasterAccessLevel
 }
 
@@ -30,7 +30,7 @@ export class MasterUser extends BaseUser {
     this.email = data.email
     this.emailVerified = data.emailVerified
 
-    this.accessLevel = data.accessLevel
+    this.accessLevel = data.accessLevel ?? null
     this.masterAccessLevel = data.masterAccessLevel
   }
 
@@ -43,7 +43,7 @@ export class MasterUser extends BaseUser {
    * master user cannot edit/manage its clients on using the tracked dashboard
    */
   @ManyToOne(() => AccessLevel, { nullable: true })
-  accessLevel!: AccessLevel
+  accessLevel!: AccessLevel | null
 
   /**
    * Relationship: N...0-1

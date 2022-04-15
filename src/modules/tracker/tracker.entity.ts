@@ -1,14 +1,15 @@
 import { Collection, Entity, EntityRepositoryType, ManyToOne, OneToMany, Property, Unique } from '@mikro-orm/core'
-import { Organization } from '../organization/entities/organization.entity'
 import { BaseEntity } from '../../database/postgres/base/base-entity'
-import { TrackerRepository } from './tracker.repository'
+import { Organization } from '../organization/entities/organization.entity'
 import { SimCard } from '../sim-card/sim-card.entity'
 import { Vehicle } from '../vehicle/vehicle.entity'
 import { trackerModel } from './tracker.constants'
+import { TrackerRepository } from './tracker.repository'
 
 interface TrackerArgs {
   model: trackerModel
   identifier: string
+  inMaintenance?: boolean
 }
 
 @Entity({ customRepository: () => TrackerRepository })
@@ -16,6 +17,7 @@ export class Tracker extends BaseEntity {
   constructor(data: TrackerArgs) {
     super()
     this.model = data.model
+    this.inMaintenance = data.inMaintenance ?? false
   }
 
   [EntityRepositoryType]?: TrackerRepository
@@ -24,16 +26,18 @@ export class Tracker extends BaseEntity {
   model!: trackerModel
 
   /**
-   * A unique (even across organizations) human readable identifier.
-   *
-   * ex:
-   * - MXT013-BOX-33
-   * - Tracker 123 lote 2
-   * - Rastreador ST310 do Fulano
+   * A identifier for the tracker, normally the serial number
    */
   @Property({ type: String, nullable: true })
   @Unique()
   identifier!: string | null
+
+  /**
+   * If the tracker is in maintenance mode and should not trigger
+   * any events, like communication failure events
+   */
+  @Property({ type: Boolean, default: false })
+  inMaintenance!: boolean
 
   /**
    * Relationship: N - 1

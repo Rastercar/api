@@ -12,7 +12,6 @@ interface SimCardArgs {
   phoneNumber: string
 }
 
-@Unique({ properties: ['phoneNumber', 'organization'] })
 @Entity({ customRepository: () => SimCardRepository })
 export class SimCard extends BaseEntity {
   /**
@@ -34,6 +33,7 @@ export class SimCard extends BaseEntity {
    * The phone number in the E164 format
    */
   @Property({ comment: 'Phone numbers are stored in the E164 international format' })
+  @Unique()
   phoneNumber!: string
 
   /**

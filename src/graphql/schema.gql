@@ -135,7 +135,10 @@ type OrganizationModel {
 }
 
 enum PERMISSION {
+  CREATE_VEHICLE
+  DELETE_VEHICLE
   EDIT_OTHER_USERS
+  UPDATE_VEHICLE
 }
 
 type Query {

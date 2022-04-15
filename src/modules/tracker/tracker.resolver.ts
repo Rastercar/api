@@ -1,26 +1,24 @@
-import { PositionRecievedEvent, TrackerPositionSubscriptionArgs, TRACKER_EVENTS } from './tracker.events'
+import { ObjectQuery } from '@mikro-orm/core'
+import { Inject } from '@nestjs/common'
 import { Args, Context, Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql'
-import { SimpleOrganizationModel } from '../organization/models/organization.model'
-import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
+import { RedisPubSub } from 'graphql-redis-subscriptions'
 import { IDataLoaders } from '../../graphql/data-loader/data-loader.service'
-import { Organization } from '../organization/entities/organization.entity'
-import { RequestUser } from '../auth/decorators/request-user.decorator'
-import { OffsetPaginatedTracker, TrackerModel } from './tracker.model'
-import { TrackerSearchFilterArgs } from './dto/tracker-search-filter'
-import { UserAuth } from '../auth/decorators/user-auth.decorator'
+import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
 import { OrderingArgs } from '../../graphql/pagination/ordering'
 import { of, returns } from '../../utils/coverage-helpers'
-import { RedisPubSub } from 'graphql-redis-subscriptions'
-import { SimCardModel } from '../sim-card/sim-card.model'
-import { TrackerRepository } from './tracker.repository'
-import { VehicleModel } from '../vehicle/vehicle.model'
-import { User } from '../user/entities/user.entity'
-import { TrackerService } from './tracker.service'
+import { RequestOrganizationId } from '../auth/decorators/request-organization.decorator'
+import { UserAuth } from '../auth/decorators/user-auth.decorator'
+import { SimpleOrganizationModel } from '../organization/models/organization.model'
 import { PUB_SUB } from '../pubsub/pubsub.module'
-import { ObjectQuery } from '@mikro-orm/core'
-import { Tracker } from './tracker.entity'
-import { Inject } from '@nestjs/common'
+import { SimCardModel } from '../sim-card/sim-card.model'
+import { VehicleModel } from '../vehicle/vehicle.model'
 import { LatLng } from './dto/lat-lng'
+import { TrackerSearchFilterArgs } from './dto/tracker-search-filter'
+import { Tracker } from './tracker.entity'
+import { PositionRecievedEvent, TrackerPositionSubscriptionArgs, TRACKER_EVENTS } from './tracker.events'
+import { OffsetPaginatedTracker, TrackerModel } from './tracker.model'
+import { TrackerRepository } from './tracker.repository'
+import { TrackerService } from './tracker.service'
 
 @Resolver(of(TrackerModel))
 export class TrackerResolver {
@@ -68,9 +66,9 @@ export class TrackerResolver {
     @Args() pagination: OffsetPagination,
     @Args('search', { nullable: true }) search: string,
     @Args({ type: () => TrackerSearchFilterArgs, nullable: true }) filter: TrackerSearchFilterArgs | null,
-    @RequestUser() user: User
+    @RequestOrganizationId() organization: number
   ): Promise<OffsetPaginatedTracker> {
-    const queryFilter: ObjectQuery<Tracker> = { organization: user.organization }
+    const queryFilter: ObjectQuery<Tracker> = { organization }
 
     if (filter?.installedOnVehicle !== null) {
       queryFilter['vehicle'] = filter?.installedOnVehicle ? { $ne: null } : { $eq: null }
@@ -81,8 +79,11 @@ export class TrackerResolver {
 
   @UserAuth()
   @Query(() => [TrackerModel], { description: 'All trackers that can recieve positions (trackers that have one or more sim cards)' })
-  activeTrackers(@RequestUser() user: User): Promise<TrackerModel[]> {
-    return this.trackerRepository.allActiveTrackersForOrganization(user.organization.id)
+  activeTrackers(
+    @RequestOrganizationId()
+    organizationId: number
+  ): Promise<TrackerModel[]> {
+    return this.trackerRepository.allActiveTrackersForOrganization(organizationId)
   }
 
   @Subscription(() => TrackerModel, {
@@ -94,10 +95,10 @@ export class TrackerResolver {
   @UserAuth()
   async subscribeToTrackerPositions(
     @Args() { ids: trackersToListenIds }: TrackerPositionSubscriptionArgs,
-    @RequestUser('organization') userOrg: Organization
+    @RequestOrganizationId() organization: number
   ) {
     if (trackersToListenIds.length > 0) {
-      await this.trackerService.assertTrackersBelongToOrganization({ organization: userOrg.id, trackerIds: trackersToListenIds })
+      await this.trackerService.assertTrackersBelongToOrganization({ organization, trackerIds: trackersToListenIds })
     }
 
     return this.pubSub.asyncIterator<PositionRecievedEvent>(TRACKER_EVENTS.POSITION_RECIEVED)

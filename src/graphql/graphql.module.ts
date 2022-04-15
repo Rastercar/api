@@ -1,10 +1,11 @@
-import { DynamicModule, MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
-import { DataloaderService } from './data-loader/data-loader.service'
-import { DataloaderModule } from './data-loader/data-loader.module'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
-import { graphqlUploadExpress } from 'graphql-upload'
+import { DynamicModule, MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
 import { GraphQLModule, GraphQLWsSubscriptionsConfig } from '@nestjs/graphql'
+import { Request } from 'express'
+import { graphqlUploadExpress } from 'graphql-upload'
 import { join } from 'path'
+import { DataloaderModule } from './data-loader/data-loader.module'
+import { DataloaderService } from './data-loader/data-loader.service'
 
 const autoSchemaFile = join(process.cwd(), 'src', 'graphql', 'schema.gql')
 
@@ -17,18 +18,27 @@ const isLooseObj = (x: unknown): x is LooseObj => {
 }
 
 const graphQlWsConfig: GraphQLWsSubscriptionsConfig = {
+  // see: https://docs.nestjs.com/graphql/subscriptions#subscriptions
   onConnect: context => {
     const { connectionParams, extra } = context
+
+    // If context is not a object we cannot pass it to the graphql context,
+    // just accept the connection
+    if (!isLooseObj(extra)) return true
 
     // Create a request object, similar to what would exist in a http request,
     // so that the authguards can work with the WS context without changing code
     // Note: the original WS request can be accessed on `extra.request` but graphql
     // guards work with the `req` prop
-    if (connectionParams?.authToken && isLooseObj(extra)) {
-      extra.req = {
-        headers: { authorization: `Bearer ${connectionParams.authToken}` }
-      }
+    const req: Pick<Request, 'headers'> = { headers: {} }
+
+    if (connectionParams?.authToken) req.headers.authorization = `Bearer ${connectionParams.authToken}`
+
+    if (connectionParams?.organizationid) {
+      req.headers.organizationid = `${connectionParams.organizationid}`
     }
+
+    extra.req = req
   }
 }
 
@@ -57,13 +67,17 @@ export class GraphQLWithUploadModule implements NestModule {
               'graphql-ws': graphQlWsConfig
             },
             context: ({ extra }) => {
-              const ctx: Record<string, unknown> = {
+              const graphqlRequestContext: Record<string, unknown> = {
                 loaders: dataloaderService.createLoaders()
               }
 
-              if (extra?.req) ctx.req = extra.req
+              if (extra?.req) graphqlRequestContext.req = extra.req
 
-              return ctx
+              // Pass the socket itself for handler closing on errors, etc
+              // this is essential for the global exception filter
+              if (extra?.socket) graphqlRequestContext.socket = extra.socket
+
+              return graphqlRequestContext
             }
           })
         })

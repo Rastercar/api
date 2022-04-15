@@ -1,7 +1,7 @@
 /**
  * String literal of tracker models suported by the plataform
  */
-export type trackerModel = 'ST310U'
+export type trackerModel = 'GT06'
 
 interface TrackerDescription {
   /**
@@ -12,10 +12,7 @@ interface TrackerDescription {
 }
 
 export const HOMOLOGATED_TRACKER: Record<trackerModel, TrackerDescription> = {
-  /**
-   * https://www.sastracker.com.br/manuais/ST310U_Manual_do_Usuario_Rev.1.1.pdf
-   */
-  ST310U: {
+  GT06: {
     simCardSlots: 1
   }
 } as const

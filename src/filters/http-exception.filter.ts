@@ -1,4 +1,5 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common'
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common'
+import { GqlArgumentsHost, GqlContextType } from '@nestjs/graphql'
 import { isDefined } from 'class-validator'
 import { Response } from 'express'
 
@@ -18,6 +19,8 @@ interface NormalizedErrorResponse {
   statusCode: HttpStatus
   isRastercarApiError: true
 }
+
+const INTERNAL_SERVER_ERROR_SOCKET_CODE = 4500
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -44,11 +47,42 @@ export class HttpExceptionFilter implements ExceptionFilter {
     )
   }
 
+  /**
+   * Handles a expception for a graphql context, closing
+   * the websocket found in the context if theres any
+   */
+  private handleExceptionForGqlContext(exception: HttpException, host: GqlArgumentsHost) {
+    const exceptionResponse = exception.getResponse()
+    const graphqlContext = host.getArgByIndex(2)
+
+    if (graphqlContext && typeof graphqlContext.socket?.close === 'function') {
+      const errorMsg =
+        typeof exceptionResponse === 'string'
+          ? exceptionResponse
+          : (exceptionResponse as Record<string, string>)?.message || exception.message || 'Internal Server Error'
+
+      // Very important, `graphql-ws` expected and standard close codes of the GraphQL over WebSocket Protocol
+      // return the socket close promise so the library wont close it twice
+      return graphqlContext.socket?.close(INTERNAL_SERVER_ERROR_SOCKET_CODE, errorMsg)
+    }
+
+    // If we are dealing with a graphql host then the default error wrapper from the apollo driver will
+    // wrap the error in a graphql compatible manner
+    // see: https://github.com/nestjs/graphql/blob/83b4919a45ce459da31e9c40813ef1f00cd5a43d/lib/utils/merge-defaults.util.ts#L78
+    return exception
+  }
+
   catch(exception: HttpException, host: ArgumentsHost): Response<NormalizedErrorResponse> | HttpException {
-    if (host.getType() !== 'http') return exception
+    const hostType = host.getType<GqlContextType>()
+
+    if (hostType === 'graphql') {
+      const gqlArgs = GqlArgumentsHost.create(host)
+      return this.handleExceptionForGqlContext(exception, gqlArgs)
+    }
+
+    if (hostType !== 'http') return exception
 
     const exceptionResponse = exception.getResponse()
-
     const response = host.switchToHttp().getResponse<Response>()
     const status = exception.getStatus()
 

@@ -1,20 +1,22 @@
 import { Args, Context, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
-import { SimpleOrganizationModel } from '../organization/models/organization.model'
-import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
+import { FileUpload, GraphQLUpload } from 'graphql-upload'
 import { IDataLoaders } from '../../graphql/data-loader/data-loader.service'
-import { RequestUser } from '../auth/decorators/request-user.decorator'
-import { OffsetPaginatedVehicle, VehicleModel } from './vehicle.model'
-import { UserAuth } from '../auth/decorators/user-auth.decorator'
+import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
 import { OrderingArgs } from '../../graphql/pagination/ordering'
 import { is, of, returns } from '../../utils/coverage-helpers'
-import { CreateVehicleDTO, UpdateVehicleDTO } from './dtos/crud-vehicle.dto'
-import { FileUpload, GraphQLUpload } from 'graphql-upload'
-import { VehicleRepository } from './vehicle.repository'
-import { TrackerModel } from '../tracker/tracker.model'
-import { User } from '../user/entities/user.entity'
-import { VehicleService } from './vehicle.service'
-import { Vehicle } from './vehicle.entity'
+import { RequestOrganizationId } from '../auth/decorators/request-organization.decorator'
+import { RequestUser } from '../auth/decorators/request-user.decorator'
+import { UserAuth } from '../auth/decorators/user-auth.decorator'
 import { Organization } from '../organization/entities/organization.entity'
+import { SimpleOrganizationModel } from '../organization/models/organization.model'
+import { TrackerModel } from '../tracker/tracker.model'
+import { MasterUser } from '../user/entities/master-user.entity'
+import { User } from '../user/entities/user.entity'
+import { CreateVehicleDTO, UpdateVehicleDTO } from './dtos/crud-vehicle.dto'
+import { Vehicle } from './vehicle.entity'
+import { OffsetPaginatedVehicle, VehicleModel } from './vehicle.model'
+import { VehicleRepository } from './vehicle.repository'
+import { VehicleService } from './vehicle.service'
 
 @Resolver(of(VehicleModel))
 export class VehicleResolver {
@@ -39,9 +41,10 @@ export class VehicleResolver {
     @Args() ordering: OrderingArgs,
     @Args() pagination: OffsetPagination,
     @Args('search', { nullable: true }) search: string,
-    @RequestUser() user: User
+    @RequestUser() user: User | MasterUser,
+    @RequestOrganizationId() organization: number
   ): Promise<OffsetPaginatedVehicle> {
-    return this.vehicleRepository.findSearchAndPaginate({ search, ordering, pagination, queryFilter: { organization: user.organization } })
+    return this.vehicleRepository.findSearchAndPaginate({ search, ordering, pagination, queryFilter: { organization } })
   }
 
   @UserAuth()

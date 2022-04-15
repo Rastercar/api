@@ -885,6 +885,33 @@
           "nullable": true,
           "mappedType": "string"
         },
+        "fuel_type": {
+          "name": "fuel_type",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "string"
+        },
+        "fuel_consumption": {
+          "name": "fuel_consumption",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "integer"
+        },
+        "additional_info": {
+          "name": "additional_info",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "string"
+        },
         "organization_id": {
           "name": "organization_id",
           "type": "int",
@@ -899,12 +926,11 @@
       "schema": "public",
       "indexes": [
         {
-          "keyName": "vehicle_plate_organization_id_unique",
           "columnNames": [
-            "plate",
-            "organization_id"
+            "plate"
           ],
-          "composite": true,
+          "composite": false,
+          "keyName": "vehicle_plate_unique",
           "primary": false,
           "unique": true
         },
@@ -982,6 +1008,16 @@
           "primary": false,
           "nullable": true,
           "mappedType": "string"
+        },
+        "in_maintenance": {
+          "name": "in_maintenance",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "false",
+          "mappedType": "boolean"
         },
         "organization_id": {
           "name": "organization_id",
@@ -1154,20 +1190,19 @@
       "indexes": [
         {
           "columnNames": [
-            "ssn"
+            "phone_number"
           ],
           "composite": false,
-          "keyName": "sim_card_ssn_unique",
+          "keyName": "sim_card_phone_number_unique",
           "primary": false,
           "unique": true
         },
         {
-          "keyName": "sim_card_phone_number_organization_id_unique",
           "columnNames": [
-            "phone_number",
-            "organization_id"
+            "ssn"
           ],
-          "composite": true,
+          "composite": false,
+          "keyName": "sim_card_ssn_unique",
           "primary": false,
           "unique": true
         },

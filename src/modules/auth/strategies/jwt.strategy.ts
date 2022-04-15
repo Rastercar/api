@@ -1,10 +1,10 @@
-import { MasterUser } from '../../user/entities/master-user.entity'
-import { AuthTokenService } from '../services/auth-token.service'
-import { User } from '../../user/entities/user.entity'
-import { ExtractJwt, Strategy } from 'passport-jwt'
-import { PassportStrategy } from '@nestjs/passport'
-import { ConfigService } from '@nestjs/config'
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { PassportStrategy } from '@nestjs/passport'
+import { ExtractJwt, Strategy } from 'passport-jwt'
+import { MasterUser } from '../../user/entities/master-user.entity'
+import { User } from '../../user/entities/user.entity'
+import { AuthTokenService } from '../services/auth-token.service'
 
 export interface JwtPayload {
   /**
