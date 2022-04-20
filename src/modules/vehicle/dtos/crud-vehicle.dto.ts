@@ -1,7 +1,7 @@
-import { IsVehiclePlate } from '../validators/is-vehicle-plate.validator'
-import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator'
 import { Field, InputType, PartialType } from '@nestjs/graphql'
 import { Transform } from 'class-transformer'
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator'
+import { IsVehiclePlate } from '../validators/is-vehicle-plate.validator'
 
 @InputType()
 export class CreateVehicleDTO {

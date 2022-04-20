@@ -1,5 +1,5 @@
-import { OffsetPaginated } from '../../graphql/pagination/offset-pagination'
 import { Field, Int, ObjectType } from '@nestjs/graphql'
+import { OffsetPaginated } from '../../graphql/pagination/offset-pagination'
 import { Vehicle } from './vehicle.entity'
 
 @ObjectType({ description: 'vehicle' })
@@ -33,6 +33,15 @@ export class VehicleModel {
 
   @Field(() => String, { nullable: true })
   color!: string | null
+
+  @Field(() => String, { nullable: true })
+  fuelType!: string | null
+
+  @Field(() => Number, { nullable: true })
+  fuelConsumption!: number | null
+
+  @Field(() => String, { nullable: true })
+  additionalInfo!: string | null
 }
 
 @ObjectType()

@@ -1,13 +1,13 @@
-import { HttpExceptionFilter } from '../filters/http-exception.filter'
-import { INestApplication, ValidationPipe } from '@nestjs/common'
 import { MikroORM, RequestContext } from '@mikro-orm/core'
 import { getMikroORMToken } from '@mikro-orm/nestjs'
+import { INestApplication, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { useContainer } from 'class-validator'
 import { NestFactory } from '@nestjs/core'
-import { AppModule } from '../app.module'
 import { config } from 'aws-sdk'
+import { useContainer } from 'class-validator'
 import express from 'express'
+import { AppModule } from '../app.module'
+import { HttpExceptionFilter } from '../filters/http-exception.filter'
 
 /**
  * Creates a nestJs application based on the AppModule, also

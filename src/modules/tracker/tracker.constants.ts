@@ -1,7 +1,9 @@
+export const TRACKER_MODELS = ['GT06'] as const
+
 /**
  * String literal of tracker models suported by the plataform
  */
-export type trackerModel = 'GT06'
+export type trackerModel = typeof TRACKER_MODELS[number]
 
 interface TrackerDescription {
   /**

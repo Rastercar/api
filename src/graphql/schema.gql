@@ -10,6 +10,35 @@ type AccessLevelModel {
   permissions: [PERMISSION!]!
 }
 
+input CreateSimCardDTO {
+  apnAddress: String!
+  apnPassword: String!
+  apnUser: String!
+  phoneNumber: String!
+  ssn: String!
+}
+
+"""
+Wrapper input for either a object with a existing SimCard ID or a DTO for creating a new SimCard
+"""
+input CreateSimCardDtoOrId {
+  """
+  The data of the sim card to be created, if this is not null ID must be null
+  """
+  dto: CreateSimCardDTO
+
+  """
+  The ID of the sim card to be used, DTO must be null if this is prop is not null
+  """
+  id: Int
+}
+
+input CreateTrackerDTO {
+  identifier: String!
+  model: String!
+  simCards: [CreateSimCardDtoOrId!]!
+}
+
 input CreateVehicleDTO {
   brand: String
   chassisNumber: String
@@ -67,8 +96,10 @@ type MasterUserModel {
 type Mutation {
   createVehicle(data: CreateVehicleDTO!, photo: Upload): VehicleModel!
 
-  """Creates new trackers and associate them with a existing vehicle"""
-  installTrackersOnVehicle(data: UpdateVehicleDTO!, id: Int!): VehicleModel!
+  """
+  Creates a new tracker and/or its new simCards and associate the tracker with a existing vehicle
+  """
+  installTrackerOnVehicle(id: Int!, tracker: CreateTrackerDTO!): VehicleModel!
   login(credentials: LoginInput!): LoginResponse!
   loginWithToken(token: String!): LoginResponse!
   register(user: RegisterUserDTO!): LoginResponse!
@@ -149,6 +180,7 @@ type Query {
   isEmailInUse(email: String!): Boolean!
   me: UserOrMasterUser!
   organization(id: Int!): OrganizationModel
+  organizations: [OrganizationModel!]!
 
   """Sim cards that belong to the request user organization"""
   simCards(
@@ -243,7 +275,7 @@ type TrackerModel {
   id: Int!
 
   """A human readable identifier, ex: MXT013-BOX-33, Tracker 123 lote 2"""
-  identifier: String
+  identifier: String!
   lastPosition: LatLng
   model: String!
   organization: SimpleOrganizationModel!
@@ -301,10 +333,13 @@ union UserOrMasterUser = MasterUserModel | UserModel
 
 """vehicle"""
 type VehicleModel {
+  additionalInfo: String
   brand: String
   chassisNumber: String
   color: String
   fabricationYear: Float
+  fuelConsumption: Float
+  fuelType: String
   id: Int!
   model: String
   modelYear: Float

@@ -1,5 +1,5 @@
-import { OffsetPaginated } from '../../graphql/pagination/offset-pagination'
 import { Field, Int, ObjectType } from '@nestjs/graphql'
+import { OffsetPaginated } from '../../graphql/pagination/offset-pagination'
 import { trackerModel } from './tracker.constants'
 import { Tracker } from './tracker.entity'
 
@@ -11,8 +11,8 @@ export class TrackerModel {
   @Field(() => String)
   model!: trackerModel
 
-  @Field(() => String, { nullable: true, description: 'A human readable identifier, ex: MXT013-BOX-33, Tracker 123 lote 2' })
-  identifier!: string | null
+  @Field(() => String, { description: 'A human readable identifier, ex: MXT013-BOX-33, Tracker 123 lote 2' })
+  identifier!: string
 }
 
 @ObjectType()

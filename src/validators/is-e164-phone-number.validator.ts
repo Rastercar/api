@@ -18,6 +18,10 @@ export function IsE164PhoneNumber(validationOptions?: ValidationOptions): Proper
           const E164Regex = /^\+[1-9]\d{10,14}$/
 
           return E164Regex.test(value)
+        },
+
+        defaultMessage: args => {
+          return `${args?.property || 'undefined property'} is not a valid phone number in the E164 format`
         }
       }
     })

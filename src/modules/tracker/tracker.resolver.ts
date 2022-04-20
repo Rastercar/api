@@ -48,12 +48,15 @@ export class TrackerResolver {
   }
 
   @ResolveField(() => LatLng, { nullable: true })
-  async lastPosition(@Parent() tracker: Tracker, @Context('loaders') loaders: IDataLoaders): Promise<LatLng> {
+  async lastPosition(@Parent() tracker: Tracker, @Context('loaders') loaders: IDataLoaders): Promise<LatLng | null> {
     const trackerWithPosition = tracker as Tracker & { lastPosition: LatLng }
 
     if (trackerWithPosition.lastPosition) return trackerWithPosition.lastPosition
 
     const lastPos = await loaders.position.lastByTrackerId.load(tracker.id)
+
+    if (!lastPos) return null
+
     const [lat, lng] = lastPos.point.coordinates
 
     return { lat, lng }

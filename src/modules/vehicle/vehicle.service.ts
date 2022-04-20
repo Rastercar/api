@@ -1,14 +1,21 @@
-import { UniqueViolationException } from '../../errors/unique-violation.exception'
-import { CreateVehicleDTO, UpdateVehicleDTO } from './dtos/crud-vehicle.dto'
-import { Organization } from '../organization/entities/organization.entity'
-import { FILE_UPLOAD_FOLDERS } from '../../constants/file-upload-folders'
-import { TrackerRepository } from '../tracker/tracker.repository'
+import { InjectEntityManager } from '@mikro-orm/nestjs'
+import { EntityManager } from '@mikro-orm/postgresql'
 import { BadRequestException, Injectable } from '@nestjs/common'
-import { VehicleRepository } from './vehicle.repository'
-import { S3Service } from '../s3/s3.service'
 import { FileUpload } from 'graphql-upload'
-import { Vehicle } from './vehicle.entity'
 import path from 'path'
+import { FILE_UPLOAD_FOLDERS } from '../../constants/file-upload-folders'
+import { UniqueViolationException } from '../../errors/unique-violation.exception'
+import { Organization } from '../organization/entities/organization.entity'
+import { OrganizationRepository } from '../organization/repositories/organization.repository'
+import { S3Service } from '../s3/s3.service'
+import { CreateSimCardDTO } from '../sim-card/dto/crud-sim-card.dto'
+import { SimCard } from '../sim-card/sim-card.entity'
+import { CreateTrackerDTO } from '../tracker/dto/crud-tracker.dto'
+import { Tracker } from '../tracker/tracker.entity'
+import { TrackerRepository } from '../tracker/tracker.repository'
+import { CreateVehicleDTO, UpdateVehicleDTO } from './dtos/crud-vehicle.dto'
+import { Vehicle } from './vehicle.entity'
+import { VehicleRepository } from './vehicle.repository'
 
 interface CreateVehicleArgs {
   dto: CreateVehicleDTO
@@ -19,26 +26,35 @@ interface UpdateVehicleArgs {
   id: number
   dto: UpdateVehicleDTO
   newPhoto?: FileUpload | null
-  userOrganization: Organization
+  userOrganization: Organization | number
 }
 interface SetTrackerArgs {
   vehicleId: number
   trackerIds: number[]
-  userOrganization: Organization
+  userOrganization: Organization | number
+}
+
+interface InstallNewTrackerArgs {
+  dto: CreateTrackerDTO
+  vehicleId: number
+  userOrganization: number
 }
 
 @Injectable()
 export class VehicleService {
   constructor(
     readonly s3Service: S3Service,
+    @InjectEntityManager('postgres')
+    readonly entityManager: EntityManager,
     readonly vehicleRepository: VehicleRepository,
-    readonly trackerRepository: TrackerRepository
+    readonly trackerRepository: TrackerRepository,
+    readonly organizationRepository: OrganizationRepository
   ) {}
 
   /**
    * @throws {UniqueViolationException} If the vehicle plate is not unique for the organization
    */
-  private async assertVehiclePlateIsUniqueForOrg(args: { plate: string; organization: Organization }) {
+  private async assertVehiclePlateIsUniqueForOrg(args: { plate: string; organization: Organization | number }) {
     const { plate, organization } = args
 
     const vehicleWithPlate = await this.vehicleRepository.findOne({ plate, organization })
@@ -166,5 +182,80 @@ export class VehicleService {
     await this.vehicleRepository.persistAndFlush(vehicle)
 
     return vehicle
+  }
+
+  /**
+   * Install a new tracker on a vehicle, a tracker can be a existing or a new one,
+   * containing existing or new sim cards
+   *
+   * @throws {BadRequestException} if the vehicle must already has trackers installed
+   */
+  async installNewTracker(options: InstallNewTrackerArgs): Promise<void> {
+    // TODO: FINISH/REVIEW ME
+    // TODO: FINISH/REVIEW ME
+    // TODO: FINISH/REVIEW ME
+    // TODO: FINISH/REVIEW ME
+    // TODO: FINISH/REVIEW ME
+    const { vehicleId, dto, userOrganization } = options
+
+    const organization = await this.organizationRepository.findOneOrFail({ id: userOrganization })
+    const vehicle = await this.vehicleRepository.findOneOrFail({ id: vehicleId, organization: userOrganization })
+
+    const { identifier, model, simCards } = dto
+
+    await this.entityManager.transactional(async transaction => {
+      const newTracker = new Tracker({ identifier, model })
+      newTracker.vehicle = vehicle
+      newTracker.organization = organization
+
+      await transaction.persistAndFlush(newTracker)
+
+      const simCardsToBeCreated = simCards
+        .filter(simCardDtoOrId => !!simCardDtoOrId.dto)
+        .map(s => new SimCard({ ...(s.dto as CreateSimCardDTO) }))
+
+      const simCardsIdsToAssociated = simCards.filter(simCardDtoOrId => !!simCardDtoOrId.id).map(s => s.id as number)
+
+      if (simCardsIdsToAssociated.length > 0) {
+        const existingSimsToBeAssociated = await transaction.find(
+          SimCard,
+          { id: simCardsIdsToAssociated, organization },
+          { populate: ['tracker'] }
+        )
+        const existingSimsIds = existingSimsToBeAssociated.map(sim => sim.id)
+
+        const notFoundSimsIds = simCardsIdsToAssociated.filter(id => !existingSimsIds.includes(id))
+        const simsAlreadyOnTrackerIds = existingSimsToBeAssociated.filter(sim => sim.tracker !== null).map(sim => sim.id)
+
+        if (notFoundSimsIds.length > 0) {
+          throw new BadRequestException(
+            `SimCards to be associated with the new tracker (ids ${notFoundSimsIds}) were not found and/or do not belong to the request user organization.`
+          )
+        }
+
+        if (simsAlreadyOnTrackerIds.length > 0) {
+          throw new BadRequestException(
+            `SimCards to be associated with the new tracker (ids ${simsAlreadyOnTrackerIds}) are linked to another tracker.`
+          )
+        }
+
+        existingSimsToBeAssociated.forEach(sim => {
+          sim.tracker = newTracker
+        })
+
+        await transaction.persistAndFlush(existingSimsToBeAssociated)
+      }
+
+      await transaction.persistAndFlush(newTracker)
+
+      if (simCardsToBeCreated.length > 0) {
+        simCardsToBeCreated.forEach(sim => {
+          sim.tracker = newTracker
+          sim.organization = organization
+        })
+
+        await transaction.persistAndFlush(simCardsToBeCreated)
+      }
+    })
   }
 }

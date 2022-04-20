@@ -1,16 +1,16 @@
-import { createLastPositionByTrackerIdLoader, TrackerLastPosition } from '../../modules/positions/position.loaders'
-import { Organization } from '../../modules/organization/entities/organization.entity'
-import { AccessLevel } from '../../modules/auth/entities/access-level.entity'
-import { SimCard } from '../../modules/sim-card/sim-card.entity'
-import { Tracker } from '../../modules/tracker/tracker.entity'
-import { Vehicle } from '../../modules/vehicle/vehicle.entity'
-import { User } from '../../modules/user/entities/user.entity'
 import { AnyEntity, EntityName } from '@mikro-orm/core'
-import { InjectEntityManager } from '@mikro-orm/nestjs'
 import { MongoEntityManager } from '@mikro-orm/mongodb'
+import { InjectEntityManager } from '@mikro-orm/nestjs'
 import { EntityManager } from '@mikro-orm/postgresql'
 import { Injectable } from '@nestjs/common'
 import DataLoader from 'dataloader'
+import { AccessLevel } from '../../modules/auth/entities/access-level.entity'
+import { Organization } from '../../modules/organization/entities/organization.entity'
+import { createLastPositionByTrackerIdLoader, TrackerLastPosition } from '../../modules/positions/position.loaders'
+import { SimCard } from '../../modules/sim-card/sim-card.entity'
+import { Tracker } from '../../modules/tracker/tracker.entity'
+import { User } from '../../modules/user/entities/user.entity'
+import { Vehicle } from '../../modules/vehicle/vehicle.entity'
 
 export interface IDataLoaders {
   tracker: {
@@ -41,7 +41,7 @@ export interface IDataLoaders {
     byUserId: DataLoader<number, AccessLevel, number>
   }
   position: {
-    lastByTrackerId: DataLoader<number, TrackerLastPosition, number>
+    lastByTrackerId: DataLoader<number, TrackerLastPosition | null, number>
   }
 }
 

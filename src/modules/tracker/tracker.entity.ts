@@ -17,6 +17,7 @@ export class Tracker extends BaseEntity {
   constructor(data: TrackerArgs) {
     super()
     this.model = data.model
+    this.identifier = data.identifier
     this.inMaintenance = data.inMaintenance ?? false
   }
 
@@ -28,9 +29,9 @@ export class Tracker extends BaseEntity {
   /**
    * A identifier for the tracker, normally the serial number
    */
-  @Property({ type: String, nullable: true })
+  @Property({ type: String })
   @Unique()
-  identifier!: string | null
+  identifier!: string
 
   /**
    * If the tracker is in maintenance mode and should not trigger

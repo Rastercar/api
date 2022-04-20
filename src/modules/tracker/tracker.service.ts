@@ -38,14 +38,14 @@ export class TrackerService {
    * Pretends to recieve a transmission from a random tracker, storing the position and broadcasting it
    */
   async mockTransmissions(): Promise<void> {
-    const trackers = await this.trackerRepository.find({ organization: 6 })
+    const trackers = await this.trackerRepository.findAll()
 
     const tracker = randomElementFromArray(trackers)
 
     const centerPosition = { lat: -20.4702829, lng: -54.580612 }
 
-    const latOffset = randomIntFromInterval(1, 9) / 300
-    const lngOffset = randomIntFromInterval(1, 9) / 300
+    const latOffset = randomIntFromInterval(1, 20) / 300
+    const lngOffset = randomIntFromInterval(1, 20) / 300
 
     const position = {
       lat: centerPosition.lat - latOffset,

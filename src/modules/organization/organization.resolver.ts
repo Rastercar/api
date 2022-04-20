@@ -1,18 +1,19 @@
-import { Parent, ResolveField, Resolver, Query, Args, Int } from '@nestjs/graphql'
-import { OrganizationRepository } from './repositories/organization.repository'
+import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
-import { UserRepository } from '../user/repositories/user.repository'
-import { SimCardRepository } from '../sim-card/sim-card.repository'
+import { OrderingArgs } from '../../graphql/pagination/ordering'
+import { is, of, returns } from '../../utils/coverage-helpers'
+import { UserAuth } from '../auth/decorators/user-auth.decorator'
 import { OffsetPaginatedSimCard } from '../sim-card/sim-card.model'
-import { VehicleRepository } from '../vehicle/vehicle.repository'
-import { OffsetPaginatedVehicle } from '../vehicle/vehicle.model'
+import { SimCardRepository } from '../sim-card/sim-card.repository'
 import { OffsetPaginatedTracker } from '../tracker/tracker.model'
 import { TrackerRepository } from '../tracker/tracker.repository'
-import { OrderingArgs } from '../../graphql/pagination/ordering'
-import { OrganizationModel } from './models/organization.model'
 import { OffsetPaginatedUser } from '../user/models/user.model'
-import { is, of, returns } from '../../utils/coverage-helpers'
+import { UserRepository } from '../user/repositories/user.repository'
+import { OffsetPaginatedVehicle } from '../vehicle/vehicle.model'
+import { VehicleRepository } from '../vehicle/vehicle.repository'
 import { Organization } from './entities/organization.entity'
+import { OrganizationModel } from './models/organization.model'
+import { OrganizationRepository } from './repositories/organization.repository'
 
 @Resolver(of(OrganizationModel))
 export class OrganizationResolver {
@@ -47,6 +48,12 @@ export class OrganizationResolver {
   @ResolveField(() => OffsetPaginatedUser)
   users(@Parent() organization: Organization, @Args() { limit, offset }: OffsetPagination): Promise<OffsetPaginatedUser> {
     return this.userRepository.findAndOffsetPaginate({ limit, offset, queryFilter: { organization } })
+  }
+
+  @UserAuth({ allowedUserType: 'masterUser' })
+  @Query(returns([OrganizationModel]))
+  organizations(): Promise<OrganizationModel[]> {
+    return this.organizationRepository.findAll()
   }
 
   @Query(returns(OrganizationModel), { nullable: true })

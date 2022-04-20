@@ -1,13 +1,13 @@
-import { TrackerService } from './modules/tracker/tracker.service'
 import { ConfigService } from '@nestjs/config'
 import {
   addMikroOrmRequestContextMiddleware,
-  updateMongoDbSchema,
+  createApp,
+  initApp,
   setupAppGlobals,
   updateAwsConfig,
-  createApp,
-  initApp
+  updateMongoDbSchema
 } from './bootstrap/setup-app'
+import { TrackerService } from './modules/tracker/tracker.service'
 
 async function bootstrap() {
   const app = await createApp()
@@ -30,7 +30,7 @@ async function bootstrap() {
   await initApp(app)
 
   // TODO: remove me
-  setInterval(() => app.get(TrackerService).mockTransmissions(), 25000)
+  setInterval(() => app.get(TrackerService).mockTransmissions(), 950000)
 }
 
 bootstrap()

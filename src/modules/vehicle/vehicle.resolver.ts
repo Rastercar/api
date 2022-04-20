@@ -5,13 +5,11 @@ import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
 import { OrderingArgs } from '../../graphql/pagination/ordering'
 import { is, of, returns } from '../../utils/coverage-helpers'
 import { RequestOrganizationId } from '../auth/decorators/request-organization.decorator'
-import { RequestUser } from '../auth/decorators/request-user.decorator'
 import { UserAuth } from '../auth/decorators/user-auth.decorator'
-import { Organization } from '../organization/entities/organization.entity'
 import { SimpleOrganizationModel } from '../organization/models/organization.model'
+import { OrganizationRepository } from '../organization/repositories/organization.repository'
+import { CreateTrackerDTO } from '../tracker/dto/crud-tracker.dto'
 import { TrackerModel } from '../tracker/tracker.model'
-import { MasterUser } from '../user/entities/master-user.entity'
-import { User } from '../user/entities/user.entity'
 import { CreateVehicleDTO, UpdateVehicleDTO } from './dtos/crud-vehicle.dto'
 import { Vehicle } from './vehicle.entity'
 import { OffsetPaginatedVehicle, VehicleModel } from './vehicle.model'
@@ -20,7 +18,11 @@ import { VehicleService } from './vehicle.service'
 
 @Resolver(of(VehicleModel))
 export class VehicleResolver {
-  constructor(readonly vehicleService: VehicleService, readonly vehicleRepository: VehicleRepository) {}
+  constructor(
+    readonly vehicleService: VehicleService,
+    readonly vehicleRepository: VehicleRepository,
+    readonly organizationRepository: OrganizationRepository
+  ) {}
 
   @ResolveField(() => SimpleOrganizationModel)
   organization(
@@ -41,7 +43,6 @@ export class VehicleResolver {
     @Args() ordering: OrderingArgs,
     @Args() pagination: OffsetPagination,
     @Args('search', { nullable: true }) search: string,
-    @RequestUser() user: User | MasterUser,
     @RequestOrganizationId() organization: number
   ): Promise<OffsetPaginatedVehicle> {
     return this.vehicleRepository.findSearchAndPaginate({ search, ordering, pagination, queryFilter: { organization } })
@@ -49,24 +50,25 @@ export class VehicleResolver {
 
   @UserAuth()
   @Query(returns(VehicleModel), { nullable: true })
-  vehicle(@Args('id', { type: () => Int }) id: number, @RequestUser() user: User): Promise<VehicleModel | null> {
-    return this.vehicleRepository.findOne({ id, organization: user.organization })
+  vehicle(@Args('id', { type: () => Int }) id: number, @RequestOrganizationId() organization: number): Promise<VehicleModel | null> {
+    return this.vehicleRepository.findOne({ id, organization })
   }
 
   @UserAuth()
   @Mutation(returns(VehicleModel))
-  createVehicle(
-    @RequestUser('organization') userOrganization: Organization,
+  async createVehicle(
+    @RequestOrganizationId() orgId: number,
     @Args({ name: 'data', type: is(CreateVehicleDTO) }) dto: CreateVehicleDTO,
     @Args({ name: 'photo', type: is(GraphQLUpload), nullable: true }) photo: FileUpload | null
   ): Promise<VehicleModel> {
-    return this.vehicleService.create({ dto, organization: userOrganization, photo })
+    const organization = await this.organizationRepository.findOneOrFail({ id: orgId })
+    return this.vehicleService.create({ dto, organization, photo })
   }
 
   @UserAuth()
   @Mutation(returns(VehicleModel))
   updateVehicle(
-    @RequestUser('organization') userOrganization: Organization,
+    @RequestOrganizationId() userOrganization: number,
     @Args({ name: 'id', type: is(Int) }) id: number,
     @Args({ name: 'data', type: is(UpdateVehicleDTO) }) dto: UpdateVehicleDTO,
     @Args({ name: 'photo', type: is(GraphQLUpload), nullable: true }) photo: FileUpload | null
@@ -77,21 +79,23 @@ export class VehicleResolver {
   @UserAuth()
   @Mutation(returns(VehicleModel), { description: 'Sets the trackers associated with the vehicle' })
   setVehicleTrackers(
-    @RequestUser('organization') userOrganization: Organization,
+    @RequestOrganizationId() userOrganization: number,
     @Args({ name: 'id', type: is(Int) }) id: number,
     @Args({ name: 'trackerIds', type: is([Int]) }) trackerIds: number[]
   ): Promise<VehicleModel> {
     return this.vehicleService.setTrackers({ vehicleId: id, userOrganization, trackerIds })
   }
 
-  // TODO: FINISH ME
   @UserAuth()
-  @Mutation(returns(VehicleModel), { description: 'Creates new trackers and associate them with a existing vehicle' })
-  installTrackersOnVehicle(
-    @RequestUser('organization') userOrganization: Organization,
-    @Args({ name: 'id', type: is(Int) }) id: number,
-    @Args({ name: 'data', type: is(UpdateVehicleDTO) }) dto: UpdateVehicleDTO
+  @Mutation(returns(VehicleModel), {
+    description: 'Creates a new tracker and/or its new simCards and associate the tracker with a existing vehicle'
+  })
+  async installTrackerOnVehicle(
+    @RequestOrganizationId() userOrganization: number,
+    @Args({ name: 'id', type: is(Int) }) vehicleId: number,
+    @Args({ name: 'tracker', type: is(CreateTrackerDTO) }) dto: CreateTrackerDTO
   ): Promise<VehicleModel> {
-    return this.vehicleService.update({ dto, userOrganization, id })
+    await this.vehicleService.installNewTracker({ vehicleId, userOrganization, dto })
+    return this.vehicleRepository.findOneOrFail({ id: vehicleId })
   }
 }
