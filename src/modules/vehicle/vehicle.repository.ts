@@ -1,8 +1,8 @@
-import { FindSearchAndPaginateArgs, PaginableRepository } from '../../database/postgres/interfaces/paginable-repository'
-import { OffsetPaginatedVehicle, VEHICLE_ORDERABLE_FIELDS } from './vehicle.model'
 import { BaseRepository } from '../../database/postgres/base/base-repository'
+import { FindSearchAndPaginateArgs, PaginableRepository } from '../../database/postgres/interfaces/paginable-repository'
 import { getOrderingClause } from '../../graphql/pagination/ordering'
 import { Vehicle } from './vehicle.entity'
+import { OffsetPaginatedVehicle, VEHICLE_ORDERABLE_FIELDS } from './vehicle.model'
 
 export class VehicleRepository extends BaseRepository<Vehicle> implements PaginableRepository<Vehicle> {
   findSearchAndPaginate({

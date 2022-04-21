@@ -4,7 +4,6 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import { FileUpload } from 'graphql-upload'
 import path from 'path'
 import { FILE_UPLOAD_FOLDERS } from '../../constants/file-upload-folders'
-import { UniqueViolationException } from '../../errors/unique-violation.exception'
 import { Organization } from '../organization/entities/organization.entity'
 import { OrganizationRepository } from '../organization/repositories/organization.repository'
 import { S3Service } from '../s3/s3.service'
@@ -51,23 +50,10 @@ export class VehicleService {
     readonly organizationRepository: OrganizationRepository
   ) {}
 
-  /**
-   * @throws {UniqueViolationException} If the vehicle plate is not unique for the organization
-   */
-  private async assertVehiclePlateIsUniqueForOrg(args: { plate: string; organization: Organization | number }) {
-    const { plate, organization } = args
+  async create({ dto, organization, photo }: CreateVehicleArgs): Promise<Vehicle> {
+    const vehicle = Vehicle.create({ ...dto, organization })
 
-    const vehicleWithPlate = await this.vehicleRepository.findOne({ plate, organization })
-    if (vehicleWithPlate !== null) throw new UniqueViolationException('plate')
-  }
-
-  async create(args: CreateVehicleArgs): Promise<Vehicle> {
-    const { dto, organization, photo } = args
-
-    const vehicle = new Vehicle(dto)
-    vehicle.organization = organization
-
-    await this.assertVehiclePlateIsUniqueForOrg({ plate: dto.plate, organization })
+    await this.vehicleRepository.assertUniquenessForColumn('plate', dto.plate)
 
     if (photo) {
       const { Key } = await this.s3Service.upload({
@@ -95,7 +81,7 @@ export class VehicleService {
     if (!vehicle) throw new BadRequestException(`Vehicle: ${id} does not exist or does not belong to the request user organization.`)
 
     if (dto.plate && vehicle.plate !== dto.plate) {
-      await this.assertVehiclePlateIsUniqueForOrg({ plate: dto.plate, organization: userOrganization })
+      await this.vehicleRepository.assertUniquenessForColumn('plate', dto.plate)
     }
 
     const oldPhotoS3Key = vehicle.photo
@@ -185,34 +171,30 @@ export class VehicleService {
   }
 
   /**
-   * Install a new tracker on a vehicle, a tracker can be a existing or a new one,
-   * containing existing or new sim cards
+   * Creates and installs a new tracker, containing existing or new sim cards, on a vehicle
    *
    * @throws {BadRequestException} if the vehicle must already has trackers installed
    */
   async installNewTracker(options: InstallNewTrackerArgs): Promise<void> {
-    // TODO: FINISH/REVIEW ME
-    // TODO: FINISH/REVIEW ME
-    // TODO: FINISH/REVIEW ME
-    // TODO: FINISH/REVIEW ME
-    // TODO: FINISH/REVIEW ME
-    const { vehicleId, dto, userOrganization } = options
+    const {
+      vehicleId,
+      userOrganization,
+      dto: { identifier, model, simCards }
+    } = options
 
     const organization = await this.organizationRepository.findOneOrFail({ id: userOrganization })
     const vehicle = await this.vehicleRepository.findOneOrFail({ id: vehicleId, organization: userOrganization })
 
-    const { identifier, model, simCards } = dto
+    await this.trackerRepository.assertUniquenessForColumn('identifier', identifier)
 
     await this.entityManager.transactional(async transaction => {
-      const newTracker = new Tracker({ identifier, model })
-      newTracker.vehicle = vehicle
-      newTracker.organization = organization
+      const newTracker = Tracker.create({ identifier, model, vehicle, organization })
 
       await transaction.persistAndFlush(newTracker)
 
       const simCardsToBeCreated = simCards
         .filter(simCardDtoOrId => !!simCardDtoOrId.dto)
-        .map(s => new SimCard({ ...(s.dto as CreateSimCardDTO) }))
+        .map(s => SimCard.create({ ...(s.dto as CreateSimCardDTO), organization }))
 
       const simCardsIdsToAssociated = simCards.filter(simCardDtoOrId => !!simCardDtoOrId.id).map(s => s.id as number)
 
@@ -251,9 +233,7 @@ export class VehicleService {
       if (simCardsToBeCreated.length > 0) {
         simCardsToBeCreated.forEach(sim => {
           sim.tracker = newTracker
-          sim.organization = organization
         })
-
         await transaction.persistAndFlush(simCardsToBeCreated)
       }
     })

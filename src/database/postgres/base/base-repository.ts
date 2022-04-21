@@ -1,7 +1,8 @@
-import { createPagination, ICursorPaginatedType, CursorPagination } from '../../../graphql/pagination/cursor-pagination'
-import { IOffsetPaginatedType } from '../../../graphql/pagination/offset-pagination'
 import { FindOptions, ObjectQuery } from '@mikro-orm/core'
 import { EntityRepository } from '@mikro-orm/postgresql'
+import { UniqueViolationException } from '../../../errors/unique-violation.exception'
+import { createPagination, CursorPagination, ICursorPaginatedType } from '../../../graphql/pagination/cursor-pagination'
+import { IOffsetPaginatedType } from '../../../graphql/pagination/offset-pagination'
 
 interface FindAndOffsetPaginateArgs<T> {
   limit: number
@@ -18,6 +19,15 @@ interface FindAndCursorPaginateArgs<T> {
 }
 
 export class BaseRepository<T> extends EntityRepository<T> {
+  /**
+   * @param column - Column name
+   * @param columnValue - Value to guarantee uniqueness for the column
+   */
+  async assertUniquenessForColumn<K extends keyof T>(column: K, columnValue: T[K]) {
+    const entity = await this.findOne({ [column]: columnValue } as ObjectQuery<T>)
+    if (entity !== null) throw new UniqueViolationException(column as string)
+  }
+
   /**
    * Finds and counts all entities on the query filter, then paginate the result
    */

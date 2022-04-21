@@ -1,8 +1,8 @@
-import { FindSearchAndPaginateArgs, PaginableRepository } from '../../database/postgres/interfaces/paginable-repository'
-import { OffsetPaginatedTracker, TRACKER_ORDERABLE_FIELDS } from './tracker.model'
 import { BaseRepository } from '../../database/postgres/base/base-repository'
+import { FindSearchAndPaginateArgs, PaginableRepository } from '../../database/postgres/interfaces/paginable-repository'
 import { getOrderingClause } from '../../graphql/pagination/ordering'
 import { Tracker } from './tracker.entity'
+import { OffsetPaginatedTracker, TRACKER_ORDERABLE_FIELDS } from './tracker.model'
 
 export class TrackerRepository extends BaseRepository<Tracker> implements PaginableRepository<Tracker> {
   findSearchAndPaginate({

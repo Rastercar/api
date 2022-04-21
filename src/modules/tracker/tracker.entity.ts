@@ -10,6 +10,13 @@ interface TrackerArgs {
   model: trackerModel
   identifier: string
   inMaintenance?: boolean
+
+  vehicle?: Vehicle
+  organization?: Organization
+}
+
+interface FullTrackerArgs extends TrackerArgs {
+  organization: Organization
 }
 
 @Entity({ customRepository: () => TrackerRepository })
@@ -19,6 +26,16 @@ export class Tracker extends BaseEntity {
     this.model = data.model
     this.identifier = data.identifier
     this.inMaintenance = data.inMaintenance ?? false
+
+    this.vehicle = data.vehicle ?? null
+    if (data.organization) this.organization = data.organization
+  }
+
+  /**
+   * Creates a tracker, requiring all columns that are necessary to persist in the database
+   */
+  static create(args: FullTrackerArgs): Tracker {
+    return new Tracker(args)
   }
 
   [EntityRepositoryType]?: TrackerRepository

@@ -18,6 +18,10 @@ interface VehicleArgs {
   additionalInfo?: string | null
 }
 
+interface FullVehicleArgs extends VehicleArgs {
+  organization: Organization
+}
+
 @Entity({ customRepository: () => VehicleRepository })
 export class Vehicle extends BaseEntity {
   constructor(data: VehicleArgs) {
@@ -34,6 +38,13 @@ export class Vehicle extends BaseEntity {
     this.chassisNumber = data.chassisNumber ?? null
     this.fuelConsumption = data.fuelConsumption ?? null
     this.fabricationYear = data.fabricationYear ?? null
+  }
+
+  /**
+   * Creates a vehicle, requiring all columns that are necessary to persist in the database
+   */
+  static create(args: FullVehicleArgs): Vehicle {
+    return new Vehicle(args)
   }
 
   [EntityRepositoryType]?: VehicleRepository

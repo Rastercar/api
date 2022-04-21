@@ -12,6 +12,10 @@ interface SimCardArgs {
   phoneNumber: string
 }
 
+interface FullSimCardArgs extends SimCardArgs {
+  organization: Organization
+}
+
 @Entity({ customRepository: () => SimCardRepository })
 export class SimCard extends BaseEntity {
   /**
@@ -25,6 +29,13 @@ export class SimCard extends BaseEntity {
     this.apnAddress = data.apnAddress
     this.apnPassword = data.apnPassword
     this.phoneNumber = data.phoneNumber
+  }
+
+  /**
+   * Creates a sim card, requiring all columns that are necessary to persist in the database
+   */
+  static create(args: FullSimCardArgs): SimCard {
+    return new SimCard(args)
   }
 
   [EntityRepositoryType]?: SimCardRepository

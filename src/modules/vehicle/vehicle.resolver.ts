@@ -90,7 +90,7 @@ export class VehicleResolver {
   @Mutation(returns(VehicleModel), {
     description: 'Creates a new tracker and/or its new simCards and associate the tracker with a existing vehicle'
   })
-  async installTrackerOnVehicle(
+  async installNewTrackerOnVehicle(
     @RequestOrganizationId() userOrganization: number,
     @Args({ name: 'id', type: is(Int) }) vehicleId: number,
     @Args({ name: 'tracker', type: is(CreateTrackerDTO) }) dto: CreateTrackerDTO

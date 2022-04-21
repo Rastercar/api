@@ -99,7 +99,7 @@ type Mutation {
   """
   Creates a new tracker and/or its new simCards and associate the tracker with a existing vehicle
   """
-  installTrackerOnVehicle(id: Int!, tracker: CreateTrackerDTO!): VehicleModel!
+  installNewTrackerOnVehicle(id: Int!, tracker: CreateTrackerDTO!): VehicleModel!
   login(credentials: LoginInput!): LoginResponse!
   loginWithToken(token: String!): LoginResponse!
   register(user: RegisterUserDTO!): LoginResponse!
