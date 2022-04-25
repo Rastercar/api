@@ -3,8 +3,17 @@ import { RedisPubSub } from 'graphql-redis-subscriptions'
 import { randomElementFromArray, randomIntFromInterval } from '../../utils/rng.utils'
 import { PositionService } from '../positions/position.service'
 import { PUB_SUB } from '../pubsub/pubsub.module'
+import { SimCard } from '../sim-card/sim-card.entity'
+import { SimCardRepository } from '../sim-card/sim-card.repository'
+import { Tracker } from './tracker.entity'
 import { PositionRecievedEvent, TRACKER_EVENTS } from './tracker.events'
 import { TrackerRepository } from './tracker.repository'
+
+interface RemoveTrackerFromVehicleArgs {
+  trackerId: number
+  removeSimCards: boolean
+  userOrganization: number
+}
 
 @Injectable()
 export class TrackerService {
@@ -12,7 +21,8 @@ export class TrackerService {
     @Inject(PUB_SUB)
     readonly pubSub: RedisPubSub,
     readonly positionService: PositionService,
-    readonly trackerRepository: TrackerRepository
+    readonly trackerRepository: TrackerRepository,
+    readonly simCardRepository: SimCardRepository
   ) {}
 
   /**
@@ -32,6 +42,24 @@ export class TrackerService {
     if (trackersThatDontBelongToOrg.length > 0) {
       throw new UnauthorizedException(`Trackers ${trackersThatDontBelongToOrg.join(', ')} do not belong to the user organization`)
     }
+  }
+
+  async removeTrackerFromCurrentVehicle(options: RemoveTrackerFromVehicleArgs): Promise<Tracker> {
+    const { removeSimCards, trackerId, userOrganization } = options
+
+    const tracker = await this.trackerRepository.findOneOrFail({ id: trackerId, organization: userOrganization })
+    tracker.vehicle = null
+
+    let sims: SimCard[] = []
+
+    if (removeSimCards) {
+      sims = await this.simCardRepository.find({ tracker })
+      sims.forEach(sim => (sim.tracker = null))
+    }
+
+    await this.trackerRepository.persistAndFlush([tracker, ...sims])
+
+    return tracker
   }
 
   /**

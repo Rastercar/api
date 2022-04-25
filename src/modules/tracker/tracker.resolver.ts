@@ -1,11 +1,11 @@
 import { ObjectQuery } from '@mikro-orm/core'
 import { Inject } from '@nestjs/common'
-import { Args, Context, Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql'
+import { Args, Context, Int, Mutation, Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql'
 import { RedisPubSub } from 'graphql-redis-subscriptions'
 import { IDataLoaders } from '../../graphql/data-loader/data-loader.service'
 import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
 import { OrderingArgs } from '../../graphql/pagination/ordering'
-import { of, returns } from '../../utils/coverage-helpers'
+import { is, of, returns } from '../../utils/coverage-helpers'
 import { RequestOrganizationId } from '../auth/decorators/request-organization.decorator'
 import { UserAuth } from '../auth/decorators/user-auth.decorator'
 import { SimpleOrganizationModel } from '../organization/models/organization.model'
@@ -37,7 +37,7 @@ export class TrackerResolver {
     return tracker.organization.isInitialized() ? tracker.organization : loaders.organization.byId.load(tracker.organization.id)
   }
 
-  @ResolveField(() => VehicleModel)
+  @ResolveField(() => VehicleModel, { nullable: true })
   vehicle(@Parent() tracker: Tracker, @Context('loaders') loaders: IDataLoaders): Promise<VehicleModel | null> {
     return loaders.vehicle.byTrackerId.load(tracker.id)
   }
@@ -87,6 +87,22 @@ export class TrackerResolver {
     organizationId: number
   ): Promise<TrackerModel[]> {
     return this.trackerRepository.allActiveTrackersForOrganization(organizationId)
+  }
+
+  @UserAuth()
+  @Mutation(returns(TrackerModel), {
+    description: 'Removes a tracker from the the vehicle its installed, optionally removing the sim cards from the removed tracker aswell'
+  })
+  removeTrackerFromVehicle(
+    @RequestOrganizationId() userOrganization: number,
+    @Args({ name: 'trackerId', type: is(Int) }) trackerId: number,
+    @Args({ name: 'removeSimsFromTracker', type: is(Boolean), nullable: true }) removeSimsFromTracker: boolean | null
+  ): Promise<TrackerModel> {
+    return this.trackerService.removeTrackerFromCurrentVehicle({
+      trackerId,
+      userOrganization,
+      removeSimCards: removeSimsFromTracker ?? false
+    })
   }
 
   @Subscription(() => TrackerModel, {

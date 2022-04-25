@@ -16,6 +16,7 @@ interface VehicleArgs {
   chassisNumber?: string | null
   fabricationYear?: number | null
   additionalInfo?: string | null
+  organization?: Organization
 }
 
 interface FullVehicleArgs extends VehicleArgs {
@@ -38,6 +39,7 @@ export class Vehicle extends BaseEntity {
     this.chassisNumber = data.chassisNumber ?? null
     this.fuelConsumption = data.fuelConsumption ?? null
     this.fabricationYear = data.fabricationYear ?? null
+    if (data.organization) this.organization = data.organization
   }
 
   /**

@@ -572,6 +572,9 @@
           "nullable": false,
           "default": "'{}'",
           "enumItems": [
+            "CREATE_VEHICLE",
+            "UPDATE_VEHICLE",
+            "DELETE_VEHICLE",
             "EDIT_OTHER_USERS"
           ],
           "mappedType": "array"
@@ -1006,7 +1009,7 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": true,
+          "nullable": false,
           "mappedType": "string"
         },
         "in_maintenance": {
@@ -1164,6 +1167,46 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
+          "mappedType": "string"
+        },
+        "pin": {
+          "name": "pin",
+          "type": "varchar(8)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 8,
+          "mappedType": "string"
+        },
+        "pin2": {
+          "name": "pin2",
+          "type": "varchar(8)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 8,
+          "mappedType": "string"
+        },
+        "puk": {
+          "name": "puk",
+          "type": "varchar(8)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 8,
+          "mappedType": "string"
+        },
+        "puk2": {
+          "name": "puk2",
+          "type": "varchar(8)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 8,
           "mappedType": "string"
         },
         "organization_id": {

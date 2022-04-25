@@ -9,6 +9,7 @@ import { OrganizationRepository } from '../organization/repositories/organizatio
 import { S3Service } from '../s3/s3.service'
 import { CreateSimCardDTO } from '../sim-card/dto/crud-sim-card.dto'
 import { SimCard } from '../sim-card/sim-card.entity'
+import { SimCardRepository } from '../sim-card/sim-card.repository'
 import { CreateTrackerDTO } from '../tracker/dto/crud-tracker.dto'
 import { Tracker } from '../tracker/tracker.entity'
 import { TrackerRepository } from '../tracker/tracker.repository'
@@ -21,12 +22,14 @@ interface CreateVehicleArgs {
   photo?: FileUpload | null
   organization: Organization
 }
+
 interface UpdateVehicleArgs {
   id: number
   dto: UpdateVehicleDTO
   newPhoto?: FileUpload | null
   userOrganization: Organization | number
 }
+
 interface SetTrackerArgs {
   vehicleId: number
   trackerIds: number[]
@@ -47,6 +50,7 @@ export class VehicleService {
     readonly entityManager: EntityManager,
     readonly vehicleRepository: VehicleRepository,
     readonly trackerRepository: TrackerRepository,
+    readonly simCardRepository: SimCardRepository,
     readonly organizationRepository: OrganizationRepository
   ) {}
 
@@ -176,11 +180,8 @@ export class VehicleService {
    * @throws {BadRequestException} if the vehicle must already has trackers installed
    */
   async installNewTracker(options: InstallNewTrackerArgs): Promise<void> {
-    const {
-      vehicleId,
-      userOrganization,
-      dto: { identifier, model, simCards }
-    } = options
+    const { vehicleId, userOrganization, dto } = options
+    const { identifier, model, simCards } = dto
 
     const organization = await this.organizationRepository.findOneOrFail({ id: userOrganization })
     const vehicle = await this.vehicleRepository.findOneOrFail({ id: vehicleId, organization: userOrganization })
@@ -198,16 +199,47 @@ export class VehicleService {
 
       const simCardsIdsToAssociated = simCards.filter(simCardDtoOrId => !!simCardDtoOrId.id).map(s => s.id as number)
 
-      if (simCardsIdsToAssociated.length > 0) {
+      const associateSimWithNewTrackerAndPersist = (sims: SimCard[]) => {
+        sims.forEach(sim => {
+          sim.tracker = newTracker
+        })
+
+        return transaction.persistAndFlush(sims)
+      }
+
+      const validateSimsToBeCreated = async () => {
+        const simsWithUsedPhoneNumbers = await transaction.find(SimCard, {
+          phoneNumber: { $in: simCardsToBeCreated.map(s => s.phoneNumber) }
+        })
+
+        if (simsWithUsedPhoneNumbers.length > 0) {
+          throw new BadRequestException(`Sim card phone numbers: ${simsWithUsedPhoneNumbers.map(s => s.phoneNumber)} are already in use`)
+        }
+
+        const simsWithUsedSnns = await transaction.find(SimCard, {
+          ssn: { $in: simCardsToBeCreated.map(s => s.ssn) }
+        })
+
+        if (simsWithUsedSnns.length > 0) {
+          throw new BadRequestException(`Sim card ssns: ${simsWithUsedSnns.map(s => s.ssn)} are already in use`)
+        }
+      }
+
+      if (simCardsToBeCreated.length > 0) {
+        await validateSimsToBeCreated()
+        await associateSimWithNewTrackerAndPersist(simCardsToBeCreated)
+      }
+
+      const validateAndGetSimsToBeAssociated = async () => {
         const existingSimsToBeAssociated = await transaction.find(
           SimCard,
           { id: simCardsIdsToAssociated, organization },
           { populate: ['tracker'] }
         )
+
         const existingSimsIds = existingSimsToBeAssociated.map(sim => sim.id)
 
         const notFoundSimsIds = simCardsIdsToAssociated.filter(id => !existingSimsIds.includes(id))
-        const simsAlreadyOnTrackerIds = existingSimsToBeAssociated.filter(sim => sim.tracker !== null).map(sim => sim.id)
 
         if (notFoundSimsIds.length > 0) {
           throw new BadRequestException(
@@ -215,26 +247,20 @@ export class VehicleService {
           )
         }
 
+        const simsAlreadyOnTrackerIds = existingSimsToBeAssociated.filter(sim => sim.tracker !== null).map(sim => sim.id)
+
         if (simsAlreadyOnTrackerIds.length > 0) {
           throw new BadRequestException(
             `SimCards to be associated with the new tracker (ids ${simsAlreadyOnTrackerIds}) are linked to another tracker.`
           )
         }
 
-        existingSimsToBeAssociated.forEach(sim => {
-          sim.tracker = newTracker
-        })
-
-        await transaction.persistAndFlush(existingSimsToBeAssociated)
+        return existingSimsToBeAssociated
       }
 
-      await transaction.persistAndFlush(newTracker)
-
-      if (simCardsToBeCreated.length > 0) {
-        simCardsToBeCreated.forEach(sim => {
-          sim.tracker = newTracker
-        })
-        await transaction.persistAndFlush(simCardsToBeCreated)
+      if (simCardsIdsToAssociated.length > 0) {
+        const existingSimsToBeAssociated = await validateAndGetSimsToBeAssociated()
+        await associateSimWithNewTrackerAndPersist(existingSimsToBeAssociated)
       }
     })
   }

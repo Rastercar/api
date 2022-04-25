@@ -1,13 +1,14 @@
-import { TrackerResolver } from './tracker.resolver'
-import { Vehicle } from '../vehicle/vehicle.entity'
 import { MikroOrmModule } from '@mikro-orm/nestjs'
-import { TrackerService } from './tracker.service'
-import { Tracker } from './tracker.entity'
 import { Module } from '@nestjs/common'
 import { PositionModule } from '../positions/position.module'
+import { SimCard } from '../sim-card/sim-card.entity'
+import { Vehicle } from '../vehicle/vehicle.entity'
+import { Tracker } from './tracker.entity'
+import { TrackerResolver } from './tracker.resolver'
+import { TrackerService } from './tracker.service'
 
 @Module({
-  imports: [MikroOrmModule.forFeature({ entities: [Tracker, Vehicle] }, 'postgres'), PositionModule],
+  imports: [MikroOrmModule.forFeature({ entities: [Tracker, Vehicle, SimCard] }, 'postgres'), PositionModule],
   providers: [TrackerResolver, TrackerService],
   exports: [TrackerResolver, TrackerService]
 })

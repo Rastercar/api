@@ -104,6 +104,11 @@ type Mutation {
   loginWithToken(token: String!): LoginResponse!
   register(user: RegisterUserDTO!): LoginResponse!
 
+  """
+  Removes a tracker from the the vehicle its installed, optionally removing the sim cards from the removed tracker aswell
+  """
+  removeTrackerFromVehicle(removeSimsFromTracker: Boolean, trackerId: Int!): TrackerModel!
+
   """Sets the trackers associated with the vehicle"""
   setVehicleTrackers(id: Int!, trackerIds: [Int!]!): VehicleModel!
   updateMyProfile(profileData: UpdateUserDTO!): UserModel!
@@ -280,7 +285,7 @@ type TrackerModel {
   model: String!
   organization: SimpleOrganizationModel!
   simCards: [SimCardModel!]!
-  vehicle: VehicleModel!
+  vehicle: VehicleModel
 }
 
 """unregistered user"""
