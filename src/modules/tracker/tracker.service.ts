@@ -1,10 +1,12 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common'
 import { RedisPubSub } from 'graphql-redis-subscriptions'
 import { randomElementFromArray, randomIntFromInterval } from '../../utils/rng.utils'
+import { Organization } from '../organization/entities/organization.entity'
 import { PositionService } from '../positions/position.service'
 import { PUB_SUB } from '../pubsub/pubsub.module'
 import { SimCard } from '../sim-card/sim-card.entity'
 import { SimCardRepository } from '../sim-card/sim-card.repository'
+import { HOMOLOGATED_TRACKER } from './tracker.constants'
 import { Tracker } from './tracker.entity'
 import { PositionRecievedEvent, TRACKER_EVENTS } from './tracker.events'
 import { TrackerRepository } from './tracker.repository'
@@ -13,6 +15,12 @@ interface RemoveTrackerFromVehicleArgs {
   trackerId: number
   removeSimCards: boolean
   userOrganization: number
+}
+
+interface SetTrackerSimCardArgs {
+  trackerId: number
+  simCardIds: number[]
+  userOrganization: number | Organization
 }
 
 @Injectable()
@@ -28,15 +36,15 @@ export class TrackerService {
   /**
    * @throws {UnauthorizedException} If a tracker does not belong to the organization
    */
-  async assertTrackersBelongToOrganization(args: { organization: number; trackerIds: number[] }): Promise<void> {
+  async assertTrackersBelongToOrganization(options: { organization: number; trackerIds: number[] }): Promise<void> {
     const trackerIdsAndOrgIds: { id: number; organization_id: number }[] = await this.trackerRepository
       .getKnex()
       .select(['id', 'organization_id'])
       .from('tracker')
-      .whereIn('id', args.trackerIds)
+      .whereIn('id', options.trackerIds)
 
     const trackersThatDontBelongToOrg = trackerIdsAndOrgIds
-      .filter(({ organization_id }) => organization_id !== args.organization)
+      .filter(({ organization_id }) => organization_id !== options.organization)
       .map(({ id }) => id)
 
     if (trackersThatDontBelongToOrg.length > 0) {
@@ -58,6 +66,45 @@ export class TrackerService {
     }
 
     await this.trackerRepository.persistAndFlush([tracker, ...sims])
+
+    return tracker
+  }
+
+  async setTrackerSimCards(options: SetTrackerSimCardArgs) {
+    const { trackerId, simCardIds, userOrganization } = options
+
+    const tracker = await this.trackerRepository.findOneOrFail(
+      { id: trackerId, organization: userOrganization },
+      { populate: ['simCards'] }
+    )
+
+    const trackerModelDetails = HOMOLOGATED_TRACKER[tracker.model]
+
+    if (!trackerModelDetails) throw new InternalServerErrorException(`Cant determine tracker details for model ${tracker.model}`)
+
+    if (simCardIds.length > trackerModelDetails.simCardSlots) {
+      throw new BadRequestException(`Tracker model ${tracker.model} only support up to ${trackerModelDetails.simCardSlots} sim cards`)
+    }
+
+    const simCardsToAssociate = await this.simCardRepository.find({
+      id: { $in: simCardIds },
+      organization: userOrganization,
+      tracker: null
+    })
+    const simsToAssociateIds = simCardsToAssociate.map(s => s.id)
+
+    const unavaliableOrNotFoundSims = simCardIds.filter(simId => !simsToAssociateIds.includes(simId))
+
+    if (unavaliableOrNotFoundSims.length > 0) {
+      const idsStr = unavaliableOrNotFoundSims.join(', ')
+      throw new BadRequestException(
+        `Cannot associate sim cards: ${idsStr} as they were not found or do not belong to the user organization or are already installed in another tracker`
+      )
+    }
+
+    tracker.simCards.set(simCardsToAssociate)
+
+    await this.trackerRepository.persistAndFlush(tracker)
 
     return tracker
   }

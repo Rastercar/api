@@ -91,7 +91,7 @@ export class TrackerResolver {
 
   @UserAuth()
   @Mutation(returns(TrackerModel), {
-    description: 'Removes a tracker from the the vehicle its installed, optionally removing the sim cards from the removed tracker aswell'
+    description: 'Removes a tracker from the vehicle its installed, optionally removing the sim cards from the removed tracker aswell'
   })
   removeTrackerFromVehicle(
     @RequestOrganizationId() userOrganization: number,
@@ -103,6 +103,16 @@ export class TrackerResolver {
       userOrganization,
       removeSimCards: removeSimsFromTracker ?? false
     })
+  }
+
+  @UserAuth()
+  @Mutation(returns(TrackerModel), { description: 'Sets the sim cards associated with the vehicle' })
+  setTrackerSimCards(
+    @RequestOrganizationId() userOrganization: number,
+    @Args({ name: 'id', type: is(Int) }) id: number,
+    @Args({ name: 'simCardIds', type: is([Int]) }) simCardIds: number[]
+  ) {
+    return this.trackerService.setTrackerSimCards({ simCardIds, trackerId: id, userOrganization })
   }
 
   @Subscription(() => TrackerModel, {

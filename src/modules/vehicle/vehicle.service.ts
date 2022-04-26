@@ -147,8 +147,10 @@ export class VehicleService {
   async setTrackers(args: SetTrackerArgs): Promise<Vehicle> {
     const { vehicleId, trackerIds, userOrganization } = args
 
-    const vehicle = await this.vehicleRepository.findOne({ id: vehicleId, organization: userOrganization }, { populate: ['trackers'] })
-    if (!vehicle) throw new BadRequestException(`Vehicle: ${vehicleId} does not exist or does not belong to the request user organization.`)
+    const vehicle = await this.vehicleRepository.findOneOrFail(
+      { id: vehicleId, organization: userOrganization },
+      { populate: ['trackers'] }
+    )
 
     const trackers = await this.trackerRepository.find({ organization: userOrganization, id: { $in: trackerIds } })
 

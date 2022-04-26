@@ -105,9 +105,12 @@ type Mutation {
   register(user: RegisterUserDTO!): LoginResponse!
 
   """
-  Removes a tracker from the the vehicle its installed, optionally removing the sim cards from the removed tracker aswell
+  Removes a tracker from the vehicle its installed, optionally removing the sim cards from the removed tracker aswell
   """
   removeTrackerFromVehicle(removeSimsFromTracker: Boolean, trackerId: Int!): TrackerModel!
+
+  """Sets the sim cards associated with the vehicle"""
+  setTrackerSimCards(id: Int!, simCardIds: [Int!]!): TrackerModel!
 
   """Sets the trackers associated with the vehicle"""
   setVehicleTrackers(id: Int!, trackerIds: [Int!]!): VehicleModel!
