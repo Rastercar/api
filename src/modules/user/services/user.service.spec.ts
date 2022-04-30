@@ -1,18 +1,18 @@
-import { OrganizationRepository } from '../../organization/repositories/organization.repository'
-import { UnregisteredUserRepository } from '../repositories/unregistered-user.repository'
-import { Organization } from '../../organization/entities/organization.entity'
-import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
-import { createFakeUser } from '../../../database/postgres/factories/user.factory'
-import { UnregisteredUser } from '../entities/unregistered-user.entity'
-import { createEmptyMocksFor } from '../../../../test/utils/mocking'
-import { RegisterUserDTO } from '../../auth/dtos/register-user.dto'
-import { UserRepository } from '../repositories/user.repository'
-import { AuthService } from '../../auth/services/auth.service'
-import { UpdateUserDTO } from '../dtos/update-user.dto'
-import { UserService } from '../services/user.service'
 import { Test, TestingModule } from '@nestjs/testing'
-import { Profile } from 'passport-google-oauth20'
 import bcrypt from 'bcrypt'
+import { Profile } from 'passport-google-oauth20'
+import { createRepositoryMock } from '../../../../test/mocks/repository.mock'
+import { createEmptyMocksFor } from '../../../../test/utils/mocking'
+import { createFakeUser } from '../../../database/postgres/factories/user.factory'
+import { RegisterUserDTO } from '../../auth/dtos/register-user.dto'
+import { AuthService } from '../../auth/services/auth.service'
+import { Organization } from '../../organization/entities/organization.entity'
+import { OrganizationRepository } from '../../organization/repositories/organization.repository'
+import { UpdateUserDTO } from '../dtos/update-user.dto'
+import { UnregisteredUser } from '../entities/unregistered-user.entity'
+import { UnregisteredUserRepository } from '../repositories/unregistered-user.repository'
+import { UserRepository } from '../repositories/user.repository'
+import { UserService } from '../services/user.service'
 
 describe('UserService', () => {
   let unregisteredUserRepository: UnregisteredUserRepository
@@ -134,7 +134,7 @@ describe('UserService', () => {
       const dto = new UpdateUserDTO()
 
       Object.entries(args).map(([key, value]) => {
-        if (value) dto[key] = value
+        if (value) (dto as any)[key] = value
       })
 
       return dto

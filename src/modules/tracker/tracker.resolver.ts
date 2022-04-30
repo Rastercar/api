@@ -10,6 +10,7 @@ import { RequestOrganizationId } from '../auth/decorators/request-organization.d
 import { UserAuth } from '../auth/decorators/user-auth.decorator'
 import { SimpleOrganizationModel } from '../organization/models/organization.model'
 import { PUB_SUB } from '../pubsub/pubsub.module'
+import { CreateSimCardDTO } from '../sim-card/dto/crud-sim-card.dto'
 import { SimCardModel } from '../sim-card/sim-card.model'
 import { VehicleModel } from '../vehicle/vehicle.model'
 import { LatLng } from './dto/lat-lng'
@@ -106,13 +107,26 @@ export class TrackerResolver {
   }
 
   @UserAuth()
-  @Mutation(returns(TrackerModel), { description: 'Sets the sim cards associated with the vehicle' })
+  @Mutation(returns(TrackerModel), { description: 'Sets the sim cards associated with the tracker' })
   setTrackerSimCards(
     @RequestOrganizationId() userOrganization: number,
     @Args({ name: 'id', type: is(Int) }) id: number,
     @Args({ name: 'simCardIds', type: is([Int]) }) simCardIds: number[]
   ) {
-    return this.trackerService.setTrackerSimCards({ simCardIds, trackerId: id, userOrganization })
+    return this.trackerService.setSimCards({ simCardIds, trackerId: id, userOrganization })
+  }
+
+  @UserAuth()
+  @Mutation(returns(TrackerModel), {
+    description: 'Creates a new simCard and associates it with a existing tracker'
+  })
+  async installNewSimCardOnTracker(
+    @RequestOrganizationId() userOrganization: number,
+    @Args({ name: 'id', type: is(Int) }) trackerId: number,
+    @Args({ name: 'simCard', type: is(CreateSimCardDTO) }) dto: CreateSimCardDTO
+  ): Promise<TrackerModel> {
+    await this.trackerService.installSimCard({ trackerId, userOrganization, dto })
+    return this.trackerRepository.findOneOrFail({ id: trackerId })
   }
 
   @Subscription(() => TrackerModel, {
@@ -125,7 +139,7 @@ export class TrackerResolver {
   async subscribeToTrackerPositions(
     @Args() { ids: trackersToListenIds }: TrackerPositionSubscriptionArgs,
     @RequestOrganizationId() organization: number
-  ) {
+  ): Promise<AsyncIterator<PositionRecievedEvent, any, undefined>> {
     if (trackersToListenIds.length > 0) {
       await this.trackerService.assertTrackersBelongToOrganization({ organization, trackerIds: trackersToListenIds })
     }

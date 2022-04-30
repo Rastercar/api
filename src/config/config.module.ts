@@ -1,9 +1,9 @@
-import { ConfigModule as NestConfigModule } from '@nestjs/config'
-import { validationSchema } from './validation.schema'
-import postgres from './postgres.config'
 import { Module } from '@nestjs/common'
-import mongo from './mongo.config'
+import { ConfigModule as NestConfigModule } from '@nestjs/config'
 import { resolve } from 'path'
+import mongo from './mongo.config'
+import postgres from './postgres.config'
+import { validationSchema } from './validation.schema'
 
 const envFilePathDict = {
   test: resolve('env', '.test.env'),
@@ -12,7 +12,11 @@ const envFilePathDict = {
   development: resolve('env', '.development.env')
 }
 
-const envFilePath = envFilePathDict[process.env.NODE_ENV ?? 'development']
+const isValidNodeEnv = (x: unknown): x is keyof typeof envFilePathDict => {
+  return typeof x === 'string' && Object.keys(envFilePathDict).includes(x)
+}
+
+const envFilePath = envFilePathDict[isValidNodeEnv(process.env.NODE_ENV) ? process.env.NODE_ENV : 'development']
 
 @Module({
   imports: [NestConfigModule.forRoot({ isGlobal: true, load: [postgres, mongo], envFilePath, validationSchema })],

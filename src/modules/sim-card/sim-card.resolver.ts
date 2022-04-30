@@ -1,9 +1,9 @@
 import { ObjectQuery } from '@mikro-orm/core'
-import { Args, Context, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import { Args, Context, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { IDataLoaders } from '../../graphql/data-loader/data-loader.service'
 import { OffsetPagination } from '../../graphql/pagination/offset-pagination'
 import { OrderingArgs } from '../../graphql/pagination/ordering'
-import { of, returns } from '../../utils/coverage-helpers'
+import { is, of, returns } from '../../utils/coverage-helpers'
 import { RequestOrganizationId } from '../auth/decorators/request-organization.decorator'
 import { UserAuth } from '../auth/decorators/user-auth.decorator'
 import { SimpleOrganizationModel } from '../organization/models/organization.model'
@@ -12,10 +12,11 @@ import { SimCardSearchFilterArgs } from './dto/sim-card-search-filter'
 import { SimCard } from './sim-card.entity'
 import { OffsetPaginatedSimCard, SimCardModel } from './sim-card.model'
 import { SimCardRepository } from './sim-card.repository'
+import { SimCardService } from './tracker.service'
 
 @Resolver(of(SimCardModel))
 export class SimCardResolver {
-  constructor(readonly simCardRepository: SimCardRepository) {}
+  constructor(readonly simCardRepository: SimCardRepository, readonly simCardService: SimCardService) {}
 
   @ResolveField(() => SimpleOrganizationModel)
   organization(
@@ -46,5 +47,14 @@ export class SimCardResolver {
     }
 
     return this.simCardRepository.findSearchAndPaginate({ search, ordering, pagination, queryFilter })
+  }
+
+  @UserAuth()
+  @Mutation(returns(SimCardModel), { description: 'Removes a simCard from the tracker its installed on' })
+  removeSimCardFromTracker(
+    @RequestOrganizationId() userOrganization: number,
+    @Args({ name: 'id', type: is(Int) }) simCardId: number
+  ): Promise<SimCardModel> {
+    return this.simCardService.removeSimCardFromItsTracker({ simCardId, userOrganization })
   }
 }

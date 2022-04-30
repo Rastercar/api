@@ -57,12 +57,11 @@ export class VehicleResolver {
   @UserAuth()
   @Mutation(returns(VehicleModel))
   async createVehicle(
-    @RequestOrganizationId() orgId: number,
+    @RequestOrganizationId() userOrganization: number,
     @Args({ name: 'data', type: is(CreateVehicleDTO) }) dto: CreateVehicleDTO,
     @Args({ name: 'photo', type: is(GraphQLUpload), nullable: true }) photo: FileUpload | null
   ): Promise<VehicleModel> {
-    const organization = await this.organizationRepository.findOneOrFail({ id: orgId })
-    return this.vehicleService.create({ dto, organization, photo })
+    return this.vehicleService.create({ dto, userOrganization, photo })
   }
 
   @UserAuth()

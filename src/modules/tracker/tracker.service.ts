@@ -1,9 +1,10 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common'
 import { RedisPubSub } from 'graphql-redis-subscriptions'
 import { randomElementFromArray, randomIntFromInterval } from '../../utils/rng.utils'
-import { Organization } from '../organization/entities/organization.entity'
+import { OrganizationRepository } from '../organization/repositories/organization.repository'
 import { PositionService } from '../positions/position.service'
 import { PUB_SUB } from '../pubsub/pubsub.module'
+import { CreateSimCardDTO } from '../sim-card/dto/crud-sim-card.dto'
 import { SimCard } from '../sim-card/sim-card.entity'
 import { SimCardRepository } from '../sim-card/sim-card.repository'
 import { HOMOLOGATED_TRACKER } from './tracker.constants'
@@ -20,7 +21,13 @@ interface RemoveTrackerFromVehicleArgs {
 interface SetTrackerSimCardArgs {
   trackerId: number
   simCardIds: number[]
-  userOrganization: number | Organization
+  userOrganization: number
+}
+
+interface InstallNewSimCardArgs {
+  dto: CreateSimCardDTO
+  trackerId: number
+  userOrganization: number
 }
 
 @Injectable()
@@ -30,7 +37,8 @@ export class TrackerService {
     readonly pubSub: RedisPubSub,
     readonly positionService: PositionService,
     readonly trackerRepository: TrackerRepository,
-    readonly simCardRepository: SimCardRepository
+    readonly simCardRepository: SimCardRepository,
+    readonly organizationRepository: OrganizationRepository
   ) {}
 
   /**
@@ -70,7 +78,7 @@ export class TrackerService {
     return tracker
   }
 
-  async setTrackerSimCards(options: SetTrackerSimCardArgs) {
+  async setSimCards(options: SetTrackerSimCardArgs) {
     const { trackerId, simCardIds, userOrganization } = options
 
     const tracker = await this.trackerRepository.findOneOrFail(
@@ -79,8 +87,6 @@ export class TrackerService {
     )
 
     const trackerModelDetails = HOMOLOGATED_TRACKER[tracker.model]
-
-    if (!trackerModelDetails) throw new InternalServerErrorException(`Cant determine tracker details for model ${tracker.model}`)
 
     if (simCardIds.length > trackerModelDetails.simCardSlots) {
       throw new BadRequestException(`Tracker model ${tracker.model} only support up to ${trackerModelDetails.simCardSlots} sim cards`)
@@ -109,7 +115,34 @@ export class TrackerService {
     return tracker
   }
 
+  async installSimCard(options: InstallNewSimCardArgs): Promise<SimCard> {
+    const { userOrganization, dto, trackerId } = options
+
+    const organization = await this.organizationRepository.findOneOrFail({ id: userOrganization })
+    const tracker = await this.trackerRepository.findOneOrFail({ id: trackerId, organization }, { populate: ['simCards'] })
+
+    const { simCardSlots } = HOMOLOGATED_TRACKER[tracker.model]
+
+    if (tracker.simCards.length >= simCardSlots) {
+      throw new BadRequestException(`Tracker: ${tracker.id} has no free slots to install sim cards`)
+    }
+
+    await Promise.all([
+      this.simCardRepository.assertUniquenessForColumn('ssn', dto.ssn),
+      this.simCardRepository.assertUniquenessForColumn('phoneNumber', dto.phoneNumber)
+    ])
+
+    const sim = SimCard.create({ organization, ...dto })
+    sim.tracker = tracker
+
+    await this.simCardRepository.persistAndFlush(sim)
+
+    return sim
+  }
+
   /**
+   * TODO: REMOVE ME
+   *
    * Pretends to recieve a transmission from a random tracker, storing the position and broadcasting it
    */
   async mockTransmissions(): Promise<void> {

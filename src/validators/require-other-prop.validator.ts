@@ -1,9 +1,9 @@
 import {
-  ValidatorConstraintInterface,
+  registerDecorator,
   ValidationArguments,
-  ValidatorConstraint,
   ValidationOptions,
-  registerDecorator
+  ValidatorConstraint,
+  ValidatorConstraintInterface
 } from 'class-validator'
 
 interface PropVal {
@@ -20,8 +20,10 @@ interface PropVal {
 
 @ValidatorConstraint({ async: false })
 class RequireOtherPropConstraint implements ValidatorConstraintInterface {
-  validate(value: any, { constraints, object }: ValidationArguments) {
+  validate(value: any, { constraints, object: o }: ValidationArguments) {
     if (!value) return true
+
+    const object = o as Record<string, unknown>
 
     const requiredProps: PropVal[] = constraints
 

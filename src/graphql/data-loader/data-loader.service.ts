@@ -1,4 +1,4 @@
-import { AnyEntity, EntityName } from '@mikro-orm/core'
+import { AnyEntity, Collection, EntityName, Loaded } from '@mikro-orm/core'
 import { MongoEntityManager } from '@mikro-orm/mongodb'
 import { InjectEntityManager } from '@mikro-orm/nestjs'
 import { EntityManager } from '@mikro-orm/postgresql'
@@ -118,21 +118,24 @@ export class DataloaderService {
     return new DataLoader(async (childIds: readonly number[]) => {
       const mutIds = [...childIds]
 
-      const entities = await this.em.find(en, { [childKey]: { id: mutIds } } as any, { populate: [childKey] } as any)
+      const entities: Loaded<T>[] = await this.em.find(en, { [childKey]: { id: mutIds } } as any, { populate: [childKey] } as any)
 
-      // key: childId, value: (parent | null)
+      // key: childId
+      // val: parent | null
       const childIdsToParent: Record<number, typeof entities[number] | null> = childIds.reduce(
         (acc: Record<string, unknown>, c) => ({ ...acc, [c]: null }),
         {}
       )
 
       entities.forEach(entity => {
-        entity[childKey].getItems().forEach(child => {
+        const a: Collection<any, T> = entity[childKey] as any
+
+        a.getItems().forEach(child => {
           childIdsToParent[child.id] = entity
         })
       })
 
-      return childIds.map(vehicleId => childIdsToParent[vehicleId])
+      return childIds.map(vehicleId => childIdsToParent[vehicleId] as T)
     })
   }
 

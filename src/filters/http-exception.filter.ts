@@ -43,7 +43,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (typeof res === 'string') return false
 
     return (
-      Object.keys(res).length === 3 && ['message', 'statusCode', 'error'].every(prop => isDefined((res as MessagedExceptionResponse)[prop]))
+      Object.keys(res).length === 3 &&
+      (['message', 'statusCode', 'error'] as const).every(prop => isDefined((res as MessagedExceptionResponse)[prop]))
     )
   }
 

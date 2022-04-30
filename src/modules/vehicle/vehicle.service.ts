@@ -4,7 +4,6 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import { FileUpload } from 'graphql-upload'
 import path from 'path'
 import { FILE_UPLOAD_FOLDERS } from '../../constants/file-upload-folders'
-import { Organization } from '../organization/entities/organization.entity'
 import { OrganizationRepository } from '../organization/repositories/organization.repository'
 import { S3Service } from '../s3/s3.service'
 import { CreateSimCardDTO } from '../sim-card/dto/crud-sim-card.dto'
@@ -20,20 +19,20 @@ import { VehicleRepository } from './vehicle.repository'
 interface CreateVehicleArgs {
   dto: CreateVehicleDTO
   photo?: FileUpload | null
-  organization: Organization
+  userOrganization: number
 }
 
 interface UpdateVehicleArgs {
   id: number
   dto: UpdateVehicleDTO
   newPhoto?: FileUpload | null
-  userOrganization: Organization | number
+  userOrganization: number
 }
 
 interface SetTrackerArgs {
   vehicleId: number
   trackerIds: number[]
-  userOrganization: Organization | number
+  userOrganization: number
 }
 
 interface InstallNewTrackerArgs {
@@ -54,7 +53,8 @@ export class VehicleService {
     readonly organizationRepository: OrganizationRepository
   ) {}
 
-  async create({ dto, organization, photo }: CreateVehicleArgs): Promise<Vehicle> {
+  async create({ dto, userOrganization, photo }: CreateVehicleArgs): Promise<Vehicle> {
+    const organization = await this.organizationRepository.findOneOrFail({ id: userOrganization })
     const vehicle = Vehicle.create({ ...dto, organization })
 
     await this.vehicleRepository.assertUniquenessForColumn('plate', dto.plate)
@@ -104,8 +104,8 @@ export class VehicleService {
     }
 
     Object.keys(dto).forEach(f => {
-      const field = f as unknown as keyof typeof dto
-      if (dto[field] !== undefined) vehicle[field] = dto[field]
+      const field = f as unknown as keyof CreateVehicleDTO
+      if (dto[field] !== undefined) (vehicle as any)[field] = dto[field]
     })
 
     const vehicleHadOldPhoto = typeof oldPhotoS3Key === 'string' && !!oldPhotoS3Key

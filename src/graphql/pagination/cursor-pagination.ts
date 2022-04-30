@@ -1,13 +1,15 @@
+import { Type } from '@nestjs/common'
 import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
+import { Transform, TransformFnParams } from 'class-transformer'
 import { IsInt, IsOptional, IsString, Min } from 'class-validator'
 import { is } from '../../utils/coverage-helpers'
-import { Transform } from 'class-transformer'
-import { Type } from '@nestjs/common'
 
 const b64Encode = (x: string) => Buffer.from(x).toString('base64')
 const b64Decode = (x: string) => Buffer.from(x, 'base64').toString()
 
-const decodeIfNotNill = ({ value }) => (typeof value === 'string' && !!value ? b64Decode(value) : undefined)
+const decodeIfNotNill = ({ value }: TransformFnParams) => {
+  return typeof value === 'string' && !!value ? b64Decode(value) : undefined
+}
 
 @ArgsType()
 export class CursorPagination {

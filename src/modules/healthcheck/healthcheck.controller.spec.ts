@@ -1,8 +1,8 @@
-import { HealthcheckController } from './healthcheck.controller'
 import { UnauthorizedException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { createEmptyMocksFor } from '../../../test/utils/mocking'
 import { PositionService } from '../positions/position.service'
+import { HealthcheckController } from './healthcheck.controller'
 
 describe('HealthcheckController', () => {
   let controller: HealthcheckController
@@ -45,14 +45,14 @@ describe('HealthcheckController', () => {
       process.env.NODE_ENV = 'development'
       process.env.API_PORT = '3000'
 
-      const envVars = controller.showAllowedEnvVars()
+      const envVars = controller.showAllowedEnvVars() as Record<string, unknown>
 
       expect(envVars['API_PORT']).toBeDefined()
     })
 
     it('Does not expose sensitive env vars', () => {
       process.env.NODE_ENV = 'development'
-      const envVars = controller.showAllowedEnvVars()
+      const envVars = controller.showAllowedEnvVars() as Record<string, unknown>
 
       const sensitiveVars = [
         'JWT_SECRET',

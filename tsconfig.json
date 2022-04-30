@@ -10,7 +10,7 @@
     "sourceMap": true,
     "outDir": "./dist",
     "incremental": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "noUnusedLocals": true,
     "noUnusedParameters": false,
     "skipLibCheck": true,

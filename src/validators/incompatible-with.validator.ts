@@ -1,11 +1,11 @@
 import {
-  ValidatorConstraintInterface,
-  ValidationArguments,
-  ValidatorConstraint,
-  registerDecorator,
-  ValidationOptions,
   isDefined,
-  ValidateIf
+  registerDecorator,
+  ValidateIf,
+  ValidationArguments,
+  ValidationOptions,
+  ValidatorConstraint,
+  ValidatorConstraintInterface
 } from 'class-validator'
 
 @ValidatorConstraint({ async: false })
@@ -21,7 +21,7 @@ class IncompatibleWithConstraint implements ValidatorConstraintInterface {
   }
 
   getFailedConstraints(args: ValidationArguments) {
-    return args.constraints.filter(prop => isDefined(args.object[prop]))
+    return args.constraints.filter(prop => isDefined((args.object as Record<string, unknown>)[prop]))
   }
 }
 

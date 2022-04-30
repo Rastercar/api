@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing'
-import { GoogleStrategy } from './google.strategy'
-import { Strategy } from 'passport-google-oauth20'
 import { ConfigService } from '@nestjs/config'
+import { Test, TestingModule } from '@nestjs/testing'
+import { Strategy } from 'passport-google-oauth20'
+import { GoogleStrategy } from './google.strategy'
 
 describe('Google Strategy', () => {
   let configService!: ConfigService
@@ -15,7 +15,7 @@ describe('Google Strategy', () => {
     configService = module.get(ConfigService)
 
     cfgServiceSpy = jest.spyOn(configService, 'get').mockImplementation((thingToGet: string) => {
-      const dict = {
+      const dict: Record<string, string> = {
         API_BASE_URL: 'https://mysite.com',
         GOOGLE_OAUTH_CLIENT_ID: 'oauthCLientId',
         GOOGLE_OAUTH_CLIENT_SECRET: 'oauthClientSecret'
